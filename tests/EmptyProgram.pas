@@ -1,0 +1,5 @@
+program EmptyProgram;
+
+begin
+
+end.

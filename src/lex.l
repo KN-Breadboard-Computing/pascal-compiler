@@ -1,23 +1,25 @@
 %{
+#define NO_YY_WRAP
+#define YY_NO_UNPUT
+#define YY_NO_INPUT
+
+#define LEX_DEBUG
+
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string>
 
-#include "ast/ast_node.hpp"
-#include "out/yacc.tab.h"
+#include "../out/parser.hpp"
 
 uint64_t linesCounter = 1;
-
-int yywrap(void);
-int yylex(void);
 
 static int createToken(int token);
 static int createVariable(int token);
 static int createNumber(int token);
-
-static void commentError(void);
+static int createChar(int token);
+static int createString(int token);
 %}
+
+%x COMMENT1 COMMENT2
 
 A [aA]
 B [bB]
@@ -49,153 +51,156 @@ NQUOTE [^']
 
 %%
 
-{A}{N}{D} return T_AND;
-{A}{R}{R}{A}{Y} return T_ARRAY;
-{B}{E}{G}{I}{N} return T_BEGIN;
-{C}{A}{S}{E} return T_CASE;
-{C}{O}{N}{S}{T} return T_CONST;
-{D}{O} return T_DO;
-{D}{O}{W}{N}{T}{O} return T_DOWNTO;
-{E}{L}{S}{E} return T_ELSE;
-{E}{N}{D} return T_END;
-{F}{O}{R} return T_FOR;
-{F}{U}{N}{C}{T}{I}{O}{N} return T_FUNCTION;
-{I}{F} return T_IF;
-{N}{O}{T} return T_NOT;
-{O}{F} return T_OF;
-{O}{R} return T_OR;
-{P}{R}{O}{C}{E}{D}{U}{R}{E} return T_PROCEDURE;
-{P}{R}{O}{G}{R}{A}{M} return T_PROGRAM;
-{R}{E}{A}{D} return T_READ;
-{R}{E}{C}{O}{R}{D} return T_RECORD;
-{R}{E}{P}{E}{A}{T} return T_REPEAT;
-{T}{H}{E}{N} return T_THEN;
-{T}{O} return T_TO;
-{T}{Y}{P}{E} return T_TYPE;
-{U}{N}{T}{I}{L} return T_UNTIL;
-{V}{A}{R} return T_VAR;
-{W}{H}{I}{L}{E} return T_WHILE;
+"{"                  {   BEGIN(COMMENT1);                                                                              }
+<COMMENT1>[^}\n]+    {                                                                                                 }
+<COMMENT1>\n         {  linesCounter++;                                                                                }
+<COMMENT1><<EOF>>    {  std::cerr << "Error: unexpected end of file in comment at line " << linesCounter << std::endl; }
+<COMMENT1>"}"        {  BEGIN(INITIAL);                                                                                }
 
-{T}{R}{U}{E} return T_TRUE;
-{F}{A}{L}{S}{E} return T_FALSE;
-{M}{A}{X}{I}{N}{T} return T_MAXINT;
+"(*"                 {  BEGIN(COMMENT2);                                                                               }
+<COMMENT2>[^)*\n]+   {                                                                                                 }
+<COMMENT2>\n         {  linesCounter++;                                                                                }
+<COMMENT2><<EOF>>    {  std::cerr << "Error: unexpected end of file in comment at line " << linesCounter << std::endl; }
+<COMMENT2>"*)"       {  BEGIN(INITIAL);                                                                                }
+<COMMENT2>[*)]       {                                                                                                 }
 
-{C}{H}{R} return T_CHR;
-{O}{R}{D} return T_ORD;
-{P}{R}{E}{D} return T_PRED;
-{S}{U}{C}{C} return T_SUCC;
+{A}{N}{D}                                               {   return createToken(AND);                            }
+{A}{R}{R}{A}{Y}                                         {   return createToken(ARRAY);                          }
+{B}{E}{G}{I}{N}                                         {   return createToken(BBEGIN);                         }
+{C}{A}{S}{E}                                            {   return createToken(CASE);                           }
+{C}{O}{N}{S}{T}                                         {   return createToken(CONST);                          }
+{D}{O}                                                  {   return createToken(DO);                             }
+{D}{O}{W}{N}{T}{O}                                      {   return createToken(DOWNTO);                         }
+{E}{L}{S}{E}                                            {   return createToken(ELSE);                           }
+{E}{N}{D}                                               {   return createToken(END);                            }
+{F}{O}{R}                                               {   return createToken(FOR);                            }
+{F}{U}{N}{C}{T}{I}{O}{N}                                {   return createToken(FUNCTION);                       }
+{I}{F}                                                  {   return createToken(IF);                             }
+{N}{O}{T}                                               {   return createToken(NOT);                            }
+{O}{F}                                                  {   return createToken(OF);                             }
+{O}{R}                                                  {   return createToken(OR);                             }
+{P}{R}{O}{C}{E}{D}{U}{R}{E}                             {   return createToken(PROCEDURE);                      }
+{P}{R}{O}{G}{R}{A}{M}                                   {   return createToken(PROGRAM);                        }
+{R}{E}{A}{D}                                            {   return createToken(READ);                           }
+{R}{E}{C}{O}{R}{D}                                      {   return createToken(RECORD);                         }
+{R}{E}{P}{E}{A}{T}                                      {   return createToken(REPEAT);                         }
+{T}{H}{E}{N}                                            {   return createToken(THEN);                           }
+{T}{O}                                                  {   return createToken(TO);                             }
+{T}{Y}{P}{E}                                            {   return createToken(TYPE);                           }
+{U}{N}{T}{I}{L}                                         {   return createToken(UNTIL);                          }
+{V}{A}{R}                                               {   return createToken(VAR);                            }
+{W}{H}{I}{L}{E}                                         {   return createToken(WHILE);                          }
 
-{W}{R}{I}{T}{E} return T_WRITE;
-{W}{R}{I}{T}{E}{L}{N} return T_WRITELN;
+{T}{R}{U}{E}                                            {   return createToken(TRUE);                           }
+{F}{A}{L}{S}{E}                                         {   return createToken(FALSE);                          }
+{M}{A}{X}{I}{N}{T}                                      {   return createToken(MAXINT);                         }
 
-{I}{N}{T}{E}{G}{E}{R} return T_INTEGER_TYPE;
-{C}{H}{A}{R} return T_CHAR_TYPE;
-{S}{T}{R}{I}{N}{G} return T_STRING_TYPE;
-{B}{O}{O}{L}{E}{A}{N} return T_BOOLEAN_TYPE;
+{A}{B}{S}                                               {   return createToken(ABS);                            }
+{C}{H}{R}                                               {   return createToken(CHR);                            }
+{O}{D}{D}                                               {   return createToken(ODD);                            }
+{O}{R}{D}                                               {   return createToken(ORD);                            }
+{P}{R}{E}{D}                                            {   return createToken(PRED);                           }
+{S}{U}{C}{C}                                            {   return createToken(SUCC);                           }
 
-[a-zA-Z]([a-zA-Z0-9_])* {
-	yylval.sval = (char*)malloc(strlen(yytext)+1);
-	strcpy(yylval.sval,yytext);
-    return T_IDENTIFIER;
-}
+{W}{R}{I}{T}{E}                                         {   return createToken(WRITE);                          }
+{W}{R}{I}{T}{E}{L}{N}                                   {   return createToken(WRITELN);                        }
 
-'({NQUOTE}|'')({NQUOTE}|'')+' {
-    yylval.sval = yytext;
-    return T_STRING;
-}
+{I}{N}{T}{E}{G}{E}{R}                                   {   return createToken(INT_TYPE);                       }
+{C}{H}{A}{R}                                            {   return createToken(CHAR_TYPE);                      }
+{S}{T}{R}{I}{N}{G}                                      {   return createToken(STRING_TYPE);                    }
+{B}{O}{O}{L}{E}{A}{N}                                   {   return createToken(BOOL_TYPE);                      }
 
-'({NQUOTE}|'')' {
-    yylval.sval = yytext;
-    return T_CHAR;
-}
+":="                                                    {   return createToken(ASSIGN);                         }
+":"                                                     {   return createToken(COLON);                          }
+","                                                     {   return createToken(COMMA);                          }
+"."                                                     {   return createToken(DOT);                            }
+".."                                                    {   return createToken(DOUBLEDOT);                      }
+"="                                                     {   return createToken(EQUAL);                          }
+">="                                                    {   return createToken(GE);                             }
+">"                                                     {   return createToken(GT);                             }
+"["                                                     {   return createToken(LB);                             }
+"<="                                                    {   return createToken(LE);                             }
+"("                                                     {   return createToken(LP);                             }
+"<"                                                     {   return createToken(LT);                             }
+"-"                                                     {   return createToken(MINUS);                          }
+"<>"                                                    {   return createToken(UNEQUAL);                        }
+"+"                                                     {   return createToken(PLUS);                           }
+"]"                                                     {   return createToken(RB);                             }
 
-[0-9]+ {
-    yylval.ival = atoi(yytext);
-    return T_INT;
-}
+")"                                                     {   return createToken(RP);                             }
+";"                                                     {   return createToken(SEMICOLON);                      }
+"/"                                                     {   return createToken(DIV);                            }
+"*"                                                     {   return createToken(MUL);                            }
+"%"                                                     {   return createToken(MOD);                            }
 
-":=" return T_ASSIGN;
-":" return T_COLON;
-"," return T_COMMA;
-"." return T_DOT;
-".." return T_DOTDOT;
-"=" return T_EQUAL;
-">=" return T_GE;
-">" return T_GT;
-"[" return T_LB;
-"<=" return T_LE;
-"(" return T_LP;
-"<" return T_LT;
-"-" return T_MINUS;
-"<>" return T_UNEQUAL;
-"+" return T_PLUS;
-"]" return T_RB;
+[a-zA-Z]([a-zA-Z0-9_])*                                 {   return createVariable(IDENT_NAME);                  }
+[0-9]+                                                  {   return createNumber(INTEGER);                       }
+'({NQUOTE}|'')'                                         {   return createChar(CHAR);                            }
+'({NQUOTE}|'')({NQUOTE}|'')+'                           {   return createString(STRING);                        }
 
-")" return T_RP;
-";" return T_SEMI;
-"/" return T_DIV;
-"*" return T_MUL;
-"%" return T_MOD;
+[ \t\f]                                                 {                                                       }
 
-"{" {
-    register int c;
-    while ((c = yyinput()))
-    {
-        if (c == '}')
-            break;
-        else if (c == '\n')
-            linesCounter++;
-        else if (c == -1)
-            commentError();
-    }
-}
+"\n"                                                    {   linesCounter++;                                     }
 
-"(*" {
-    register int c;
-    while ((c = yyinput()))
-    {
-        if (c=='*')
-        {
-            if ((c = yyinput()) == ')')
-                break;
-            else
-                unput (c);
-        }
-        else if (c == '\n')
-            linesCounter++;
-        else if(c == -1)
-            commentError();
-    }
-}
-
-[\t\f] {}
-
-"\n" { linesCounter ++; }
-
-" " {}
-
-. { fprintf (stderr, "'%c' (0%o): illegal charcter at line %d\n",
-              yytext[0], yytext[0], linesCounter); }
- 
+.                 {   std::cerr << "Error:  illegal character " << yytext[0] << " at line " << linesCounter;    }
 
 %%
 
-int yywrap(void) {
-    return 1;
-}
-
 static int createToken(int token) {
+    #ifdef LEX_DEBUG
+        std::cout << "Lex debug: general token [" << linesCounter << "] `" << yytext << "`\n";
+    #endif
 
+    yylval.token.numericalValue = 0;
+    yylval.token.stringValue = nullptr;
+
+    return token;
 }
 
 static int createVariable(int token) {
+    #ifdef LEX_DEBUG
+        std::cout << "Lex debug: variable token [" << linesCounter << "] `" << yytext << "`\n";
+    #endif
 
+    yylval.token.numericalValue = 0;
+    yylval.token.stringValue = yytext;
+
+    return token;
 }
 
 static int createNumber(int token) {
+    #ifdef LEX_DEBUG
+        std::cout << "Lex debug: number token [" << linesCounter << "] `" << yytext << "`\n";
+    #endif
 
+    yylval.token.numericalValue = strtoull(yytext, nullptr, 10);
+    yylval.token.stringValue = nullptr;
+
+    return token;
 }
 
-static void commentError(void) {
-    std::cerr << "Error: unexpected end of file in comment at line " << linesCounter << std::endl;
+static int createChar(int token) {
+    #ifdef LEX_DEBUG
+        std::cout << "Lex debug: char token [" << linesCounter << "] `" << yytext[0] << "`\n";
+    #endif
+
+    yylval.token.numericalValue = yytext[1];
+    yylval.token.stringValue = nullptr;
+
+    return token;
+}
+
+static int createString(int token) {
+    #ifdef LEX_DEBUG
+        std::cout << "Lex debug: string token [" << linesCounter << "] `" << yytext << "`\n";
+    #endif
+
+    yylval.token.numericalValue = 0;
+    yylval.token.stringValue = yytext;
+
+    return token;
+}
+
+int yywrap(void) {
+    return 1;
 }
