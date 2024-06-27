@@ -571,7 +571,7 @@ char *yytext;
 #define YY_NO_UNPUT
 #define YY_NO_INPUT
 
-#define LEX_DEBUG
+#undef LEX_DEBUG
 
 #include <iostream>
 #include <string>

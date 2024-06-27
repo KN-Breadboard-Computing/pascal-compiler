@@ -388,7 +388,7 @@ Nonterminals, with rules where they appear
     routine_body <routineBodyNode> (102)
         on left: 70
         on right: 5
-    compound_stmt <statementNodeList> (103)
+    compound_stmt <compoundStatementNode> (103)
         on left: 71 72
         on right: 70 79
     stmt_list <statementNodeList> (104)
@@ -400,52 +400,52 @@ Nonterminals, with rules where they appear
     no_label_stmt <statementNode> (106)
         on left: 78 79 80 81 82 83 84 85 86
         on right: 76 77
-    assign_stmt <token> (107)
+    assign_stmt <assignNode> (107)
         on left: 87 88 89
         on right: 78
-    goto_stmt <token> (108)
+    goto_stmt <gotoNode> (108)
         on left: 90
         on right: 80
-    if_stmt <token> (109)
+    if_stmt <ifNode> (109)
         on left: 91 92
         on right: 81
-    else_clause <token> (110)
+    else_clause <ifNode> (110)
         on left: 93 94
         on right: 91 92
-    repeat_stmt <token> (111)
+    repeat_stmt <repeatNode> (111)
         on left: 95 96
         on right: 82
-    while_stmt <token> (112)
+    while_stmt <whileNode> (112)
         on left: 97
         on right: 83
-    case_stmt <token> (113)
+    case_stmt <caseNode> (113)
         on left: 98
         on right: 84
-    case_expr_list <token> (114)
+    case_expr_list <caseExprList> (114)
         on left: 99 100
         on right: 98 99
-    case_expr <token> (115)
+    case_expr <caseExpr> (115)
         on left: 101 102
         on right: 99 100
-    for_stmt <token> (116)
+    for_stmt <forNode> (116)
         on left: 103 104
         on right: 85
-    proc_stmt <token> (117)
+    proc_stmt <callNode> (117)
         on left: 105 106 107 108 109 110
         on right: 86
-    args_list <token> (118)
+    args_list <argsList> (118)
         on left: 111 112
         on right: 106 108 110 111 130 137 138 139 140 141 142
-    expression <token> (119)
+    expression <expressionNode> (119)
         on left: 113 114 115 116 117 118 119
         on right: 87 88 89 91 92 95 97 98 103 104 111 112 113 114 115 116 117 118 132 135
-    expr <token> (120)
+    expr <expressionNode> (120)
         on left: 120 121 122 123
         on right: 113 114 115 116 117 118 119 120 121 122
-    term <token> (121)
+    term <expressionNode> (121)
         on left: 124 125 126 127 128
         on right: 120 121 122 123 124 125 126 127
-    factor <token> (122)
+    factor <expressionNode> (122)
         on left: 129 130 131 132 133 134 135 136 137 138 139 140 141 142
         on right: 107 124 125 126 127 128 133 134
 

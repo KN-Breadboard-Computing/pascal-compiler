@@ -19,7 +19,7 @@ class RoutineHeadNode : public AstNode {
   RoutineHeadNode(std::vector<std::pair<IdentifierNode *, ConstantNode *> *> *constantsPart,
 				  std::vector<std::pair<IdentifierNode *, TypeNode *> *> *typesPart,
 				  std::vector<std::pair<std::vector<ast::IdentifierNode *> *, TypeNode *> *> *variablesPart,
-				  std::vector<RoutineDeclarationNode> *routinePart) :
+				  std::vector<RoutineDeclarationNode*> *routinePart) :
 	  AstNode{Type::ROUTINE_HEAD},
 	  constantsPart_{constantsPart},
 	  typesPart_{typesPart},
@@ -48,7 +48,7 @@ class RoutineHeadNode : public AstNode {
 	return variablesPart_;
   }
 
-  [[nodiscard]] const std::unique_ptr<std::vector<RoutineDeclarationNode>> &getRoutinePart() const {
+  [[nodiscard]] const std::unique_ptr<std::vector<RoutineDeclarationNode*>> &getRoutinePart() const {
 	return routinePart_;
   }
 
@@ -65,7 +65,7 @@ class RoutineHeadNode : public AstNode {
 	variablesPart_ = std::move(variablesPart);
   }
 
-  void setRoutinePart(std::unique_ptr<std::vector<RoutineDeclarationNode>> &routinePart) {
+  void setRoutinePart(std::unique_ptr<std::vector<RoutineDeclarationNode*>> &routinePart) {
 	routinePart_ = std::move(routinePart);
   }
 
@@ -73,7 +73,7 @@ class RoutineHeadNode : public AstNode {
   std::unique_ptr<std::vector<std::pair<IdentifierNode *, ConstantNode *> *>> constantsPart_;
   std::unique_ptr<std::vector<std::pair<IdentifierNode *, TypeNode *> *>> typesPart_;
   std::unique_ptr<std::vector<std::pair<std::vector<ast::IdentifierNode *> *, TypeNode *> *>> variablesPart_;
-  std::unique_ptr<std::vector<RoutineDeclarationNode>> routinePart_;
+  std::unique_ptr<std::vector<RoutineDeclarationNode*>> routinePart_;
 };
 } // namespace ast
 

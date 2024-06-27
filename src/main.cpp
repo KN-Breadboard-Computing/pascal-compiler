@@ -3,7 +3,7 @@
 
 #include "ast/program_node.hpp"
 
-void parse(const std::string& inputFileName, ast::ProgramNode& ast, std::vector<std::string>& errors);
+std::unique_ptr<ast::ProgramNode> parse(const std::string& inputFileName, std::vector<std::string>& errors);
 
 int main(int argc, char *argv[]) {
   if (argc != 3) {
@@ -14,10 +14,8 @@ int main(int argc, char *argv[]) {
   std::string inputFileName{argv[1]};
   std::string outputFileName{argv[2]};
 
-  ast::ProgramNode ast;
   std::vector<std::string> errors;
-
-  parse(inputFileName, ast, errors);
+  auto program = parse(inputFileName, errors);
 
   return 0;
 }

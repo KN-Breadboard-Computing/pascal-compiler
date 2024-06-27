@@ -1,4 +1,6 @@
 %{
+#include <cstdio>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -11,6 +13,7 @@ static void yyerror(const char *msg);
 static int yyparse(void);
 int yylex(void);
 
+extern FILE* yyin;
 extern uint64_t linesCounter;
 %}
 
@@ -20,11 +23,17 @@ extern uint64_t linesCounter;
     #include <stdlib.h>
     #include <string>
 
+    #include "../src/ast/arguments_list_node.hpp"
     #include "../src/ast/array_type_node.hpp"
+    #include "../src/ast/assign_node.hpp"
     #include "../src/ast/ast_node.hpp"
+    #include "../src/ast/call_node.hpp"
     #include "../src/ast/case_node.hpp"
+    #include "../src/ast/compound_statement_node.hpp"
     #include "../src/ast/constant_node.hpp"
+    #include "../src/ast/expression_node.hpp"
     #include "../src/ast/for_node.hpp"
+    #include "../src/ast/goto_node.hpp"
     #include "../src/ast/identifier_node.hpp"
     #include "../src/ast/if_node.hpp"
     #include "../src/ast/params_group_node.hpp"
@@ -60,7 +69,7 @@ extern uint64_t linesCounter;
     std::pair<ast::IdentifierNode*, ast::TypeNode*>* typePartListElement;
     std::vector<std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>*>* varPartList;
     std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>* varPartListElement;
-    std::vector<ast::RoutineDeclarationNode>* routinePartList;
+    std::vector<ast::RoutineDeclarationNode*>* routinePartList;
     ast::ParamsNode* paramsNode;
     std::vector<ast::ParamsGroupNode*>* paramsGroupList;
     ast::ParamsGroupNode* paramsGroupNode;
@@ -74,8 +83,21 @@ extern uint64_t linesCounter;
     std::vector<ast::IdentifierNode*>* identifierList;
     ast::IdentifierNode* identifierNode;
     ast::RoutineBodyNode* routineBodyNode;
+    ast::CompoundStatementNode* compoundStatementNode;
     std::vector<ast::StatementNode*>* statementNodeList;
     ast::StatementNode* statementNode;
+    ast::AssignNode* assignNode;
+    ast::GotoNode* gotoNode;
+    ast::CaseNode* caseNode;
+    ast::ForNode* forNode;
+    ast::WhileNode* whileNode;
+    ast::RepeatNode* repeatNode;
+    ast::IfNode* ifNode;
+    ast::CallNode* callNode;
+    ast::ExpressionNode* expressionNode;
+    std::vector<std::pair<ast::AstNode*, ast::StatementNode*>*>* caseExprList;
+    std::pair<ast::AstNode*, ast::StatementNode*>* caseExpr;
+    ast::ArgumentsListNode* argsList;
 }
 
 %start program
@@ -126,14 +148,21 @@ extern uint64_t linesCounter;
 %type <identifierList> name_list
 %type <identifierNode> identifier
 %type <routineBodyNode> routine_body
-%type <statementNodeList> compound_stmt stmt_list
+%type <compoundStatementNode> compound_stmt
+%type <statementNodeList> stmt_list
 %type <statementNode> stmt no_label_stmt
-
-%type <token> assign_stmt goto_stmt if_stmt
-%type <token> else_clause repeat_stmt case_stmt case_expr_list case_expr for_stmt proc_stmt args_list expr
-%type <token> term factor
-%type <token> while_stmt expression
-
+%type <assignNode> assign_stmt
+%type <gotoNode> goto_stmt
+%type <caseNode> case_stmt
+%type <forNode> for_stmt
+%type <whileNode> while_stmt
+%type <repeatNode> repeat_stmt
+%type <ifNode> if_stmt else_clause
+%type <callNode> proc_stmt
+%type <expressionNode> expression expr term factor
+%type <caseExprList> case_expr_list
+%type <caseExpr> case_expr
+%type <argsList> args_list
 %%
 
 program :
@@ -183,54 +212,54 @@ routine_head :
 
 routine_part :
     {
-        $$ = new std::vector<ast::RoutineDeclarationNode>();
+        $$ = new std::vector<ast::RoutineDeclarationNode*>();
     }
 |
     routine_part fun_decl {
         $$ = $1;
-        $$->push_back(*$2);
+        $$->push_back($2);
     }
 |
     routine_part proc_decl {
        $$ = $1;
-       $$->push_back(*$2);
+       $$->push_back($2);
     }
 |
     fun_decl {
-        $$ = new std::vector<ast::RoutineDeclarationNode>();
-        $$->push_back(*$1);
+        $$ = new std::vector<ast::RoutineDeclarationNode*>();
+        $$->push_back($1);
     }
 |
     proc_decl {
-        $$ = new std::vector<ast::RoutineDeclarationNode>();
-        $$->push_back(*$1);
+        $$ = new std::vector<ast::RoutineDeclarationNode*>();
+        $$->push_back($1);
     }
 ;
 
 fun_decl :
     fun_head SEMICOLON routine SEMICOLON {
         $$ = $1;
-        $$->setRoutine(std::make_unique<ast::RoutineNode>($3));
+        $$->setRoutine(std::unique_ptr<ast::RoutineNode>($3));
         $$->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
     }
 |
     fun_head SEMICOLON routine {
         $$ = $1;
-        $$->setRoutine(std::make_unique<ast::RoutineNode>($3));
+        $$->setRoutine(std::unique_ptr<ast::RoutineNode>($3));
         $$->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
         parsingErrors.push_back("error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
 |
     fun_head routine SEMICOLON {
         $$ = $1;
-        $$->setRoutine(std::make_unique<ast::RoutineNode>($2));
+        $$->setRoutine(std::unique_ptr<ast::RoutineNode>($2));
         $$->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
         parsingErrors.push_back("error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
 |
     fun_head routine {
         $$ = $1;
-        $$->setRoutine(std::make_unique<ast::RoutineNode>($2));
+        $$->setRoutine(std::unique_ptr<ast::RoutineNode>($2));
         $$->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
         parsingErrors.push_back("error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
@@ -246,7 +275,7 @@ fun_head :
 proc_decl :
     proc_head SEMICOLON routine SEMICOLON {
         $$ = $1;
-        $$->setRoutine(std::make_unique<ast::RoutineNode>($3));
+        $$->setRoutine(std::unique_ptr<ast::RoutineNode>($3));
         $$->setRoutineType(ast::RoutineDeclarationNode::RoutineType::PROCEDURE);
     }
 ;
@@ -531,11 +560,11 @@ routine_body :
 
 compound_stmt :
     BBEGIN stmt_list END {
-        $$ = $2;
+        $$ = new ast::CompoundStatementNode($2);
     } 
 |	
     BBEGIN stmt_list {
-        $$ = $2;
+        $$ = new ast::CompoundStatementNode($2);
         parsingErrors.push_back("error at line " + std::to_string(linesCounter) + ", lack of end");
     }
 ;
@@ -606,232 +635,275 @@ no_label_stmt :
     }
 ;
 
-assign_stmt         :   identifier ASSIGN expression
-                        {   $$=new TreeDefine(ASSIGN,line_no);
-                            $$->addChild($1);
-                            $$->addChild($3);
-                            $$->setAttribute(OK_ID,4);
-                        }
-                    |   identifier LB expression RB ASSIGN expression
-                        {   $$=new TreeDefine(ASSIGN,line_no);
-                            $$->addChild($1);
-                            ($$->getChildren().at(0))->addChild($3);
-                            $$->addChild($6);
-                            $$->setAttribute(OK_ARRAY,4);
-                        }
-                    |
-                        identifier DOT identifier ASSIGN expression
-                        {   $$=new TreeDefine(ASSIGN,line_no);
-                            $$->addChild($1);
-                            ($$->getChildren().at(0))->addChild($3);
-                            $$->addChild($5);
-                            $$->setAttribute(OK_RECORD,4);
-                        }
-                    ;
-goto_stmt           :   GOTO  INTEGER
-                        {   $$=new TreeDefine(GOTO,line_no);
-                            $$->setAttribute($2);
-                        }
-                    ;
-if_stmt             :   IF expression THEN stmt  else_clause
-                        {   $$=new TreeDefine(IF,line_no);
-                            $$->addChild($2);
-                            $$->addChild($4);
-                            $$->addChild($5);
-                        }
-                    |	IF expression  stmt  else_clause
-                        {   $$=new TreeDefine(IF,line_no);
-                            $$->addChild($2);
-                            $$->addChild($3);
-                            $$->addChild($4);
-                             parsingErrors.push_back("error at line " + std::to_string(line_no) + ", lack of then");
-                        }
-                    ;
-else_clause         :   {$$=nullptr;}
-                    |   ELSE  stmt    {$$=$2;}
-                    ;
-repeat_stmt         :   REPEAT stmt_list UNTIL expression
-                        {
-                            $$=new TreeDefine(REPEAT,line_no);
-                            $$->addChild($2);
-                            $$->addChild($4);
-                        }
-                    |	{}
-                    ;
-while_stmt          :   WHILE expression DO stmt
-                        {   $$=new TreeDefine(WHILE,line_no);
-                            $$->addChild($2);
-                            $$->addChild($4);
-                        };
-case_stmt           :   CASE expression OF case_expr_list END
-                        {   $$=new TreeDefine(SK_CASE,line_no);
-                            $$->addChild($2);
-                            $$->addChild($4);
-                        };
-case_expr_list      :   case_expr_list  case_expr
-                        {   TreeNode t=$1;
-                            if(t!=nullptr){
-                                while(t->getSibling()!=nullptr)
-                                  t=t->getSibling();
-                                t->setSibling($2);
-                                $$=$1;
-                            }
-                            else
-                                $$=$2;
-                        }
-                    |   case_expr   {$$=$1;};
-case_expr           :   const_value COLON stmt SEMICOLON
-                        {
-                            $$=new TreeDefine(EK_CASE,line_no);
-                            $$->addChild($1);
-                            $$->addChild($3);
-                        }
-                    |   identifier  COLON stmt SEMICOLON
-                        {
-                            $$=new TreeDefine(EK_CASE,line_no);
-                            $$->addChild($1);
-                            $$->addChild($3);
-                        };
-for_stmt            :   FOR identifier ASSIGN expression TO expression DO stmt
-                        {
-                            $$=new TreeDefine(FOR,line_no);
-                            $$->addChild($2);
-                            $$->addChild($4);
-                            $$->addChild($6);
-                            $$->addChild($8);
-                            $$->setAttribute(TO,4);
-                        }
-                    |   FOR identifier ASSIGN expression DOWNTO expression DO stmt
-                        {
-                            $$=new TreeDefine(FOR,line_no);
-                            $$->addChild($2);
-                            $$->addChild($4);
-                            $$->addChild($6);
-                            $$->addChild($8);
-                            $$->setAttribute(DOWNTO,4);
-                        };
-proc_stmt           :   identifier
-                        {   $$=new TreeDefine(PROC_ID,line_no);
-                            $$->setAttribute($1->getAttribute());
-                        }
-                    |   identifier LP args_list RP
-                        {   $$=new TreeDefine(PROC_ID,line_no);
-                            $$->setAttribute($1->getAttribute());
-                            $$->addChild($3);
-                        }
-                    |   READ LP factor RP
-                        {
-                            $$=new TreeDefine(PROC_SYS,line_no);
-                            $$->setAttribute(READ,4);
-                            $$->addChild($3);
-                        }
-                    |   WRITE LP args_list RP
-                        {   $$=new TreeDefine(PROC_SYS,line_no);
-                            $$->setAttribute(WRITE,4);
-                            $$->addChild($3);
-                        }
-                    |   WRITELN
-                        {   $$=new TreeDefine(PROC_SYS,line_no);
-                            $$->setAttribute(WRITELN,4);
-                        }
-                    |   WRITELN LP args_list RP
-                        {   $$=new TreeDefine(PROC_SYS,line_no);
-                            $$->setAttribute(WRITELN,4);
-                            $$->addChild($3);
-                        };
-args_list           :   args_list COMMA expression
-                        {   TreeNode t=$1;
-                            if(t!=nullptr){
-                                while(t->getSibling()!=nullptr)
-                                  t=t->getSibling();
-                                t->setSibling($3);
-                                $$=$1;
-                            }
-                            else
-                                $$=$3;
-                        }
-                    |   expression  {$$=$1;};
+assign_stmt :
+    identifier ASSIGN expression {
+        $$ = new ast::AssignToVariableNode($1, $3);
+    }
+|
+    identifier LB expression RB ASSIGN expression {
+        $$ = new ast::AssignToArrayNode($1, $3, $6);
+    }
+|
+    identifier DOT identifier ASSIGN expression {
+        $$ = new ast::AssignToRecordFieldNode($1, $3, $5);
+    }
+;
 
-expression          :   expression GE expr {   $$=new TreeDefine($1,$3,GE,line_no); }
-                    |   expression GT expr {   $$=new TreeDefine($1,$3,GT,line_no); }
-                    |   expression LE expr {   $$=new TreeDefine($1,$3,LE,line_no); }
-                    |   expression LT expr {   $$=new TreeDefine($1,$3,LT,line_no); }
-                    |   expression EQUAL expr {   $$=new TreeDefine($1,$3,EQUAL,line_no); }
-                    |   expression UNEQUAL expr {  $$=new TreeDefine($1,$3,UNEQUAL,line_no); }
-                    |   expr {   $$=$1;} ;
+goto_stmt :
+    GOTO INTEGER {
+        $$ = new ast::GotoNode($2.numericalValue);
+    }
+;
 
-expr                :   expr PLUS term  {   $$=new TreeDefine($1,$3,PLUS,line_no); }
-                    |   expr MINUS term  {  $$=new TreeDefine($1,$3,MINUS,line_no); }
-                    |   expr OR term  {     $$=new TreeDefine($1,$3,OR,line_no); }
-                    |   term {   $$=$1;} ;
+if_stmt :
+    IF expression THEN stmt else_clause {
+        $$ = new ast::IfNode($2, $4, $5);
+    }
+|
+    IF expression stmt else_clause {
+        $$ = new ast::IfNode($2, $3, $4);
+        parsingErrors.push_back("error at line " + std::to_string(linesCounter) + ", lack of then");
+    }
+;
 
-term                :   term MUL factor {   $$=new TreeDefine($1,$3,MUL,line_no); }
-                    |   term DIV factor {   $$=new TreeDefine($1,$3,DIV,line_no); }
-                    |   term MOD factor {   $$=new TreeDefine($1,$3,MOD,line_no); }
-                    |   term AND factor {   $$=new TreeDefine($1,$3,AND,line_no); }
-                    |   factor {$$=$1;} ;
+else_clause :
+    {
+        $$ = new ast::IfNode(nullptr, nullptr);
+    }
+|
+    ELSE stmt {
+        $$ = new ast::IfNode(nullptr, nullptr, $2);
+    }
+;
 
-factor              :   identifier
-                        {$$=$1;}
-                    |   identifier LP args_list RP
-                        {
-                            $$=new TreeDefine(FUNC_ID,line_no);
-                            $$->setAttribute($1->getAttribute());
-                            $$->addChild($3);
-                        }
-                    |   const_value {$$=$1;}
-                    |   LP expression RP    {$$=$2;}
-                    |   NOT factor
-                        {
-                           $$=new TreeDefine($2,nullptr,NOT,line_no);
-                        }
-                    |   MINUS factor
-                        {   $$=new TreeDefine($2, nullptr, MINUS, line_no);
-                        }
-                    |   identifier LB expression RB
-                        {   $$=$1;
-                            $$->addChild($3);
-                            $$->setExpType(EARRAY);
-                        }
-                    |   identifier DOT identifier
-                        {   $$=$1;
-                            $$->addChild($3);
-                            $$->setExpType(ERECORD);
-                        }
-                    |   ABS LP args_list RP
-                        {
-                            $$=new TreeDefine(ABS, $3,line_no);
-                        }
-                    |   CHR LP args_list RP
-                        {
-                            $$=new TreeDefine(CHR, $3,line_no);
-                        }
-                    |   ODD LP args_list RP
-                        {
-                            $$=new TreeDefine(ODD, $3,line_no);
-                        }
-                    |   ORD LP args_list RP
-                        {
+repeat_stmt :
+    REPEAT stmt_list UNTIL expression {
+        $$ = new ast::RepeatNode($4, $2);
+    }
+|
+    {
+    }
+;
 
-                            $$=new TreeDefine(ORD, $3,line_no);
-                        }
-                    |   PRED LP args_list RP
-                        {
-                            $$=new TreeDefine(PRED, $3,line_no);
-                        }
+while_stmt :
+    WHILE expression DO stmt {
+        $$ = new ast::WhileNode($2, $4);
+    }
+;
 
-                    |   SUCC LP args_list RP
-                        {   $$=new TreeDefine(SUCC, $3,line_no);
-                        }
-                    ;
+case_stmt :
+    CASE expression OF case_expr_list END {
+        $$ = new ast::CaseNode($2, $4);
+    }
+;
+
+case_expr_list :
+    case_expr_list case_expr {
+        $$ = $1;
+        $$->push_back($2);
+    }
+|
+    case_expr {
+        $$ = new std::vector<std::pair<ast::AstNode*, ast::StatementNode*>*>();
+        $$->push_back($1);
+    }
+;
+
+case_expr :
+    const_value COLON stmt SEMICOLON {
+        $$ = new std::pair<ast::AstNode*, ast::StatementNode*>($1, $3);
+    }
+|
+    identifier COLON stmt SEMICOLON {
+        $$ = new std::pair<ast::AstNode*, ast::StatementNode*>($1, $3);
+    }
+;
+
+for_stmt :
+    FOR identifier ASSIGN expression TO expression DO stmt {
+        $$ = new ast::ForNode($2, $4, $6, $8, ast::ForNode::Direction::INCREMENT);
+    }
+|
+    FOR identifier ASSIGN expression DOWNTO expression DO stmt {
+        $$ = new ast::ForNode($2, $4, $6, $8, ast::ForNode::Direction::DECREMENT);
+    }
+;
+
+proc_stmt :
+    identifier {
+        $$ = new ast::UserDefineCallNode($1, nullptr);
+    }
+|
+    identifier LP args_list RP {
+        $$ = new ast::UserDefineCallNode($1, $3);
+    }
+|
+    READ LP factor RP {
+        ast::ArgumentsListNode* args = new ast::ArgumentsListNode();
+        args->addArgument($3);
+        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::READ, args);
+    }
+|
+    WRITE LP args_list RP {
+        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITE, $3);
+    }
+|
+    WRITELN {
+        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITELN, nullptr);
+    }
+|
+    WRITELN LP args_list RP {
+        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITELN, $3);
+    }
+;
+
+args_list :
+    args_list COMMA expression {
+        $$ = $1;
+        $$->addArgument($3);
+    }
+|
+    expression  {
+        $$ = new ast::ArgumentsListNode();
+        $$->addArgument($1);
+    }
+;
+
+expression :
+    expression GE expr {
+        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::GREATER_EQUAL);
+    }
+|
+    expression GT expr {
+        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::GREATER);
+    }
+|
+    expression LE expr {
+        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::LESS_EQUAL);
+    }
+|
+    expression LT expr {
+        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::LESS);
+    }
+|
+    expression EQUAL expr {
+        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::EQUAL);
+    }
+|
+    expression UNEQUAL expr {
+        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::NOT_EQUAL);
+    }
+|
+    expr {
+        $$ = $1;
+    }
+;
+
+expr :
+    expr PLUS term {
+        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::ADDITION);
+    }
+|
+    expr MINUS term {
+        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::SUBTRACTION);
+    }
+|
+    expr OR term {
+        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::OR);
+    }
+|
+    term {
+        $$ = $1;
+    }
+;
+
+term :
+    term MUL factor {
+        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::MULTIPLICATION);
+    }
+|
+    term DIV factor {
+        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::DIVISION);
+    }
+|
+    term MOD factor {
+        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::MODULUS);
+    }
+|
+    term AND factor {
+        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::AND);
+    }
+|
+    factor {
+        $$ = $1;
+    }
+;
+
+factor :
+    identifier {
+        $$ = new ast::SpecialExpressionNode($1, ast::SpecialExpressionNode::FunctionName::VARIABLE);
+    }
+|
+    identifier LP args_list RP {
+        $$ = new ast::SpecialExpressionNode($1, $3, ast::SpecialExpressionNode::FunctionName::CALL);
+    }
+|
+    const_value {
+        $$ = new ast::SpecialExpressionNode($1, ast::SpecialExpressionNode::FunctionName::CONST);
+    }
+|
+    LP expression RP {
+        $$ = new ast::SpecialExpressionNode($2, ast::SpecialExpressionNode::FunctionName::PARENTHESIS);
+    }
+|
+    NOT factor {
+       $$ = new ast::ExpressionNode($2, ast::ExpressionNode::Operation::NOT);
+    }
+|
+    MINUS factor {
+        $$ = new ast::ExpressionNode($2, ast::ExpressionNode::Operation::NEGATION);
+    }
+|
+    identifier LB expression RB {
+        $$ = new ast::SpecialExpressionNode($1, $3, ast::SpecialExpressionNode::FunctionName::ARRAY_ACCESS);
+    }
+|
+    identifier DOT identifier {
+        $$ = new ast::SpecialExpressionNode($1, $3, ast::SpecialExpressionNode::FunctionName::RECORD_ACCESS);
+    }
+|
+    ABS LP args_list RP {
+        $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ABS);
+    }
+|
+    CHR LP args_list RP {
+        $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::CHR);
+    }
+|
+    ODD LP args_list RP {
+        $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ODD);
+    }
+|
+    ORD LP args_list RP {
+        $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ORD);
+    }
+|
+    PRED LP args_list RP {
+        $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::PRED);
+    }
+|
+    SUCC LP args_list RP {
+        $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::SUCC);
+    }
+;
 %%
 
 void yyerror(const char *s) {
     std::cerr << "Error: " << s << " at line " << linesCounter << std::endl;
 }
 
-void parse(const std::string& inputFileName, ast::ProgramNode& ast, std::vector<std::string>& errors) {
-    yyin = fopen(inputFileName, "r");
+std::unique_ptr<ast::ProgramNode> parse(const std::string& inputFileName, std::vector<std::string>& errors) {
+    yyin = fopen(inputFileName.c_str(), "r");
 
     if(yyin == nullptr) {
         std::cerr << "Cannot open file " << inputFileName << std::endl;
@@ -840,6 +912,6 @@ void parse(const std::string& inputFileName, ast::ProgramNode& ast, std::vector<
     yyparse();
     fclose(yyin);
 
-    ast = *resultAst;
-    errors = parsingErrors;
+    errors = std::move(parsingErrors);
+    return std::unique_ptr<ast::ProgramNode>(resultAst);
 }

@@ -45,17 +45,23 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 18 "src/yacc.y"
+#line 21 "src/yacc.y"
 
     #include <iostream>
     #include <stdlib.h>
     #include <string>
 
+    #include "../src/ast/arguments_list_node.hpp"
     #include "../src/ast/array_type_node.hpp"
+    #include "../src/ast/assign_node.hpp"
     #include "../src/ast/ast_node.hpp"
+    #include "../src/ast/call_node.hpp"
     #include "../src/ast/case_node.hpp"
+    #include "../src/ast/compound_statement_node.hpp"
     #include "../src/ast/constant_node.hpp"
+    #include "../src/ast/expression_node.hpp"
     #include "../src/ast/for_node.hpp"
+    #include "../src/ast/goto_node.hpp"
     #include "../src/ast/identifier_node.hpp"
     #include "../src/ast/if_node.hpp"
     #include "../src/ast/params_group_node.hpp"
@@ -77,7 +83,7 @@ extern int yydebug;
         char* stringValue;
     } Token;
 
-#line 81 "out/parser.hpp"
+#line 87 "out/parser.hpp"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -165,7 +171,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 51 "src/yacc.y"
+#line 60 "src/yacc.y"
 
     Token token;
     ast::ProgramNode* programNode;
@@ -178,7 +184,7 @@ union YYSTYPE
     std::pair<ast::IdentifierNode*, ast::TypeNode*>* typePartListElement;
     std::vector<std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>*>* varPartList;
     std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>* varPartListElement;
-    std::vector<ast::RoutineDeclarationNode>* routinePartList;
+    std::vector<ast::RoutineDeclarationNode*>* routinePartList;
     ast::ParamsNode* paramsNode;
     std::vector<ast::ParamsGroupNode*>* paramsGroupList;
     ast::ParamsGroupNode* paramsGroupNode;
@@ -192,10 +198,23 @@ union YYSTYPE
     std::vector<ast::IdentifierNode*>* identifierList;
     ast::IdentifierNode* identifierNode;
     ast::RoutineBodyNode* routineBodyNode;
+    ast::CompoundStatementNode* compoundStatementNode;
     std::vector<ast::StatementNode*>* statementNodeList;
     ast::StatementNode* statementNode;
+    ast::AssignNode* assignNode;
+    ast::GotoNode* gotoNode;
+    ast::CaseNode* caseNode;
+    ast::ForNode* forNode;
+    ast::WhileNode* whileNode;
+    ast::RepeatNode* repeatNode;
+    ast::IfNode* ifNode;
+    ast::CallNode* callNode;
+    ast::ExpressionNode* expressionNode;
+    std::vector<std::pair<ast::AstNode*, ast::StatementNode*>*>* caseExprList;
+    std::pair<ast::AstNode*, ast::StatementNode*>* caseExpr;
+    ast::ArgumentsListNode* argsList;
 
-#line 199 "out/parser.hpp"
+#line 218 "out/parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
