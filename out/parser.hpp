@@ -45,7 +45,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 21 "src/yacc.y"
+#line 23 "src/yacc.y"
 
     #include <iostream>
     #include <stdlib.h>
@@ -78,7 +78,7 @@ extern int yydebug;
 
     typedef struct Token {
         int numericalValue;
-        char* stringValue;
+        std::string* stringValue;
     } Token;
 
 #line 85 "out/parser.hpp"
@@ -169,7 +169,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 58 "src/yacc.y"
+#line 60 "src/yacc.y"
 
     Token token;
     ast::ProgramNode* programNode;

@@ -571,7 +571,7 @@ char *yytext;
 #define YY_NO_UNPUT
 #define YY_NO_INPUT
 
-#undef LEX_DEBUG
+#define LEX_DEBUG
 
 #include <iostream>
 #include <string>
@@ -2299,7 +2299,7 @@ static int createVariable(int token) {
     #endif
 
     yylval.token.numericalValue = 0;
-    yylval.token.stringValue = yytext;
+    yylval.token.stringValue = new std::string(yytext);
 
     return token;
 }
@@ -2332,7 +2332,7 @@ static int createString(int token) {
     #endif
 
     yylval.token.numericalValue = 0;
-    yylval.token.stringValue = yytext;
+    yylval.token.stringValue = new std::string(yytext);
 
     return token;
 }

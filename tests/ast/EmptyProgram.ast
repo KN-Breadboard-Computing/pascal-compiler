@@ -1,0 +1,11 @@
+ProgramNode:
+  Name: EmptyProgram
+  RoutineNode:
+    SubType: 1
+    RoutineHeadNode:
+      Constants:
+      Types:
+      Variables:
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode

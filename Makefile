@@ -5,8 +5,11 @@ BFLAGS :=
 CXX := clang++
 CXXFLAGS := -Wall -Wextra -pedantic -std=c++17 -O3 -g
 
-SRCS := $(wildcard src/ast/*.cpp)
-OBJS := $(SRCS:.cpp=.o)
+TEST_DIR = tests
+INPUT_DIR = $(TEST_DIR)/input
+AST_DIR = $(TEST_DIR)/ast
+ASM_DIR = $(TEST_DIR)/asm
+INPUT_FILES = $(wildcard $(INPUT_DIR)/*.pas)
 
 all: clean lexer parser compiler
 
@@ -18,6 +21,14 @@ parser:
 
 compiler:
 	$(CXX) $(CXXFLAGS) out/*.cpp src/main.cpp src/ast/routine_decl_head_node.cpp -o compiler
+
+test:
+	@for input_file in $(INPUT_FILES); do \
+		ast_file=$(AST_DIR)/`basename $$input_file .pas`.ast; \
+		asm_file=$(ASM_DIR)/`basename $$input_file .pas`.asm; \
+		./compiler $$input_file $$asm_file $$ast_file; \
+	done
+
 
 clean:
 	rm -f compiler
