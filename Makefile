@@ -17,7 +17,7 @@ parser:
 	$(BB) $(BFLAGS) -o out/parser.cpp --defines=out/parser.hpp -v src/yacc.y
 
 compiler:
-	$(CXX) $(CXXFLAGS) out/*.cpp src/main.cpp -o compiler
+	$(CXX) $(CXXFLAGS) out/*.cpp src/main.cpp src/ast/routine_decl_head_node.cpp -o compiler
 
 clean:
 	rm -f compiler

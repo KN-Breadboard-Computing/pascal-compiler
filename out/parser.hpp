@@ -70,9 +70,7 @@ extern int yydebug;
     #include "../src/ast/record_type_node.hpp"
     #include "../src/ast/repeat_node.hpp"
     #include "../src/ast/routine_body_node.hpp"
-    #include "../src/ast/routine_declaration_node.hpp"
-    #include "../src/ast/routine_head_node.hpp"
-    #include "../src/ast/routine_node.hpp"
+    #include "../src/ast/routine_decl_head_node.hpp"
     #include "../src/ast/simple_type_node.hpp"
     #include "../src/ast/statement_node.hpp"
     #include "../src/ast/type_node.hpp"
@@ -83,7 +81,7 @@ extern int yydebug;
         char* stringValue;
     } Token;
 
-#line 87 "out/parser.hpp"
+#line 85 "out/parser.hpp"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -171,7 +169,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 60 "src/yacc.y"
+#line 58 "src/yacc.y"
 
     Token token;
     ast::ProgramNode* programNode;
@@ -214,7 +212,7 @@ union YYSTYPE
     std::pair<ast::AstNode*, ast::StatementNode*>* caseExpr;
     ast::ArgumentsListNode* argsList;
 
-#line 218 "out/parser.hpp"
+#line 216 "out/parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

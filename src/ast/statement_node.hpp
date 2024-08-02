@@ -8,27 +8,43 @@
 namespace ast {
 class StatementNode : public AstNode {
  public:
-  StatementNode() : AstNode{Type::STATEMENT}, label{std::nullopt} {}
+  StatementNode() : AstNode{Type::STATEMENT}, label_{std::nullopt} {}
 
-  StatementNode(const StatementNode &) = delete;
-  StatementNode(StatementNode &&) = default;
+  StatementNode(const StatementNode&) = delete;
+  StatementNode(StatementNode&&) = default;
 
-  StatementNode &operator=(const StatementNode &) = delete;
-  StatementNode &operator=(StatementNode &&) = default;
+  StatementNode& operator=(const StatementNode&) = delete;
+  StatementNode& operator=(StatementNode&&) = default;
 
   ~StatementNode() override = default;
 
-  [[nodiscard]] std::optional<uint64_t> getLabel() const {
-	return label;
+  [[nodiscard]] std::optional<uint64_t> getLabel() const { return label_; }
+
+  void setLabel(uint64_t newLabel) { label_ = newLabel; }
+
+  void removeLabel() { label_ = std::nullopt; }
+
+  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override {
+    auto clone = std::make_unique<StatementNode>();
+    if (label_.has_value()) {
+      clone->setLabel(label_.value());
+    }
+    return clone;
   }
 
-  void setLabel(uint64_t newLabel) {
-	label = newLabel;
+  virtual void print(std::ostream& out, int tab) const override {
+    out << std::string(tab, ' ') << "StatementNode:\n";
+    if (label_.has_value()) {
+      out << std::string(tab + 2, ' ') << "Label: " << label_.value() << '\n';
+    }
+    else {
+      out << std::string(tab + 2, ' ') << "Label: None\n";
+    }
   }
 
  private:
-  std::optional<uint64_t> label;
+  std::optional<uint64_t> label_;
 };
-} // namespace ast
+}  // namespace ast
 
-#endif // AST_STATEMENT_NODE_HPP
+#endif  // AST_STATEMENT_NODE_HPP

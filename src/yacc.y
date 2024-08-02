@@ -42,9 +42,7 @@ extern uint64_t linesCounter;
     #include "../src/ast/record_type_node.hpp"
     #include "../src/ast/repeat_node.hpp"
     #include "../src/ast/routine_body_node.hpp"
-    #include "../src/ast/routine_declaration_node.hpp"
-    #include "../src/ast/routine_head_node.hpp"
-    #include "../src/ast/routine_node.hpp"
+    #include "../src/ast/routine_decl_head_node.hpp"
     #include "../src/ast/simple_type_node.hpp"
     #include "../src/ast/statement_node.hpp"
     #include "../src/ast/type_node.hpp"
@@ -561,8 +559,8 @@ routine_body :
 compound_stmt :
     BBEGIN stmt_list END {
         $$ = new ast::CompoundStatementNode($2);
-    } 
-|	
+    }
+|
     BBEGIN stmt_list {
         $$ = new ast::CompoundStatementNode($2);
         parsingErrors.push_back("error at line " + std::to_string(linesCounter) + ", lack of end");

@@ -9,11 +9,11 @@ class GotoNode : public StatementNode {
   GotoNode() : StatementNode{}, line_{0} { type_ = Type::GO_TO; }
   explicit GotoNode(uint64_t line) : StatementNode{}, line_{line} { type_ = Type::GO_TO; }
 
-  GotoNode(const GotoNode &) = delete;
-  GotoNode(GotoNode &&) = default;
+  GotoNode(const GotoNode&) = delete;
+  GotoNode(GotoNode&&) = default;
 
-  GotoNode &operator=(const GotoNode &) = delete;
-  GotoNode &operator=(GotoNode &&) = default;
+  GotoNode& operator=(const GotoNode&) = delete;
+  GotoNode& operator=(GotoNode&&) = default;
 
   ~GotoNode() override = default;
 
@@ -21,9 +21,16 @@ class GotoNode : public StatementNode {
 
   void setLine(uint64_t line) { line_ = line; }
 
+  [[nodiscard]] std::unique_ptr<AstNode> clone() const override { return std::make_unique<GotoNode>(line_); }
+
+  void print(std::ostream& out, int tab) const override {
+    out << std::string(tab, ' ') << "GotoNode\n";
+    out << std::string(tab, ' ') << "  line: " << line_ << '\n';
+  }
+
  private:
   uint64_t line_;
 };
-} // namespace ast
+}  // namespace ast
 
-#endif // AST_GOTO_NODE_HPP
+#endif  // AST_GOTO_NODE_HPP

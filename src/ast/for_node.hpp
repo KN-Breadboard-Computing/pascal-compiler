@@ -13,32 +13,53 @@ class ForNode : public StatementNode {
   enum Direction { UNSPECIFIED, INCREMENT, DECREMENT };
 
   ForNode() : StatementNode{}, direction_{UNSPECIFIED} { type_ = Type::FOR; }
-  ForNode(IdentifierNode *iterator, ExpressionNode *start,
-		  ExpressionNode *end, StatementNode *statements, Direction direction)
-	  : StatementNode{}, iterator_{std::move(iterator)}, start_{std::move(start)},
-		end_{std::move(end)}, statements_{std::move(statements)}, direction_{direction} {
-	type_ = Type::FOR;
+  ForNode(IdentifierNode* iterator, ExpressionNode* start, ExpressionNode* end, StatementNode* statements, Direction direction)
+      : StatementNode{},
+        iterator_{std::move(iterator)},
+        start_{std::move(start)},
+        end_{std::move(end)},
+        statements_{std::move(statements)},
+        direction_{direction} {
+    type_ = Type::FOR;
   }
 
-  ForNode(const ForNode &) = delete;
-  ForNode(ForNode &&) = default;
+  ForNode(const ForNode&) = delete;
+  ForNode(ForNode&&) = default;
 
-  ForNode &operator=(const ForNode &) = delete;
-  ForNode &operator=(ForNode &&) = default;
+  ForNode& operator=(const ForNode&) = delete;
+  ForNode& operator=(ForNode&&) = default;
 
   ~ForNode() override = default;
 
-  [[nodiscard]]const std::unique_ptr<IdentifierNode> &getIterator() const { return iterator_; }
-  [[nodiscard]]const std::unique_ptr<ExpressionNode> &getStart() const { return start_; }
-  [[nodiscard]]const std::unique_ptr<ExpressionNode> &getEnd() const { return end_; }
-  [[nodiscard]]const std::unique_ptr<StatementNode> &getStatements() const { return statements_; }
-  [[nodiscard]]Direction getDirection() const { return direction_; }
+  [[nodiscard]] const std::unique_ptr<IdentifierNode>& getIterator() const { return iterator_; }
+  [[nodiscard]] const std::unique_ptr<ExpressionNode>& getStart() const { return start_; }
+  [[nodiscard]] const std::unique_ptr<ExpressionNode>& getEnd() const { return end_; }
+  [[nodiscard]] const std::unique_ptr<StatementNode>& getStatements() const { return statements_; }
+  [[nodiscard]] Direction getDirection() const { return direction_; }
 
   void setIterator(std::unique_ptr<IdentifierNode> iterator) { iterator_ = std::move(iterator); }
   void setStart(std::unique_ptr<ExpressionNode> start) { start_ = std::move(start); }
   void setEnd(std::unique_ptr<ExpressionNode> end) { end_ = std::move(end); }
   void setStatements(std::unique_ptr<StatementNode> statements) { statements_ = std::move(statements); }
   void setDirection(Direction direction) { direction_ = direction; }
+
+  [[nodiscard]] std::unique_ptr<AstNode> clone() const override {
+    auto clone = std::make_unique<ForNode>();
+    clone->setIterator(std::unique_ptr<IdentifierNode>(dynamic_cast<IdentifierNode*>(iterator_->clone().release())));
+    clone->setStart(std::unique_ptr<ExpressionNode>(dynamic_cast<ExpressionNode*>(start_->clone().release())));
+    clone->setEnd(std::unique_ptr<ExpressionNode>(dynamic_cast<ExpressionNode*>(end_->clone().release())));
+    clone->setStatements(std::unique_ptr<StatementNode>(dynamic_cast<StatementNode*>(statements_->clone().release())));
+    clone->setDirection(direction_);
+    return clone;
+  }
+
+  void print(std::ostream& out, int tab) const override {
+    out << std::string(tab, ' ') << "ForNode\n";
+    iterator_->print(out, tab + 2);
+    start_->print(out, tab + 2);
+    end_->print(out, tab + 2);
+    statements_->print(out, tab + 2);
+  }
 
  private:
   std::unique_ptr<IdentifierNode> iterator_;
@@ -47,6 +68,6 @@ class ForNode : public StatementNode {
   std::unique_ptr<StatementNode> statements_;
   Direction direction_;
 };
-} // namespace ast
+}  // namespace ast
 
-#endif // AST_FOR_NODE_HPP
+#endif  // AST_FOR_NODE_HPP

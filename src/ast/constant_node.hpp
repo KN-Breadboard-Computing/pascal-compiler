@@ -11,11 +11,11 @@ class ConstantNode : public AstNode {
   ConstantNode() : AstNode{Type::CONSTANT}, constantType_{UNSPECIFIED} {}
   explicit ConstantNode(ConstantType constantType) : AstNode{Type::CONSTANT}, constantType_{constantType} {}
 
-  ConstantNode(const ConstantNode &) = delete;
-  ConstantNode(ConstantNode &&) = default;
+  ConstantNode(const ConstantNode&) = delete;
+  ConstantNode(ConstantNode&&) = default;
 
-  ConstantNode &operator=(const ConstantNode &) = delete;
-  ConstantNode &operator=(ConstantNode &&) = default;
+  ConstantNode& operator=(const ConstantNode&) = delete;
+  ConstantNode& operator=(ConstantNode&&) = default;
 
   ~ConstantNode() override = default;
 
@@ -25,21 +25,27 @@ class ConstantNode : public AstNode {
   ConstantType constantType_;
 };
 
-template<typename T, ConstantNode::ConstantType type>
+template <typename T, ConstantNode::ConstantType type>
 class ConstantNodeSpec : public ConstantNode {
  public:
   ConstantNodeSpec() : ConstantNode{type}, value_{} {}
   explicit ConstantNodeSpec(T value) : ConstantNode{type}, value_{value} {}
 
-  ConstantNodeSpec(const ConstantNodeSpec &) = delete;
-  ConstantNodeSpec(ConstantNodeSpec &&) noexcept = default;
+  ConstantNodeSpec(const ConstantNodeSpec&) = delete;
+  ConstantNodeSpec(ConstantNodeSpec&&) noexcept = default;
 
-  ConstantNodeSpec &operator=(const ConstantNodeSpec &) = delete;
-  ConstantNodeSpec &operator=(ConstantNodeSpec &&) noexcept = default;
+  ConstantNodeSpec& operator=(const ConstantNodeSpec&) = delete;
+  ConstantNodeSpec& operator=(ConstantNodeSpec&&) noexcept = default;
 
   ~ConstantNodeSpec() override = default;
 
   [[nodiscard]] T getValue() const { return value_; }
+
+  [[nodiscard]] std::unique_ptr<AstNode> clone() const override { return std::make_unique<ConstantNodeSpec<T, type>>(value_); }
+
+  void print(std::ostream& out, int tab) const override {
+    out << std::string(tab, ' ') << "ConstantNodeSpec<" << value_ << ">\n";
+  }
 
  private:
   T value_;
@@ -49,6 +55,6 @@ typedef ConstantNodeSpec<int, ConstantNode::INTEGER> IntegerConstantNode;
 typedef ConstantNodeSpec<char, ConstantNode::CHAR> CharConstantNode;
 typedef ConstantNodeSpec<bool, ConstantNode::BOOLEAN> BooleanConstantNode;
 typedef ConstantNodeSpec<std::string, ConstantNode::STRING> StringConstantNode;
-} // namespace ast
+}  // namespace ast
 
-#endif // AST_CONSTANT_NODE_HPP
+#endif  // AST_CONSTANT_NODE_HPP

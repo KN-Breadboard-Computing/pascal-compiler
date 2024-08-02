@@ -10,37 +10,60 @@ namespace ast {
 class IfNode : public StatementNode {
  public:
   IfNode() : StatementNode{} { type_ = Type::IF; }
-  IfNode(ExpressionNode *condition, StatementNode *thenStatement)
-	  : StatementNode{}, condition_{condition}, thenStatement_{thenStatement}, elseStatement_{nullptr} {}
-  IfNode(ExpressionNode *condition, StatementNode *thenStatement, StatementNode *elseStatement)
-	  : StatementNode{}, condition_{condition}, thenStatement_{thenStatement}, elseStatement_{elseStatement} {}
-  IfNode(ExpressionNode *condition, StatementNode *thenStatement, IfNode *elsePart)
-	  : StatementNode{},
-		condition_{condition},
-		thenStatement_{thenStatement},
-		elseStatement_{std::move(elsePart->elseStatement_)} {}
+  IfNode(ExpressionNode* condition, StatementNode* thenStatement)
+      : StatementNode{}, condition_{condition}, thenStatement_{thenStatement}, elseStatement_{nullptr} {}
+  IfNode(ExpressionNode* condition, StatementNode* thenStatement, StatementNode* elseStatement)
+      : StatementNode{}, condition_{condition}, thenStatement_{thenStatement}, elseStatement_{elseStatement} {}
+  IfNode(ExpressionNode* condition, StatementNode* thenStatement, IfNode* elsePart)
+      : StatementNode{},
+        condition_{condition},
+        thenStatement_{thenStatement},
+        elseStatement_{std::move(elsePart->elseStatement_)} {}
 
-  IfNode(const IfNode &) = delete;
-  IfNode(IfNode &&) = default;
+  IfNode(const IfNode&) = delete;
+  IfNode(IfNode&&) = default;
 
-  IfNode &operator=(const IfNode &) = delete;
-  IfNode &operator=(IfNode &&) = default;
+  IfNode& operator=(const IfNode&) = delete;
+  IfNode& operator=(IfNode&&) = default;
 
   ~IfNode() override = default;
 
-  [[nodiscard]] const std::unique_ptr<ExpressionNode> &getCondition() const { return condition_; }
-  [[nodiscard]] const std::unique_ptr<StatementNode> &getThenStatement() const { return thenStatement_; }
-  [[nodiscard]] const std::unique_ptr<StatementNode> &getElseStatement() const { return elseStatement_; }
+  [[nodiscard]] const std::unique_ptr<ExpressionNode>& getCondition() const { return condition_; }
+  [[nodiscard]] const std::unique_ptr<StatementNode>& getThenStatement() const { return thenStatement_; }
+  [[nodiscard]] const std::unique_ptr<StatementNode>& getElseStatement() const { return elseStatement_; }
 
   void setCondition(std::unique_ptr<ExpressionNode> condition) { condition_ = std::move(condition); }
   void setThenStatement(std::unique_ptr<StatementNode> thenStatement) { thenStatement_ = std::move(thenStatement); }
   void setElseStatement(std::unique_ptr<StatementNode> elseStatement) { elseStatement_ = std::move(elseStatement); }
+
+  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override {
+    auto clone = std::make_unique<IfNode>();
+    clone->setCondition(std::unique_ptr<ExpressionNode>(dynamic_cast<ExpressionNode*>(condition_->clone().release())));
+    clone->setThenStatement(std::unique_ptr<StatementNode>(dynamic_cast<StatementNode*>(thenStatement_->clone().release())));
+    if (elseStatement_) {
+      clone->setElseStatement(std::unique_ptr<StatementNode>(dynamic_cast<StatementNode*>(elseStatement_->clone().release())));
+    }
+
+    return clone;
+  }
+
+  virtual void print(std::ostream& out, int tab) const override {
+    out << std::string(tab, ' ') << "IfNode:\n";
+    out << std::string(tab + 2, ' ') << "Condition:\n";
+    condition_->print(out, tab + 4);
+    out << std::string(tab + 2, ' ') << "ThenStatement:\n";
+    thenStatement_->print(out, tab + 4);
+    if (elseStatement_) {
+      out << std::string(tab + 2, ' ') << "ElseStatement:\n";
+      elseStatement_->print(out, tab + 4);
+    }
+  }
 
  private:
   std::unique_ptr<ExpressionNode> condition_;
   std::unique_ptr<StatementNode> thenStatement_;
   std::unique_ptr<StatementNode> elseStatement_;
 };
-} // namespace ast
+}  // namespace ast
 
-#endif // AST_IF_NODE_HPP
+#endif  // AST_IF_NODE_HPP

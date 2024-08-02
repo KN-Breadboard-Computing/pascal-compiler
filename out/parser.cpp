@@ -629,21 +629,21 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   169,   169,   176,   184,   192,   202,   208,   214,   218,
-     223,   228,   233,   240,   246,   253,   260,   269,   276,   284,
-     291,   296,   302,   307,   314,   318,   324,   328,   334,   339,
-     346,   350,   357,   361,   367,   372,   379,   383,   390,   393,
-     398,   403,   407,   411,   417,   421,   427,   432,   439,   443,
-     450,   454,   458,   464,   470,   475,   482,   486,   493,   499,
-     503,   507,   511,   515,   519,   523,   527,   531,   537,   542,
-     549,   556,   562,   566,   573,   577,   582,   590,   595,   601,
-     605,   609,   613,   617,   621,   625,   629,   633,   639,   643,
-     647,   653,   659,   663,   670,   674,   680,   684,   689,   695,
-     701,   706,   713,   717,   723,   727,   733,   737,   741,   747,
-     751,   755,   761,   766,   773,   777,   781,   785,   789,   793,
-     797,   803,   807,   811,   815,   821,   825,   829,   833,   837,
-     843,   847,   851,   855,   859,   863,   867,   871,   875,   879,
-     883,   887,   891,   895
+       0,   167,   167,   174,   182,   190,   200,   206,   212,   216,
+     221,   226,   231,   238,   244,   251,   258,   267,   274,   282,
+     289,   294,   300,   305,   312,   316,   322,   326,   332,   337,
+     344,   348,   355,   359,   365,   370,   377,   381,   388,   391,
+     396,   401,   405,   409,   415,   419,   425,   430,   437,   441,
+     448,   452,   456,   462,   468,   473,   480,   484,   491,   497,
+     501,   505,   509,   513,   517,   521,   525,   529,   535,   540,
+     547,   554,   560,   564,   571,   575,   580,   588,   593,   599,
+     603,   607,   611,   615,   619,   623,   627,   631,   637,   641,
+     645,   651,   657,   661,   668,   672,   678,   682,   687,   693,
+     699,   704,   711,   715,   721,   725,   731,   735,   739,   745,
+     749,   753,   759,   764,   771,   775,   779,   783,   787,   791,
+     795,   801,   805,   809,   813,   819,   823,   827,   831,   835,
+     841,   845,   849,   853,   857,   861,   865,   869,   873,   877,
+     881,   885,   889,   893
 };
 #endif
 
@@ -1436,7 +1436,7 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: PROGRAM IDENT_NAME SEMICOLON routine DOT  */
-#line 169 "src/yacc.y"
+#line 167 "src/yacc.y"
                                              {
         std::string name{(yyvsp[-3].token).stringValue};
         (yyvsp[-1].routineNode)->setSubType(ast::RoutineNode::SubType::MAIN);
@@ -1447,7 +1447,7 @@ yyreduce:
     break;
 
   case 3: /* program: PROGRAM IDENT_NAME SEMICOLON routine  */
-#line 176 "src/yacc.y"
+#line 174 "src/yacc.y"
                                          {
         std::string name{(yyvsp[-2].token).stringValue};
         (yyvsp[0].routineNode)->setSubType(ast::RoutineNode::SubType::MAIN);
@@ -1459,7 +1459,7 @@ yyreduce:
     break;
 
   case 4: /* program: PROGRAM IDENT_NAME routine DOT  */
-#line 184 "src/yacc.y"
+#line 182 "src/yacc.y"
                                    {
         std::string name{(yyvsp[-2].token).stringValue};
         (yyvsp[-1].routineNode)->setSubType(ast::RoutineNode::SubType::MAIN);
@@ -1471,7 +1471,7 @@ yyreduce:
     break;
 
   case 5: /* program: PROGRAM IDENT_NAME routine  */
-#line 192 "src/yacc.y"
+#line 190 "src/yacc.y"
                                {
         std::string name{(yyvsp[-1].token).stringValue};
         (yyvsp[0].routineNode)->setSubType(ast::RoutineNode::SubType::MAIN);
@@ -1483,7 +1483,7 @@ yyreduce:
     break;
 
   case 6: /* routine: routine_head routine_body  */
-#line 202 "src/yacc.y"
+#line 200 "src/yacc.y"
                               {
         (yyval.routineNode) = new ast::RoutineNode((yyvsp[-1].routineHeadNode), (yyvsp[0].routineBodyNode));
     }
@@ -1491,7 +1491,7 @@ yyreduce:
     break;
 
   case 7: /* routine_head: const_part type_part var_part routine_part  */
-#line 208 "src/yacc.y"
+#line 206 "src/yacc.y"
                                                {
         (yyval.routineHeadNode) = new ast::RoutineHeadNode((yyvsp[-3].constPartList), (yyvsp[-2].typePartList), (yyvsp[-1].varPartList), (yyvsp[0].routinePartList));
     }
@@ -1499,7 +1499,7 @@ yyreduce:
     break;
 
   case 8: /* routine_part: %empty  */
-#line 214 "src/yacc.y"
+#line 212 "src/yacc.y"
     {
         (yyval.routinePartList) = new std::vector<ast::RoutineDeclarationNode*>();
     }
@@ -1507,7 +1507,7 @@ yyreduce:
     break;
 
   case 9: /* routine_part: routine_part fun_decl  */
-#line 218 "src/yacc.y"
+#line 216 "src/yacc.y"
                           {
         (yyval.routinePartList) = (yyvsp[-1].routinePartList);
         (yyval.routinePartList)->push_back((yyvsp[0].routineDeclarationNode));
@@ -1516,7 +1516,7 @@ yyreduce:
     break;
 
   case 10: /* routine_part: routine_part proc_decl  */
-#line 223 "src/yacc.y"
+#line 221 "src/yacc.y"
                            {
        (yyval.routinePartList) = (yyvsp[-1].routinePartList);
        (yyval.routinePartList)->push_back((yyvsp[0].routineDeclarationNode));
@@ -1525,7 +1525,7 @@ yyreduce:
     break;
 
   case 11: /* routine_part: fun_decl  */
-#line 228 "src/yacc.y"
+#line 226 "src/yacc.y"
              {
         (yyval.routinePartList) = new std::vector<ast::RoutineDeclarationNode*>();
         (yyval.routinePartList)->push_back((yyvsp[0].routineDeclarationNode));
@@ -1534,7 +1534,7 @@ yyreduce:
     break;
 
   case 12: /* routine_part: proc_decl  */
-#line 233 "src/yacc.y"
+#line 231 "src/yacc.y"
               {
         (yyval.routinePartList) = new std::vector<ast::RoutineDeclarationNode*>();
         (yyval.routinePartList)->push_back((yyvsp[0].routineDeclarationNode));
@@ -1543,7 +1543,7 @@ yyreduce:
     break;
 
   case 13: /* fun_decl: fun_head SEMICOLON routine SEMICOLON  */
-#line 240 "src/yacc.y"
+#line 238 "src/yacc.y"
                                          {
         (yyval.routineDeclarationNode) = (yyvsp[-3].routineDeclarationNode);
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[-1].routineNode)));
@@ -1553,7 +1553,7 @@ yyreduce:
     break;
 
   case 14: /* fun_decl: fun_head SEMICOLON routine  */
-#line 246 "src/yacc.y"
+#line 244 "src/yacc.y"
                                {
         (yyval.routineDeclarationNode) = (yyvsp[-2].routineDeclarationNode);
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[0].routineNode)));
@@ -1564,7 +1564,7 @@ yyreduce:
     break;
 
   case 15: /* fun_decl: fun_head routine SEMICOLON  */
-#line 253 "src/yacc.y"
+#line 251 "src/yacc.y"
                                {
         (yyval.routineDeclarationNode) = (yyvsp[-2].routineDeclarationNode);
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[-1].routineNode)));
@@ -1575,7 +1575,7 @@ yyreduce:
     break;
 
   case 16: /* fun_decl: fun_head routine  */
-#line 260 "src/yacc.y"
+#line 258 "src/yacc.y"
                      {
         (yyval.routineDeclarationNode) = (yyvsp[-1].routineDeclarationNode);
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[0].routineNode)));
@@ -1586,7 +1586,7 @@ yyreduce:
     break;
 
   case 17: /* fun_head: FUNCTION IDENT_NAME params COLON simple_type  */
-#line 269 "src/yacc.y"
+#line 267 "src/yacc.y"
                                                  {
         std::string name{(yyvsp[-3].token).stringValue};
         (yyval.routineDeclarationNode) = new ast::RoutineDeclarationNode(ast::RoutineDeclarationNode::RoutineType::FUNCTION, std::move(name), (yyvsp[-2].paramsNode), (yyvsp[0].simpleTypeNode), nullptr);
@@ -1595,7 +1595,7 @@ yyreduce:
     break;
 
   case 18: /* proc_decl: proc_head SEMICOLON routine SEMICOLON  */
-#line 276 "src/yacc.y"
+#line 274 "src/yacc.y"
                                           {
         (yyval.routineDeclarationNode) = (yyvsp[-3].routineDeclarationNode);
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[-1].routineNode)));
@@ -1605,7 +1605,7 @@ yyreduce:
     break;
 
   case 19: /* proc_head: PROCEDURE IDENT_NAME params  */
-#line 284 "src/yacc.y"
+#line 282 "src/yacc.y"
                                 {
         std::string name{(yyvsp[-1].token).stringValue};
         (yyval.routineDeclarationNode) = new ast::RoutineDeclarationNode(ast::RoutineDeclarationNode::RoutineType::PROCEDURE, std::move(name), (yyvsp[0].paramsNode), nullptr, nullptr);
@@ -1614,7 +1614,7 @@ yyreduce:
     break;
 
   case 20: /* params: %empty  */
-#line 291 "src/yacc.y"
+#line 289 "src/yacc.y"
     {
         std::vector<ast::ParamsGroupNode *>* emptyParamsList{};
         (yyval.paramsNode) = new ast::ParamsNode(emptyParamsList);
@@ -1623,7 +1623,7 @@ yyreduce:
     break;
 
   case 21: /* params: LP params_decl RP  */
-#line 296 "src/yacc.y"
+#line 294 "src/yacc.y"
                       {
         (yyval.paramsNode) = new ast::ParamsNode((yyvsp[-1].paramsGroupList));
     }
@@ -1631,7 +1631,7 @@ yyreduce:
     break;
 
   case 22: /* params_decl: params_decl SEMICOLON params_type  */
-#line 302 "src/yacc.y"
+#line 300 "src/yacc.y"
                                       {
        (yyval.paramsGroupList) = (yyvsp[-2].paramsGroupList);
        (yyval.paramsGroupList)->push_back((yyvsp[0].paramsGroupNode));
@@ -1640,7 +1640,7 @@ yyreduce:
     break;
 
   case 23: /* params_decl: params_type  */
-#line 307 "src/yacc.y"
+#line 305 "src/yacc.y"
                 {
         (yyval.paramsGroupList) = new std::vector<ast::ParamsGroupNode*>();
         (yyval.paramsGroupList)->push_back((yyvsp[0].paramsGroupNode));
@@ -1649,7 +1649,7 @@ yyreduce:
     break;
 
   case 24: /* params_type: VAR name_list COLON simple_type  */
-#line 314 "src/yacc.y"
+#line 312 "src/yacc.y"
                                     {
         (yyval.paramsGroupNode) = new ast::ParamsGroupNode(ast::ParamsGroupNode::PassType::PASS_BY_REFERENCE, (yyvsp[-2].identifierList), (yyvsp[0].simpleTypeNode));
     }
@@ -1657,7 +1657,7 @@ yyreduce:
     break;
 
   case 25: /* params_type: name_list COLON simple_type  */
-#line 318 "src/yacc.y"
+#line 316 "src/yacc.y"
                                 {
         (yyval.paramsGroupNode) = new ast::ParamsGroupNode(ast::ParamsGroupNode::PassType::PASS_BY_VALUE, (yyvsp[-2].identifierList), (yyvsp[0].simpleTypeNode));
     }
@@ -1665,7 +1665,7 @@ yyreduce:
     break;
 
   case 26: /* var_part: %empty  */
-#line 324 "src/yacc.y"
+#line 322 "src/yacc.y"
     {
         (yyval.varPartList) = new std::vector<std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>*>();
     }
@@ -1673,7 +1673,7 @@ yyreduce:
     break;
 
   case 27: /* var_part: VAR var_decl_list  */
-#line 328 "src/yacc.y"
+#line 326 "src/yacc.y"
                       {
         (yyval.varPartList) = (yyvsp[0].varPartList);
     }
@@ -1681,7 +1681,7 @@ yyreduce:
     break;
 
   case 28: /* var_decl_list: var_decl_list var_decl  */
-#line 334 "src/yacc.y"
+#line 332 "src/yacc.y"
                            {
         (yyval.varPartList) = (yyvsp[-1].varPartList);
         (yyval.varPartList)->push_back((yyvsp[0].varPartListElement));
@@ -1690,7 +1690,7 @@ yyreduce:
     break;
 
   case 29: /* var_decl_list: var_decl  */
-#line 339 "src/yacc.y"
+#line 337 "src/yacc.y"
              {
         (yyval.varPartList) = new std::vector<std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>*>();
         (yyval.varPartList)->push_back((yyvsp[0].varPartListElement));
@@ -1699,7 +1699,7 @@ yyreduce:
     break;
 
   case 30: /* var_decl: name_list COLON type_decl SEMICOLON  */
-#line 346 "src/yacc.y"
+#line 344 "src/yacc.y"
                                         {
         (yyval.varPartListElement) = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>((yyvsp[-3].identifierList), (yyvsp[-1].typeNode));
     }
@@ -1707,7 +1707,7 @@ yyreduce:
     break;
 
   case 31: /* var_decl: name_list COLON type_decl  */
-#line 350 "src/yacc.y"
+#line 348 "src/yacc.y"
                               {
         (yyval.varPartListElement) = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>((yyvsp[-2].identifierList), (yyvsp[0].typeNode));
         parsingErrors.push_back("error at line " + std::to_string(linesCounter) + ", lack of semicolon");
@@ -1716,7 +1716,7 @@ yyreduce:
     break;
 
   case 32: /* const_part: %empty  */
-#line 357 "src/yacc.y"
+#line 355 "src/yacc.y"
     {
         (yyval.constPartList) = new std::vector<std::pair<ast::IdentifierNode*, ast::ConstantNode*>*>();
     }
@@ -1724,7 +1724,7 @@ yyreduce:
     break;
 
   case 33: /* const_part: CONST const_expr_list  */
-#line 361 "src/yacc.y"
+#line 359 "src/yacc.y"
                           {
         (yyval.constPartList) = (yyvsp[0].constPartList);
     }
@@ -1732,7 +1732,7 @@ yyreduce:
     break;
 
   case 34: /* const_expr_list: const_expr_list const_expr  */
-#line 367 "src/yacc.y"
+#line 365 "src/yacc.y"
                                {
         (yyval.constPartList) = (yyvsp[-1].constPartList);
         (yyval.constPartList)->push_back((yyvsp[0].constPartListElement));
@@ -1741,7 +1741,7 @@ yyreduce:
     break;
 
   case 35: /* const_expr_list: const_expr  */
-#line 372 "src/yacc.y"
+#line 370 "src/yacc.y"
                {
         (yyval.constPartList) = new std::vector<std::pair<ast::IdentifierNode*, ast::ConstantNode*>*>();
         (yyval.constPartList)->push_back((yyvsp[0].constPartListElement));
@@ -1750,7 +1750,7 @@ yyreduce:
     break;
 
   case 36: /* const_expr: identifier EQUAL const_value SEMICOLON  */
-#line 379 "src/yacc.y"
+#line 377 "src/yacc.y"
                                            {
         (yyval.constPartListElement) = new std::pair<ast::IdentifierNode*, ast::ConstantNode*>((yyvsp[-3].identifierNode), (yyvsp[-1].constantNode));
     }
@@ -1758,7 +1758,7 @@ yyreduce:
     break;
 
   case 37: /* const_expr: identifier EQUAL const_value  */
-#line 383 "src/yacc.y"
+#line 381 "src/yacc.y"
                                  {
         (yyval.constPartListElement) = new std::pair<ast::IdentifierNode*, ast::ConstantNode*>((yyvsp[-2].identifierNode), (yyvsp[0].constantNode));
         parsingErrors.push_back("error at line " + std::to_string(linesCounter) + ", lack of semicolon");
@@ -1767,7 +1767,7 @@ yyreduce:
     break;
 
   case 38: /* const_value: INTEGER  */
-#line 390 "src/yacc.y"
+#line 388 "src/yacc.y"
             {
         (yyval.constantNode) = new ast::IntegerConstantNode((yyvsp[0].token).numericalValue);
     }
@@ -1775,7 +1775,7 @@ yyreduce:
     break;
 
   case 39: /* const_value: CHAR  */
-#line 394 "src/yacc.y"
+#line 392 "src/yacc.y"
     {
         (yyval.constantNode) = new ast::CharConstantNode((yyvsp[0].token).stringValue[0]);
     }
@@ -1783,7 +1783,7 @@ yyreduce:
     break;
 
   case 40: /* const_value: STRING  */
-#line 398 "src/yacc.y"
+#line 396 "src/yacc.y"
            {
         std::string str{(yyvsp[0].token).stringValue};
         (yyval.constantNode) = new ast::StringConstantNode(std::move(str));
@@ -1792,7 +1792,7 @@ yyreduce:
     break;
 
   case 41: /* const_value: TRUE  */
-#line 403 "src/yacc.y"
+#line 401 "src/yacc.y"
          {
         (yyval.constantNode) = new ast::BooleanConstantNode(true);
     }
@@ -1800,7 +1800,7 @@ yyreduce:
     break;
 
   case 42: /* const_value: FALSE  */
-#line 407 "src/yacc.y"
+#line 405 "src/yacc.y"
           {
         (yyval.constantNode) = new ast::BooleanConstantNode(false);
     }
@@ -1808,7 +1808,7 @@ yyreduce:
     break;
 
   case 43: /* const_value: MAXINT  */
-#line 411 "src/yacc.y"
+#line 409 "src/yacc.y"
            {
         (yyval.constantNode) = new ast::IntegerConstantNode(255);
     }
@@ -1816,7 +1816,7 @@ yyreduce:
     break;
 
   case 44: /* type_part: %empty  */
-#line 417 "src/yacc.y"
+#line 415 "src/yacc.y"
     {
         (yyval.typePartList) = new std::vector<std::pair<ast::IdentifierNode*, ast::TypeNode*>*>();
     }
@@ -1824,7 +1824,7 @@ yyreduce:
     break;
 
   case 45: /* type_part: TYPE type_decl_list  */
-#line 421 "src/yacc.y"
+#line 419 "src/yacc.y"
                         {
         (yyval.typePartList) = (yyvsp[0].typePartList);
     }
@@ -1832,7 +1832,7 @@ yyreduce:
     break;
 
   case 46: /* type_decl_list: type_decl_list type_def  */
-#line 427 "src/yacc.y"
+#line 425 "src/yacc.y"
                             {
         (yyval.typePartList) = (yyvsp[-1].typePartList);
         (yyval.typePartList)->push_back((yyvsp[0].typePartListElement));
@@ -1841,7 +1841,7 @@ yyreduce:
     break;
 
   case 47: /* type_decl_list: type_def  */
-#line 432 "src/yacc.y"
+#line 430 "src/yacc.y"
              {
         (yyval.typePartList) = new std::vector<std::pair<ast::IdentifierNode*, ast::TypeNode*>*>();
         (yyval.typePartList)->push_back((yyvsp[0].typePartListElement));
@@ -1850,7 +1850,7 @@ yyreduce:
     break;
 
   case 48: /* type_def: identifier EQUAL type_decl SEMICOLON  */
-#line 439 "src/yacc.y"
+#line 437 "src/yacc.y"
                                          {
         (yyval.typePartListElement) = new std::pair<ast::IdentifierNode*, ast::TypeNode*>((yyvsp[-3].identifierNode), (yyvsp[-1].typeNode));
     }
@@ -1858,7 +1858,7 @@ yyreduce:
     break;
 
   case 49: /* type_def: identifier EQUAL type_decl  */
-#line 443 "src/yacc.y"
+#line 441 "src/yacc.y"
                                {
         (yyval.typePartListElement) = new std::pair<ast::IdentifierNode*, ast::TypeNode*>((yyvsp[-2].identifierNode), (yyvsp[0].typeNode));
         parsingErrors.push_back("error at line " + std::to_string(linesCounter) + ", lack of semicolon");
@@ -1867,7 +1867,7 @@ yyreduce:
     break;
 
   case 50: /* type_decl: simple_type  */
-#line 450 "src/yacc.y"
+#line 448 "src/yacc.y"
                 {
         (yyval.typeNode) = (yyvsp[0].simpleTypeNode);
     }
@@ -1875,7 +1875,7 @@ yyreduce:
     break;
 
   case 51: /* type_decl: array_type_decl  */
-#line 454 "src/yacc.y"
+#line 452 "src/yacc.y"
                     {
         (yyval.typeNode) = (yyvsp[0].arrayTypeNode);
     }
@@ -1883,7 +1883,7 @@ yyreduce:
     break;
 
   case 52: /* type_decl: record_type_decl  */
-#line 458 "src/yacc.y"
+#line 456 "src/yacc.y"
                      {
         (yyval.typeNode) = (yyvsp[0].recordTypeNode);
     }
@@ -1891,7 +1891,7 @@ yyreduce:
     break;
 
   case 53: /* record_type_decl: RECORD field_decl_list END  */
-#line 464 "src/yacc.y"
+#line 462 "src/yacc.y"
                                {
         (yyval.recordTypeNode) = new ast::RecordTypeNode((yyvsp[-1].fieldDeclList));
     }
@@ -1899,7 +1899,7 @@ yyreduce:
     break;
 
   case 54: /* field_decl_list: field_decl_list field_decl  */
-#line 470 "src/yacc.y"
+#line 468 "src/yacc.y"
                                {
         (yyval.fieldDeclList) = (yyvsp[-1].fieldDeclList);
         (yyval.fieldDeclList)->push_back((yyvsp[0].fieldDeclListElement));
@@ -1908,7 +1908,7 @@ yyreduce:
     break;
 
   case 55: /* field_decl_list: field_decl  */
-#line 475 "src/yacc.y"
+#line 473 "src/yacc.y"
                {
         (yyval.fieldDeclList) = new std::vector<std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>*>();
         (yyval.fieldDeclList)->push_back((yyvsp[0].fieldDeclListElement));
@@ -1917,7 +1917,7 @@ yyreduce:
     break;
 
   case 56: /* field_decl: name_list COLON type_decl SEMICOLON  */
-#line 482 "src/yacc.y"
+#line 480 "src/yacc.y"
                                         {
         (yyval.fieldDeclListElement) = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>((yyvsp[-3].identifierList), (yyvsp[-1].typeNode));
     }
@@ -1925,7 +1925,7 @@ yyreduce:
     break;
 
   case 57: /* field_decl: name_list COLON type_decl  */
-#line 486 "src/yacc.y"
+#line 484 "src/yacc.y"
                               {
         (yyval.fieldDeclListElement) = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>((yyvsp[-2].identifierList), (yyvsp[0].typeNode));
         parsingErrors.push_back("error at line " + std::to_string(linesCounter) + ", lack of semicolon");
@@ -1934,7 +1934,7 @@ yyreduce:
     break;
 
   case 58: /* array_type_decl: ARRAY LB simple_type RB OF type_decl  */
-#line 493 "src/yacc.y"
+#line 491 "src/yacc.y"
                                          {
         (yyval.arrayTypeNode) = new ast::ArrayTypeNode((yyvsp[-3].simpleTypeNode), (yyvsp[0].typeNode));
     }
@@ -1942,7 +1942,7 @@ yyreduce:
     break;
 
   case 59: /* simple_type: identifier  */
-#line 499 "src/yacc.y"
+#line 497 "src/yacc.y"
                {
         (yyval.simpleTypeNode) = new ast::RenameTypeNode((yyvsp[0].identifierNode));
     }
@@ -1950,7 +1950,7 @@ yyreduce:
     break;
 
   case 60: /* simple_type: LP name_list RP  */
-#line 503 "src/yacc.y"
+#line 501 "src/yacc.y"
                     {
         (yyval.simpleTypeNode) = new ast::EnumerationTypeNode((yyvsp[-1].identifierList));
     }
@@ -1958,7 +1958,7 @@ yyreduce:
     break;
 
   case 61: /* simple_type: const_value DOUBLEDOT const_value  */
-#line 507 "src/yacc.y"
+#line 505 "src/yacc.y"
                                       {
         (yyval.simpleTypeNode) = new ast::ConstRangeTypeNode((yyvsp[-2].constantNode), (yyvsp[0].constantNode));
     }
@@ -1966,7 +1966,7 @@ yyreduce:
     break;
 
   case 62: /* simple_type: MINUS const_value DOUBLEDOT const_value  */
-#line 511 "src/yacc.y"
+#line 509 "src/yacc.y"
                                             {
         (yyval.simpleTypeNode) = new ast::ConstRangeTypeNode((yyvsp[-2].constantNode), (yyvsp[0].constantNode));
     }
@@ -1974,7 +1974,7 @@ yyreduce:
     break;
 
   case 63: /* simple_type: MINUS const_value DOUBLEDOT MINUS const_value  */
-#line 515 "src/yacc.y"
+#line 513 "src/yacc.y"
                                                   {
         (yyval.simpleTypeNode) = new ast::ConstRangeTypeNode((yyvsp[-3].constantNode), (yyvsp[0].constantNode));
     }
@@ -1982,7 +1982,7 @@ yyreduce:
     break;
 
   case 64: /* simple_type: identifier DOUBLEDOT identifier  */
-#line 519 "src/yacc.y"
+#line 517 "src/yacc.y"
                                     {
         (yyval.simpleTypeNode) = new ast::VarRangeTypeNode((yyvsp[-2].identifierNode), (yyvsp[0].identifierNode));
     }
@@ -1990,7 +1990,7 @@ yyreduce:
     break;
 
   case 65: /* simple_type: INT_TYPE  */
-#line 523 "src/yacc.y"
+#line 521 "src/yacc.y"
              {
         (yyval.simpleTypeNode) = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::INTEGER);
     }
@@ -1998,7 +1998,7 @@ yyreduce:
     break;
 
   case 66: /* simple_type: BOOL_TYPE  */
-#line 527 "src/yacc.y"
+#line 525 "src/yacc.y"
               {
         (yyval.simpleTypeNode) = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::BOOLEAN);
     }
@@ -2006,7 +2006,7 @@ yyreduce:
     break;
 
   case 67: /* simple_type: CHAR_TYPE  */
-#line 531 "src/yacc.y"
+#line 529 "src/yacc.y"
               {
         (yyval.simpleTypeNode) = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::CHAR);
     }
@@ -2014,7 +2014,7 @@ yyreduce:
     break;
 
   case 68: /* name_list: name_list COMMA identifier  */
-#line 537 "src/yacc.y"
+#line 535 "src/yacc.y"
                                {
         (yyval.identifierList) = (yyvsp[-2].identifierList);
         (yyval.identifierList)->push_back((yyvsp[0].identifierNode));
@@ -2023,7 +2023,7 @@ yyreduce:
     break;
 
   case 69: /* name_list: identifier  */
-#line 542 "src/yacc.y"
+#line 540 "src/yacc.y"
                {
         (yyval.identifierList) = new std::vector<ast::IdentifierNode*>();
         (yyval.identifierList)->push_back((yyvsp[0].identifierNode));
@@ -2032,7 +2032,7 @@ yyreduce:
     break;
 
   case 70: /* identifier: IDENT_NAME  */
-#line 549 "src/yacc.y"
+#line 547 "src/yacc.y"
                {
         std::string name{(yyvsp[0].token).stringValue};
         (yyval.identifierNode) = new ast::IdentifierNode(std::move(name));
@@ -2041,7 +2041,7 @@ yyreduce:
     break;
 
   case 71: /* routine_body: compound_stmt  */
-#line 556 "src/yacc.y"
+#line 554 "src/yacc.y"
                   {
         (yyval.routineBodyNode) = new ast::RoutineBodyNode((yyvsp[0].compoundStatementNode));
     }
@@ -2049,7 +2049,7 @@ yyreduce:
     break;
 
   case 72: /* compound_stmt: BBEGIN stmt_list END  */
-#line 562 "src/yacc.y"
+#line 560 "src/yacc.y"
                          {
         (yyval.compoundStatementNode) = new ast::CompoundStatementNode((yyvsp[-1].statementNodeList));
     }
@@ -2057,7 +2057,7 @@ yyreduce:
     break;
 
   case 73: /* compound_stmt: BBEGIN stmt_list  */
-#line 566 "src/yacc.y"
+#line 564 "src/yacc.y"
                      {
         (yyval.compoundStatementNode) = new ast::CompoundStatementNode((yyvsp[0].statementNodeList));
         parsingErrors.push_back("error at line " + std::to_string(linesCounter) + ", lack of end");
@@ -2066,7 +2066,7 @@ yyreduce:
     break;
 
   case 74: /* stmt_list: %empty  */
-#line 573 "src/yacc.y"
+#line 571 "src/yacc.y"
     {
         (yyval.statementNodeList) = new std::vector<ast::StatementNode*>();
     }
@@ -2074,7 +2074,7 @@ yyreduce:
     break;
 
   case 75: /* stmt_list: stmt_list stmt SEMICOLON  */
-#line 577 "src/yacc.y"
+#line 575 "src/yacc.y"
                              {
         (yyval.statementNodeList) = (yyvsp[-2].statementNodeList);
         (yyval.statementNodeList)->push_back((yyvsp[-1].statementNode));
@@ -2083,7 +2083,7 @@ yyreduce:
     break;
 
   case 76: /* stmt_list: stmt_list stmt  */
-#line 582 "src/yacc.y"
+#line 580 "src/yacc.y"
                    {
         (yyval.statementNodeList) = (yyvsp[-1].statementNodeList);
         (yyval.statementNodeList)->push_back((yyvsp[0].statementNode));
@@ -2093,7 +2093,7 @@ yyreduce:
     break;
 
   case 77: /* stmt: INTEGER COLON no_label_stmt  */
-#line 590 "src/yacc.y"
+#line 588 "src/yacc.y"
                                 {
         (yyval.statementNode) = (yyvsp[0].statementNode);
         (yyval.statementNode)->setLabel((yyvsp[-2].token).numericalValue);
@@ -2102,7 +2102,7 @@ yyreduce:
     break;
 
   case 78: /* stmt: no_label_stmt  */
-#line 595 "src/yacc.y"
+#line 593 "src/yacc.y"
                   {
         (yyval.statementNode) = (yyvsp[0].statementNode);
     }
@@ -2110,7 +2110,7 @@ yyreduce:
     break;
 
   case 79: /* no_label_stmt: assign_stmt  */
-#line 601 "src/yacc.y"
+#line 599 "src/yacc.y"
                 {
         (yyval.statementNode)=(yyvsp[0].assignNode);
     }
@@ -2118,7 +2118,7 @@ yyreduce:
     break;
 
   case 80: /* no_label_stmt: compound_stmt  */
-#line 605 "src/yacc.y"
+#line 603 "src/yacc.y"
                   {
         (yyval.statementNode) = (yyvsp[0].compoundStatementNode);
     }
@@ -2126,7 +2126,7 @@ yyreduce:
     break;
 
   case 81: /* no_label_stmt: goto_stmt  */
-#line 609 "src/yacc.y"
+#line 607 "src/yacc.y"
               {
         (yyval.statementNode) = (yyvsp[0].gotoNode);
     }
@@ -2134,7 +2134,7 @@ yyreduce:
     break;
 
   case 82: /* no_label_stmt: if_stmt  */
-#line 613 "src/yacc.y"
+#line 611 "src/yacc.y"
             {
         (yyval.statementNode) = (yyvsp[0].ifNode);
     }
@@ -2142,7 +2142,7 @@ yyreduce:
     break;
 
   case 83: /* no_label_stmt: repeat_stmt  */
-#line 617 "src/yacc.y"
+#line 615 "src/yacc.y"
                 {
         (yyval.statementNode) = (yyvsp[0].repeatNode);
     }
@@ -2150,7 +2150,7 @@ yyreduce:
     break;
 
   case 84: /* no_label_stmt: while_stmt  */
-#line 621 "src/yacc.y"
+#line 619 "src/yacc.y"
                {
         (yyval.statementNode) = (yyvsp[0].whileNode);
     }
@@ -2158,7 +2158,7 @@ yyreduce:
     break;
 
   case 85: /* no_label_stmt: case_stmt  */
-#line 625 "src/yacc.y"
+#line 623 "src/yacc.y"
               {
         (yyval.statementNode) = (yyvsp[0].caseNode);
     }
@@ -2166,7 +2166,7 @@ yyreduce:
     break;
 
   case 86: /* no_label_stmt: for_stmt  */
-#line 629 "src/yacc.y"
+#line 627 "src/yacc.y"
              {
         (yyval.statementNode) = (yyvsp[0].forNode);
     }
@@ -2174,7 +2174,7 @@ yyreduce:
     break;
 
   case 87: /* no_label_stmt: proc_stmt  */
-#line 633 "src/yacc.y"
+#line 631 "src/yacc.y"
               {
         (yyval.statementNode) = (yyvsp[0].callNode);
     }
@@ -2182,7 +2182,7 @@ yyreduce:
     break;
 
   case 88: /* assign_stmt: identifier ASSIGN expression  */
-#line 639 "src/yacc.y"
+#line 637 "src/yacc.y"
                                  {
         (yyval.assignNode) = new ast::AssignToVariableNode((yyvsp[-2].identifierNode), (yyvsp[0].expressionNode));
     }
@@ -2190,7 +2190,7 @@ yyreduce:
     break;
 
   case 89: /* assign_stmt: identifier LB expression RB ASSIGN expression  */
-#line 643 "src/yacc.y"
+#line 641 "src/yacc.y"
                                                   {
         (yyval.assignNode) = new ast::AssignToArrayNode((yyvsp[-5].identifierNode), (yyvsp[-3].expressionNode), (yyvsp[0].expressionNode));
     }
@@ -2198,7 +2198,7 @@ yyreduce:
     break;
 
   case 90: /* assign_stmt: identifier DOT identifier ASSIGN expression  */
-#line 647 "src/yacc.y"
+#line 645 "src/yacc.y"
                                                 {
         (yyval.assignNode) = new ast::AssignToRecordFieldNode((yyvsp[-4].identifierNode), (yyvsp[-2].identifierNode), (yyvsp[0].expressionNode));
     }
@@ -2206,7 +2206,7 @@ yyreduce:
     break;
 
   case 91: /* goto_stmt: GOTO INTEGER  */
-#line 653 "src/yacc.y"
+#line 651 "src/yacc.y"
                  {
         (yyval.gotoNode) = new ast::GotoNode((yyvsp[0].token).numericalValue);
     }
@@ -2214,7 +2214,7 @@ yyreduce:
     break;
 
   case 92: /* if_stmt: IF expression THEN stmt else_clause  */
-#line 659 "src/yacc.y"
+#line 657 "src/yacc.y"
                                         {
         (yyval.ifNode) = new ast::IfNode((yyvsp[-3].expressionNode), (yyvsp[-1].statementNode), (yyvsp[0].ifNode));
     }
@@ -2222,7 +2222,7 @@ yyreduce:
     break;
 
   case 93: /* if_stmt: IF expression stmt else_clause  */
-#line 663 "src/yacc.y"
+#line 661 "src/yacc.y"
                                    {
         (yyval.ifNode) = new ast::IfNode((yyvsp[-2].expressionNode), (yyvsp[-1].statementNode), (yyvsp[0].ifNode));
         parsingErrors.push_back("error at line " + std::to_string(linesCounter) + ", lack of then");
@@ -2231,7 +2231,7 @@ yyreduce:
     break;
 
   case 94: /* else_clause: %empty  */
-#line 670 "src/yacc.y"
+#line 668 "src/yacc.y"
     {
         (yyval.ifNode) = new ast::IfNode(nullptr, nullptr);
     }
@@ -2239,7 +2239,7 @@ yyreduce:
     break;
 
   case 95: /* else_clause: ELSE stmt  */
-#line 674 "src/yacc.y"
+#line 672 "src/yacc.y"
               {
         (yyval.ifNode) = new ast::IfNode(nullptr, nullptr, (yyvsp[0].statementNode));
     }
@@ -2247,7 +2247,7 @@ yyreduce:
     break;
 
   case 96: /* repeat_stmt: REPEAT stmt_list UNTIL expression  */
-#line 680 "src/yacc.y"
+#line 678 "src/yacc.y"
                                       {
         (yyval.repeatNode) = new ast::RepeatNode((yyvsp[0].expressionNode), (yyvsp[-2].statementNodeList));
     }
@@ -2255,14 +2255,14 @@ yyreduce:
     break;
 
   case 97: /* repeat_stmt: %empty  */
-#line 684 "src/yacc.y"
+#line 682 "src/yacc.y"
     {
     }
 #line 2262 "out/parser.cpp"
     break;
 
   case 98: /* while_stmt: WHILE expression DO stmt  */
-#line 689 "src/yacc.y"
+#line 687 "src/yacc.y"
                              {
         (yyval.whileNode) = new ast::WhileNode((yyvsp[-2].expressionNode), (yyvsp[0].statementNode));
     }
@@ -2270,7 +2270,7 @@ yyreduce:
     break;
 
   case 99: /* case_stmt: CASE expression OF case_expr_list END  */
-#line 695 "src/yacc.y"
+#line 693 "src/yacc.y"
                                           {
         (yyval.caseNode) = new ast::CaseNode((yyvsp[-3].expressionNode), (yyvsp[-1].caseExprList));
     }
@@ -2278,7 +2278,7 @@ yyreduce:
     break;
 
   case 100: /* case_expr_list: case_expr_list case_expr  */
-#line 701 "src/yacc.y"
+#line 699 "src/yacc.y"
                              {
         (yyval.caseExprList) = (yyvsp[-1].caseExprList);
         (yyval.caseExprList)->push_back((yyvsp[0].caseExpr));
@@ -2287,7 +2287,7 @@ yyreduce:
     break;
 
   case 101: /* case_expr_list: case_expr  */
-#line 706 "src/yacc.y"
+#line 704 "src/yacc.y"
               {
         (yyval.caseExprList) = new std::vector<std::pair<ast::AstNode*, ast::StatementNode*>*>();
         (yyval.caseExprList)->push_back((yyvsp[0].caseExpr));
@@ -2296,7 +2296,7 @@ yyreduce:
     break;
 
   case 102: /* case_expr: const_value COLON stmt SEMICOLON  */
-#line 713 "src/yacc.y"
+#line 711 "src/yacc.y"
                                      {
         (yyval.caseExpr) = new std::pair<ast::AstNode*, ast::StatementNode*>((yyvsp[-3].constantNode), (yyvsp[-1].statementNode));
     }
@@ -2304,7 +2304,7 @@ yyreduce:
     break;
 
   case 103: /* case_expr: identifier COLON stmt SEMICOLON  */
-#line 717 "src/yacc.y"
+#line 715 "src/yacc.y"
                                     {
         (yyval.caseExpr) = new std::pair<ast::AstNode*, ast::StatementNode*>((yyvsp[-3].identifierNode), (yyvsp[-1].statementNode));
     }
@@ -2312,7 +2312,7 @@ yyreduce:
     break;
 
   case 104: /* for_stmt: FOR identifier ASSIGN expression TO expression DO stmt  */
-#line 723 "src/yacc.y"
+#line 721 "src/yacc.y"
                                                            {
         (yyval.forNode) = new ast::ForNode((yyvsp[-6].identifierNode), (yyvsp[-4].expressionNode), (yyvsp[-2].expressionNode), (yyvsp[0].statementNode), ast::ForNode::Direction::INCREMENT);
     }
@@ -2320,7 +2320,7 @@ yyreduce:
     break;
 
   case 105: /* for_stmt: FOR identifier ASSIGN expression DOWNTO expression DO stmt  */
-#line 727 "src/yacc.y"
+#line 725 "src/yacc.y"
                                                                {
         (yyval.forNode) = new ast::ForNode((yyvsp[-6].identifierNode), (yyvsp[-4].expressionNode), (yyvsp[-2].expressionNode), (yyvsp[0].statementNode), ast::ForNode::Direction::DECREMENT);
     }
@@ -2328,7 +2328,7 @@ yyreduce:
     break;
 
   case 106: /* proc_stmt: identifier  */
-#line 733 "src/yacc.y"
+#line 731 "src/yacc.y"
                {
         (yyval.callNode) = new ast::UserDefineCallNode((yyvsp[0].identifierNode), nullptr);
     }
@@ -2336,7 +2336,7 @@ yyreduce:
     break;
 
   case 107: /* proc_stmt: identifier LP args_list RP  */
-#line 737 "src/yacc.y"
+#line 735 "src/yacc.y"
                                {
         (yyval.callNode) = new ast::UserDefineCallNode((yyvsp[-3].identifierNode), (yyvsp[-1].argsList));
     }
@@ -2344,7 +2344,7 @@ yyreduce:
     break;
 
   case 108: /* proc_stmt: READ LP factor RP  */
-#line 741 "src/yacc.y"
+#line 739 "src/yacc.y"
                       {
         ast::ArgumentsListNode* args = new ast::ArgumentsListNode();
         args->addArgument((yyvsp[-1].expressionNode));
@@ -2354,7 +2354,7 @@ yyreduce:
     break;
 
   case 109: /* proc_stmt: WRITE LP args_list RP  */
-#line 747 "src/yacc.y"
+#line 745 "src/yacc.y"
                           {
         (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITE, (yyvsp[-1].argsList));
     }
@@ -2362,7 +2362,7 @@ yyreduce:
     break;
 
   case 110: /* proc_stmt: WRITELN  */
-#line 751 "src/yacc.y"
+#line 749 "src/yacc.y"
             {
         (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITELN, nullptr);
     }
@@ -2370,7 +2370,7 @@ yyreduce:
     break;
 
   case 111: /* proc_stmt: WRITELN LP args_list RP  */
-#line 755 "src/yacc.y"
+#line 753 "src/yacc.y"
                             {
         (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITELN, (yyvsp[-1].argsList));
     }
@@ -2378,7 +2378,7 @@ yyreduce:
     break;
 
   case 112: /* args_list: args_list COMMA expression  */
-#line 761 "src/yacc.y"
+#line 759 "src/yacc.y"
                                {
         (yyval.argsList) = (yyvsp[-2].argsList);
         (yyval.argsList)->addArgument((yyvsp[0].expressionNode));
@@ -2387,7 +2387,7 @@ yyreduce:
     break;
 
   case 113: /* args_list: expression  */
-#line 766 "src/yacc.y"
+#line 764 "src/yacc.y"
                 {
         (yyval.argsList) = new ast::ArgumentsListNode();
         (yyval.argsList)->addArgument((yyvsp[0].expressionNode));
@@ -2396,7 +2396,7 @@ yyreduce:
     break;
 
   case 114: /* expression: expression GE expr  */
-#line 773 "src/yacc.y"
+#line 771 "src/yacc.y"
                        {
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::GREATER_EQUAL);
     }
@@ -2404,7 +2404,7 @@ yyreduce:
     break;
 
   case 115: /* expression: expression GT expr  */
-#line 777 "src/yacc.y"
+#line 775 "src/yacc.y"
                        {
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::GREATER);
     }
@@ -2412,7 +2412,7 @@ yyreduce:
     break;
 
   case 116: /* expression: expression LE expr  */
-#line 781 "src/yacc.y"
+#line 779 "src/yacc.y"
                        {
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::LESS_EQUAL);
     }
@@ -2420,7 +2420,7 @@ yyreduce:
     break;
 
   case 117: /* expression: expression LT expr  */
-#line 785 "src/yacc.y"
+#line 783 "src/yacc.y"
                        {
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::LESS);
     }
@@ -2428,7 +2428,7 @@ yyreduce:
     break;
 
   case 118: /* expression: expression EQUAL expr  */
-#line 789 "src/yacc.y"
+#line 787 "src/yacc.y"
                           {
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::EQUAL);
     }
@@ -2436,7 +2436,7 @@ yyreduce:
     break;
 
   case 119: /* expression: expression UNEQUAL expr  */
-#line 793 "src/yacc.y"
+#line 791 "src/yacc.y"
                             {
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::NOT_EQUAL);
     }
@@ -2444,7 +2444,7 @@ yyreduce:
     break;
 
   case 120: /* expression: expr  */
-#line 797 "src/yacc.y"
+#line 795 "src/yacc.y"
          {
         (yyval.expressionNode) = (yyvsp[0].expressionNode);
     }
@@ -2452,7 +2452,7 @@ yyreduce:
     break;
 
   case 121: /* expr: expr PLUS term  */
-#line 803 "src/yacc.y"
+#line 801 "src/yacc.y"
                    {
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::ADDITION);
     }
@@ -2460,7 +2460,7 @@ yyreduce:
     break;
 
   case 122: /* expr: expr MINUS term  */
-#line 807 "src/yacc.y"
+#line 805 "src/yacc.y"
                     {
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::SUBTRACTION);
     }
@@ -2468,7 +2468,7 @@ yyreduce:
     break;
 
   case 123: /* expr: expr OR term  */
-#line 811 "src/yacc.y"
+#line 809 "src/yacc.y"
                  {
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::OR);
     }
@@ -2476,7 +2476,7 @@ yyreduce:
     break;
 
   case 124: /* expr: term  */
-#line 815 "src/yacc.y"
+#line 813 "src/yacc.y"
          {
         (yyval.expressionNode) = (yyvsp[0].expressionNode);
     }
@@ -2484,7 +2484,7 @@ yyreduce:
     break;
 
   case 125: /* term: term MUL factor  */
-#line 821 "src/yacc.y"
+#line 819 "src/yacc.y"
                     {
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::MULTIPLICATION);
     }
@@ -2492,7 +2492,7 @@ yyreduce:
     break;
 
   case 126: /* term: term DIV factor  */
-#line 825 "src/yacc.y"
+#line 823 "src/yacc.y"
                     {
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::DIVISION);
     }
@@ -2500,7 +2500,7 @@ yyreduce:
     break;
 
   case 127: /* term: term MOD factor  */
-#line 829 "src/yacc.y"
+#line 827 "src/yacc.y"
                     {
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::MODULUS);
     }
@@ -2508,7 +2508,7 @@ yyreduce:
     break;
 
   case 128: /* term: term AND factor  */
-#line 833 "src/yacc.y"
+#line 831 "src/yacc.y"
                     {
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::AND);
     }
@@ -2516,7 +2516,7 @@ yyreduce:
     break;
 
   case 129: /* term: factor  */
-#line 837 "src/yacc.y"
+#line 835 "src/yacc.y"
            {
         (yyval.expressionNode) = (yyvsp[0].expressionNode);
     }
@@ -2524,7 +2524,7 @@ yyreduce:
     break;
 
   case 130: /* factor: identifier  */
-#line 843 "src/yacc.y"
+#line 841 "src/yacc.y"
                {
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[0].identifierNode), ast::SpecialExpressionNode::FunctionName::VARIABLE);
     }
@@ -2532,7 +2532,7 @@ yyreduce:
     break;
 
   case 131: /* factor: identifier LP args_list RP  */
-#line 847 "src/yacc.y"
+#line 845 "src/yacc.y"
                                {
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-3].identifierNode), (yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::CALL);
     }
@@ -2540,7 +2540,7 @@ yyreduce:
     break;
 
   case 132: /* factor: const_value  */
-#line 851 "src/yacc.y"
+#line 849 "src/yacc.y"
                 {
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[0].constantNode), ast::SpecialExpressionNode::FunctionName::CONST);
     }
@@ -2548,7 +2548,7 @@ yyreduce:
     break;
 
   case 133: /* factor: LP expression RP  */
-#line 855 "src/yacc.y"
+#line 853 "src/yacc.y"
                      {
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].expressionNode), ast::SpecialExpressionNode::FunctionName::PARENTHESIS);
     }
@@ -2556,7 +2556,7 @@ yyreduce:
     break;
 
   case 134: /* factor: NOT factor  */
-#line 859 "src/yacc.y"
+#line 857 "src/yacc.y"
                {
        (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[0].expressionNode), ast::ExpressionNode::Operation::NOT);
     }
@@ -2564,7 +2564,7 @@ yyreduce:
     break;
 
   case 135: /* factor: MINUS factor  */
-#line 863 "src/yacc.y"
+#line 861 "src/yacc.y"
                  {
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[0].expressionNode), ast::ExpressionNode::Operation::NEGATION);
     }
@@ -2572,7 +2572,7 @@ yyreduce:
     break;
 
   case 136: /* factor: identifier LB expression RB  */
-#line 867 "src/yacc.y"
+#line 865 "src/yacc.y"
                                 {
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-3].identifierNode), (yyvsp[-1].expressionNode), ast::SpecialExpressionNode::FunctionName::ARRAY_ACCESS);
     }
@@ -2580,7 +2580,7 @@ yyreduce:
     break;
 
   case 137: /* factor: identifier DOT identifier  */
-#line 871 "src/yacc.y"
+#line 869 "src/yacc.y"
                               {
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-2].identifierNode), (yyvsp[0].identifierNode), ast::SpecialExpressionNode::FunctionName::RECORD_ACCESS);
     }
@@ -2588,7 +2588,7 @@ yyreduce:
     break;
 
   case 138: /* factor: ABS LP args_list RP  */
-#line 875 "src/yacc.y"
+#line 873 "src/yacc.y"
                         {
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::ABS);
     }
@@ -2596,7 +2596,7 @@ yyreduce:
     break;
 
   case 139: /* factor: CHR LP args_list RP  */
-#line 879 "src/yacc.y"
+#line 877 "src/yacc.y"
                         {
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::CHR);
     }
@@ -2604,7 +2604,7 @@ yyreduce:
     break;
 
   case 140: /* factor: ODD LP args_list RP  */
-#line 883 "src/yacc.y"
+#line 881 "src/yacc.y"
                         {
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::ODD);
     }
@@ -2612,7 +2612,7 @@ yyreduce:
     break;
 
   case 141: /* factor: ORD LP args_list RP  */
-#line 887 "src/yacc.y"
+#line 885 "src/yacc.y"
                         {
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::ORD);
     }
@@ -2620,7 +2620,7 @@ yyreduce:
     break;
 
   case 142: /* factor: PRED LP args_list RP  */
-#line 891 "src/yacc.y"
+#line 889 "src/yacc.y"
                          {
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::PRED);
     }
@@ -2628,7 +2628,7 @@ yyreduce:
     break;
 
   case 143: /* factor: SUCC LP args_list RP  */
-#line 895 "src/yacc.y"
+#line 893 "src/yacc.y"
                          {
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::SUCC);
     }
@@ -2829,7 +2829,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 899 "src/yacc.y"
+#line 897 "src/yacc.y"
 
 
 void yyerror(const char *s) {

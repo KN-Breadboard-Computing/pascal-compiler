@@ -11,19 +11,26 @@ class TypeNode : public AstNode {
   TypeNode() : AstNode{Type::TYPE}, typeType_{UNSPECIFIED} {}
   explicit TypeNode(TypeType typeType) : AstNode{Type::TYPE}, typeType_{typeType} {}
 
-  TypeNode(const TypeNode &) = delete;
-  TypeNode(TypeNode &&) = default;
+  TypeNode(const TypeNode&) = delete;
+  TypeNode(TypeNode&&) = default;
 
-  TypeNode &operator=(const TypeNode &) = delete;
-  TypeNode &operator=(TypeNode &&) = default;
+  TypeNode& operator=(const TypeNode&) = delete;
+  TypeNode& operator=(TypeNode&&) = default;
 
   ~TypeNode() override = default;
 
   [[nodiscard]] TypeType getTypeType() const { return typeType_; }
 
+  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override { return std::make_unique<TypeNode>(typeType_); }
+
+  virtual void print(std::ostream& out, int tab) const override {
+    out << std::string(tab, ' ') << "TypeNode:\n";
+    out << std::string(tab + 2, ' ') << "TypeType: " << typeType_ << '\n';
+  }
+
  private:
   TypeType typeType_;
 };
-} // namespace ast
+}  // namespace ast
 
-#endif // AST_TYPE_NODE_HPP
+#endif  // AST_TYPE_NODE_HPP
