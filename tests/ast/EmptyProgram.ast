@@ -1,11 +1,9 @@
-ProgramNode:
-  Name: EmptyProgram
-  RoutineNode:
-    SubType: 1
+ProgramNode EmptyProgram:
+  RoutineNode of type MAIN:
     RoutineHeadNode:
       Constants:
       Types:
       Variables:
       Routines:
     RoutineBodyNode:
-      CompoundStatementNode
+      CompoundStatementNode:

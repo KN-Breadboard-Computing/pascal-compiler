@@ -1,0 +1,13 @@
+ProgramNode Comments:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+      Variables:
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        BuiltinCallNode WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantString<Hello, World!>

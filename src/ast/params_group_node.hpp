@@ -60,7 +60,7 @@ class ParamsGroupNode : public AstNode {
         out << "PASS_BY_REFERENCE\n";
         break;
     }
-    out << std::string(tab + 2, ' ') << "ParamsType: ";
+    out << std::string(tab + 2, ' ') << "ParamsType:\n";
     paramsType_->print(out, tab + 4);
     out << std::string(tab + 2, ' ') << "Params:\n";
     for (const auto& param : *params_) {

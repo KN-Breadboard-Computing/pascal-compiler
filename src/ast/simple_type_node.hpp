@@ -8,7 +8,7 @@
 namespace ast {
 class SimpleTypeNode : public TypeNode {
  public:
-  enum Representation { UNSPECIFIED, INTEGER, BOOLEAN, CHAR, RENAMING, ENUMERATION, CONST_RANGE, VAR_RANGE };
+  enum Representation { UNSPECIFIED, INTEGER, UNSIGNED, BOOLEAN, CHAR, STRING, RENAMING, ENUMERATION, CONST_RANGE, VAR_RANGE };
 
   SimpleTypeNode() : TypeNode{TypeType::SIMPLE}, representation_{UNSPECIFIED} {}
   explicit SimpleTypeNode(Representation representation) : TypeNode{TypeType::SIMPLE}, representation_{representation} {}
@@ -22,6 +22,47 @@ class SimpleTypeNode : public TypeNode {
   ~SimpleTypeNode() override = default;
 
   [[nodiscard]] Representation getRepresentation() const { return representation_; }
+
+  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override {
+    return std::make_unique<SimpleTypeNode>(representation_);
+  }
+
+  virtual void print(std::ostream& out, int tab) const override {
+    out << std::string(tab, ' ') << "SimpleTypeNode ";
+    switch (representation_) {
+      case INTEGER:
+        out << "INTEGER";
+        break;
+      case UNSIGNED:
+        out << "UNSIGNED";
+        break;
+      case BOOLEAN:
+        out << "BOOLEAN";
+        break;
+      case CHAR:
+        out << "CHAR";
+        break;
+      case STRING:
+        out << "STRING";
+        break;
+      case RENAMING:
+        out << "RENAMING";
+        break;
+      case ENUMERATION:
+        out << "ENUMERATION";
+        break;
+      case CONST_RANGE:
+        out << "CONST_RANGE";
+        break;
+      case VAR_RANGE:
+        out << "VAR_RANGE";
+        break;
+      default:
+        out << "UNSPECIFIED";
+        break;
+    }
+    out << '\n';
+  }
 
  private:
   Representation representation_;

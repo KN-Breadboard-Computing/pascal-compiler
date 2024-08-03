@@ -69,7 +69,7 @@ class UserDefineCallNode : public CallNode {
 
 class BuiltinCallNode : public CallNode {
  public:
-  enum FunctionName { READ, WRITE, WRITELN };
+  enum FunctionName { READ, READLN, WRITE, WRITELN };
 
   BuiltinCallNode() : CallNode{BUILTIN} {}
   BuiltinCallNode(FunctionName name, ArgumentsListNode* arguments)
@@ -93,11 +93,13 @@ class BuiltinCallNode : public CallNode {
   }
 
   virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "BuiltinCallNode\n";
-    out << std::string(tab + 2, ' ') << "Name: ";
+    out << std::string(tab, ' ') << "BuiltinCallNode ";
     switch (name_) {
       case READ:
         out << "READ\n";
+        break;
+      case READLN:
+        out << "READLN\n";
         break;
       case WRITE:
         out << "WRITE\n";
@@ -106,7 +108,12 @@ class BuiltinCallNode : public CallNode {
         out << "WRITELN\n";
         break;
     }
-    arguments_->print(out, tab + 2);
+    if (arguments_ != nullptr) {
+      arguments_->print(out, tab + 2);
+    }
+    else {
+      out << std::string(tab + 2, ' ') << "Arguments: nullptr\n";
+    }
   }
 
  private:

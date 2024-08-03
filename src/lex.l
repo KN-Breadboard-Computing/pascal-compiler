@@ -82,6 +82,7 @@ NQUOTE [^']
 {P}{R}{O}{C}{E}{D}{U}{R}{E}                             {   return createToken(PROCEDURE);                      }
 {P}{R}{O}{G}{R}{A}{M}                                   {   return createToken(PROGRAM);                        }
 {R}{E}{A}{D}                                            {   return createToken(READ);                           }
+{R}{E}{A}{D}{L}{N}                                      {   return createToken(READLN);                         }
 {R}{E}{C}{O}{R}{D}                                      {   return createToken(RECORD);                         }
 {R}{E}{P}{E}{A}{T}                                      {   return createToken(REPEAT);                         }
 {T}{H}{E}{N}                                            {   return createToken(THEN);                           }
@@ -106,6 +107,7 @@ NQUOTE [^']
 {W}{R}{I}{T}{E}{L}{N}                                   {   return createToken(WRITELN);                        }
 
 {I}{N}{T}{E}{G}{E}{R}                                   {   return createToken(INT_TYPE);                       }
+{U}{N}{S}{I}{G}{N}{E}{D}                                {   return createToken(UNSIGNED_TYPE);                  }
 {C}{H}{A}{R}                                            {   return createToken(CHAR_TYPE);                      }
 {S}{T}{R}{I}{N}{G}                                      {   return createToken(STRING_TYPE);                    }
 {B}{O}{O}{L}{E}{A}{N}                                   {   return createToken(BOOL_TYPE);                      }
@@ -181,7 +183,7 @@ static int createNumber(int token) {
 
 static int createChar(int token) {
     #ifdef LEX_DEBUG
-        std::cout << "Lex debug: char token [" << linesCounter << "] `" << yytext[0] << "`\n";
+        std::cout << "Lex debug: char token [" << linesCounter << "] `" << yytext[1] << "`\n";
     #endif
 
     yylval.token.numericalValue = yytext[1];

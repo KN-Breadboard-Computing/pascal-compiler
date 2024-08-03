@@ -1,0 +1,58 @@
+ProgramNode Constants:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+        Constant 0:
+          IdentifierNode: constInt
+          ConstantInteger<-19>
+        Constant 1:
+          IdentifierNode: constUInt
+          ConstantInteger<28>
+        Constant 2:
+          IdentifierNode: constChar
+          ConstantChar<P>
+        Constant 3:
+          IdentifierNode: constString
+          ConstantString<Hello, World!>
+        Constant 4:
+          IdentifierNode: constTrue
+          ConstantBoolean<1>
+        Constant 5:
+          IdentifierNode: constFalse
+          ConstantBoolean<0>
+        Constant 6:
+          IdentifierNode: constMaxInt
+          ConstantInteger<255>
+      Types:
+      Variables:
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        BuiltinCallNode WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: constInt
+        BuiltinCallNode WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: constUInt
+        BuiltinCallNode WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: constChar
+        BuiltinCallNode WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: constString
+        BuiltinCallNode WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: constTrue
+        BuiltinCallNode WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: constFalse
+        BuiltinCallNode WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: constMaxInt

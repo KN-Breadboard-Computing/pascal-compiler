@@ -1,6 +1,7 @@
 #ifndef AST_AST_NODE_HPP
 #define AST_AST_NODE_HPP
 
+#include <iostream>
 #include <memory>
 #include <ostream>
 #include <vector>
@@ -51,7 +52,7 @@ class AstNode {
   [[nodiscard]] Type getType() const { return type_; }
 
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const = 0;
-  virtual void print(std::ostream &out, int tab) const = 0;
+  virtual void print(std::ostream& out, int tab) const = 0;
 
  protected:
   Type type_;

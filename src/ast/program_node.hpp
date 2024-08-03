@@ -35,8 +35,7 @@ class ProgramNode : public AstNode {
   }
 
   virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "ProgramNode:\n";
-    out << std::string(tab + 2, ' ') << "Name: " << name_ << '\n';
+    out << std::string(tab, ' ') << "ProgramNode " << name_ << ":\n";
     routine_->print(out, tab + 2);
   }
 

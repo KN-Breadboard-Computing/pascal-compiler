@@ -37,7 +37,7 @@ class CompoundStatementNode : public StatementNode {
   }
 
   virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "CompoundStatementNode\n";
+    out << std::string(tab, ' ') << "CompoundStatementNode:\n";
     for (const auto& statement : *statements_) {
       statement->print(out, tab + 2);
     }

@@ -11,7 +11,7 @@ AST_DIR = $(TEST_DIR)/ast
 ASM_DIR = $(TEST_DIR)/asm
 INPUT_FILES = $(wildcard $(INPUT_DIR)/*.pas)
 
-all: clean lexer parser compiler
+all: lexer parser compiler
 
 lexer:
 	$(FF) $(FFLAGS) -o out/lexer.cpp --header-file=out/lexer.hpp src/lex.l
@@ -27,6 +27,8 @@ test:
 		ast_file=$(AST_DIR)/`basename $$input_file .pas`.ast; \
 		asm_file=$(ASM_DIR)/`basename $$input_file .pas`.asm; \
 		./compiler $$input_file $$asm_file $$ast_file; \
+		echo ""; \
+		echo ""; \
 	done
 
 

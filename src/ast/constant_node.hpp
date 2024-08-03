@@ -44,7 +44,22 @@ class ConstantNodeSpec : public ConstantNode {
   [[nodiscard]] std::unique_ptr<AstNode> clone() const override { return std::make_unique<ConstantNodeSpec<T, type>>(value_); }
 
   void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "ConstantNodeSpec<" << value_ << ">\n";
+    switch (type) {
+      case ConstantNode::INTEGER:
+        out << std::string(tab, ' ') << "ConstantInteger<" << value_ << ">\n";
+        break;
+      case ConstantNode::CHAR:
+        out << std::string(tab, ' ') << "ConstantChar<" << value_ << ">\n";
+        break;
+      case ConstantNode::BOOLEAN:
+        out << std::string(tab, ' ') << "ConstantBoolean<" << value_ << ">\n";
+        break;
+      case ConstantNode::STRING:
+        out << std::string(tab, ' ') << "ConstantString<" << value_ << ">\n";
+        break;
+      default:
+        break;
+    }
   }
 
  private:

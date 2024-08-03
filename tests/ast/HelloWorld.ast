@@ -1,0 +1,50 @@
+ProgramNode HelloWorld:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+      Variables:
+        Group 0:
+          SimpleTypeNode STRING
+          Identifiers:
+            IdentifierNode: name
+            IdentifierNode: surname
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        BuiltinCallNode WRITE
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantString<Hello, World! >
+        BuiltinCallNode WRITELN
+          Arguments: nullptr
+        BuiltinCallNode WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantString<What is your name?>
+        BuiltinCallNode READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: name
+        BuiltinCallNode WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantString<What is your surname?>
+        BuiltinCallNode READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: surname
+        BuiltinCallNode WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantString<Hello, >
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: name
+            SpecialExpressionNode: CONST
+              ConstantChar< >
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: surname
+            SpecialExpressionNode: CONST
+              ConstantChar<!>
+        BuiltinCallNode READLN
+          Arguments: nullptr

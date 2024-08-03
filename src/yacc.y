@@ -5,11 +5,13 @@
 #include <vector>
 
 #include "../src/ast/program_node.hpp"
+#include "../src/LookupTable.hpp"
 
 #define YACC_DEBUG
 
 ast::ProgramNode* resultAst;
 std::vector<std::string> parsingErrors;
+LookupTable lookupTable;
 
 static void yyerror(const char *msg);
 static int yyparse(void);
@@ -105,22 +107,22 @@ extern uint64_t linesCounter;
 %token PROGRAM FUNCTION PROCEDURE CONST TYPE VAR BBEGIN END
 %token IDENT_NAME INTEGER BOOLEAN CHAR STRING
 %token TRUE FALSE MAXINT
-%token READ WRITE WRITELN ABS CHR ODD ORD PRED SUCC
+%token READ READLN WRITE WRITELN ABS CHR ODD ORD PRED SUCC
 %token IF THEN ELSE REPEAT UNTIL WHILE DO CASE TO DOWNTO FOR
 %token EQUAL UNEQUAL GE GT LE LT ASSIGN PLUS MINUS MUL DIV OR AND NOT MOD
 %token LB RB LP RP SEMICOLON DOT DOUBLEDOT COMMA COLON
-%token INT_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE
+%token INT_TYPE UNSIGNED_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE
 %token ARRAY OF RECORD GOTO
 %token ERROR
 
 %type <token> PROGRAM FUNCTION PROCEDURE CONST TYPE VAR BBEGIN END
 %type <token> IDENT_NAME INTEGER BOOLEAN CHAR STRING
 %type <token> TRUE FALSE MAXINT
-%type <token> READ WRITE WRITELN ABS CHR ODD ORD PRED SUCC
+%type <token> READ READLN WRITE WRITELN ABS CHR ODD ORD PRED SUCC
 %type <token> IF THEN ELSE REPEAT UNTIL WHILE DO CASE TO DOWNTO FOR
 %type <token> EQUAL UNEQUAL GE GT LE LT ASSIGN PLUS MINUS MUL DIV OR AND NOT MOD
 %type <token> LB RB LP RP SEMICOLON DOT DOUBLEDOT COMMA COLON
-%type <token> INT_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE
+%type <token> INT_TYPE UNSIGNED_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE
 %type <token> ARRAY OF RECORD GOTO
 %type <token> ERROR
 
@@ -170,6 +172,9 @@ program :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse program 1: " << (*$2.stringValue) << std::endl;
         #endif
+
+        lookupTable.pushNamespace("@program");
+
         std::string name{*$2.stringValue};
         $4->setSubType(ast::RoutineNode::SubType::MAIN);
         $$ = new ast::ProgramNode(std::move(name), $4);
@@ -180,6 +185,9 @@ program :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse program 2: " << (*$2.stringValue) << std::endl;
         #endif
+
+        lookupTable.pushNamespace("@program");
+
         std::string name{*$2.stringValue};
         $4->setSubType(ast::RoutineNode::SubType::MAIN);
         $$ = new ast::ProgramNode(std::move(name), $4);
@@ -191,6 +199,9 @@ program :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse program 3: " << (*$2.stringValue) << std::endl;
         #endif
+
+        lookupTable.pushNamespace("@program");
+
         std::string name{*$2.stringValue};
         $3->setSubType(ast::RoutineNode::SubType::MAIN);
         $$ = new ast::ProgramNode(std::move(name), $3);
@@ -202,6 +213,9 @@ program :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse program 4: " << (*$2.stringValue) << std::endl;
         #endif
+
+        lookupTable.pushNamespace("@program");
+
         std::string name{*$2.stringValue};
         $3->setSubType(ast::RoutineNode::SubType::MAIN);
         $$ = new ast::ProgramNode(std::move(name), $3);
@@ -315,6 +329,9 @@ fun_head :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun head " << (*$2.stringValue) << std::endl;
         #endif
+
+        lookupTable.pushNamespace("@" + (*$2.stringValue));
+
         std::string name{*$2.stringValue};
         $$ = new ast::RoutineDeclarationNode(ast::RoutineDeclarationNode::RoutineType::FUNCTION, std::move(name), $3, $5, nullptr);
     }
@@ -336,6 +353,9 @@ proc_head :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse proc head " << (*$2.stringValue) << std::endl;
         #endif
+
+        lookupTable.pushNamespace("@" + (*$2.stringValue));
+
         std::string name{*$2.stringValue};
         $$ = new ast::RoutineDeclarationNode(ast::RoutineDeclarationNode::RoutineType::PROCEDURE, std::move(name), $3, nullptr, nullptr);
     }
@@ -501,19 +521,30 @@ const_value :
         #endif
         $$ = new ast::IntegerConstantNode($1.numericalValue);
     }
+|
+    MINUS INTEGER {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse const value - signed integer `" << -$2.numericalValue << "`" << std::endl;
+        #endif
+        $$ = new ast::IntegerConstantNode(-$2.numericalValue);
+    }
+
 |   CHAR
     {
         #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse const value - char `" << (*$1.stringValue)[0] << "`" << std::endl;
+            std::cout << "Yacc debug: Parse const value - char `" << static_cast<char>($1.numericalValue) << "`" << std::endl;
         #endif
-        $$ = new ast::CharConstantNode((*$1.stringValue)[0]);
+        $$ = new ast::CharConstantNode(static_cast<char>($1.numericalValue));
     }
 |
     STRING {
-        #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse const value - string `" << (*$1.stringValue) << "`" << std::endl;
-        #endif
         std::string str{*$1.stringValue};
+        str = str.substr(1, str.size() - 2);
+
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse const value - string `" << str << "`" << std::endl;
+        #endif
+
         $$ = new ast::StringConstantNode(std::move(str));
     }
 |
@@ -536,6 +567,13 @@ const_value :
             std::cout << "Yacc debug: Parse const value - maxint" << std::endl;
         #endif
         $$ = new ast::IntegerConstantNode(255);
+    }
+|
+    MINUS MAXINT {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse const value - signed maxint" << std::endl;
+        #endif
+        $$ = new ast::IntegerConstantNode(-255);
     }
 ;
 
@@ -688,20 +726,6 @@ simple_type :
         $$ = new ast::ConstRangeTypeNode($1, $3);
     }
 |
-    MINUS const_value DOUBLEDOT const_value {
-        #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse simple type - range 2" << std::endl;
-        #endif
-        $$ = new ast::ConstRangeTypeNode($2, $4);
-    }
-|
-    MINUS const_value DOUBLEDOT MINUS const_value {
-        #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse simple type - range 3" << std::endl;
-        #endif
-        $$ = new ast::ConstRangeTypeNode($2, $5);
-    }
-|
     identifier DOUBLEDOT identifier {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - range 4" << std::endl;
@@ -716,6 +740,13 @@ simple_type :
         $$ = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::INTEGER);
     }
 |
+    UNSIGNED_TYPE {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse simple type - unsigned" << std::endl;
+        #endif
+        $$ = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::UNSIGNED);
+    }
+|
     BOOL_TYPE {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - bool" << std::endl;
@@ -728,6 +759,13 @@ simple_type :
             std::cout << "Yacc debug: Parse simple type - char" << std::endl;
         #endif
         $$ = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::CHAR);
+    }
+|
+    STRING_TYPE {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse simple type - string" << std::endl;
+        #endif
+        $$ = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::STRING);
     }
 ;
 
@@ -1063,6 +1101,14 @@ proc_stmt :
         ast::ArgumentsListNode* args = new ast::ArgumentsListNode();
         args->addArgument($3);
         $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::READ, args);
+    }
+
+|
+    READLN {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse readln statement" << std::endl;
+        #endif
+        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::READLN, nullptr);
     }
 |
     WRITE LP args_list RP {

@@ -1,0 +1,208 @@
+ProgramNode TypeDeclarations:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+        Type 0:
+          IdentifierNode: TMyInt
+          SimpleTypeNode INTEGER
+        Type 1:
+          IdentifierNode: TMyUInt
+          SimpleTypeNode UNSIGNED
+        Type 2:
+          IdentifierNode: TMyChar
+          SimpleTypeNode CHAR
+        Type 3:
+          IdentifierNode: TMyString
+          SimpleTypeNode STRING
+        Type 4:
+          IdentifierNode: TMyBool
+          SimpleTypeNode BOOLEAN
+        Type 5:
+          IdentifierNode: TMyReBool
+          RenameTypeNode:
+            IdentifierNode: TMyBool
+        Type 6:
+          IdentifierNode: TDay
+          EnumerationTypeNode:
+            IdentifierNode: Mon
+            IdentifierNode: Tue
+            IdentifierNode: Wed
+            IdentifierNode: Thu
+            IdentifierNode: Fri
+            IdentifierNode: Sat
+            IdentifierNode: Sun
+        Type 7:
+          IdentifierNode: TWorkDay
+          VarRangeTypeNode:
+            IdentifierNode: Mon
+            IdentifierNode: Fri
+        Type 8:
+          IdentifierNode: TNumeric1
+          ConstRangeTypeNode:
+            ConstantInteger<1>
+            ConstantInteger<111>
+        Type 9:
+          IdentifierNode: TNumeric2
+          ConstRangeTypeNode:
+            ConstantInteger<-17>
+            ConstantInteger<17>
+        Type 10:
+          IdentifierNode: TNumeric3
+          ConstRangeTypeNode:
+            ConstantInteger<-10>
+            ConstantInteger<-5>
+        Type 11:
+          IdentifierNode: TNumeric4
+          ConstRangeTypeNode:
+            ConstantInteger<0>
+            ConstantInteger<255>
+        Type 12:
+          IdentifierNode: TNumeric5
+          ConstRangeTypeNode:
+            ConstantInteger<-255>
+            ConstantInteger<0>
+        Type 13:
+          IdentifierNode: TNumeric5
+          ConstRangeTypeNode:
+            ConstantInteger<-255>
+            ConstantInteger<255>
+        Type 14:
+          IdentifierNode: TBools
+          ConstRangeTypeNode:
+            ConstantBoolean<0>
+            ConstantBoolean<1>
+        Type 15:
+          IdentifierNode: TLetters
+          ConstRangeTypeNode:
+            ConstantChar<a>
+            ConstantChar<z>
+        Type 16:
+          IdentifierNode: TMyIntArray
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantInteger<1>
+                ConstantInteger<10>
+            Element type:
+              SimpleTypeNode INTEGER
+        Type 17:
+          IdentifierNode: TMyIntMatrix
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantInteger<1>
+                ConstantInteger<10>
+            Element type:
+              RenameTypeNode:
+                IdentifierNode: TMyIntArray
+        Type 18:
+          IdentifierNode: TMyCharMatrix
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantInteger<1>
+                ConstantInteger<10>
+            Element type:
+              ArrayTypeNode:
+                Range:
+                  ConstRangeTypeNode:
+                    ConstantInteger<1>
+                    ConstantInteger<10>
+                Element type:
+                  SimpleTypeNode CHAR
+        Type 19:
+          IdentifierNode: TMyStringArrayBoolIndex
+          ArrayTypeNode:
+            Range:
+              SimpleTypeNode BOOLEAN
+            Element type:
+              SimpleTypeNode STRING
+        Type 20:
+          IdentifierNode: TMyStringArrayCharIndex
+          ArrayTypeNode:
+            Range:
+              SimpleTypeNode CHAR
+            Element type:
+              SimpleTypeNode STRING
+        Type 21:
+          IdentifierNode: TMyStringArrayIntIndex
+          ArrayTypeNode:
+            Range:
+              SimpleTypeNode INTEGER
+            Element type:
+              SimpleTypeNode STRING
+        Type 22:
+          IdentifierNode: TMyStringArrayUIntIndex
+          ArrayTypeNode:
+            Range:
+              SimpleTypeNode UNSIGNED
+            Element type:
+              SimpleTypeNode STRING
+        Type 23:
+          IdentifierNode: TMyStringArrayCharRange
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantChar<a>
+                ConstantChar<z>
+            Element type:
+              SimpleTypeNode STRING
+        Type 24:
+          IdentifierNode: TMyStringArrayBoolsRange
+          ArrayTypeNode:
+            Range:
+              RenameTypeNode:
+                IdentifierNode: TBools
+            Element type:
+              SimpleTypeNode STRING
+        Type 25:
+          IdentifierNode: TMyWeekDayArray
+          ArrayTypeNode:
+            Range:
+              RenameTypeNode:
+                IdentifierNode: TDay
+            Element type:
+              SimpleTypeNode CHAR
+        Type 26:
+          IdentifierNode: TPerson
+          RecordTypeNode:
+            Field:
+              IdentifierNode: Name
+              SimpleTypeNode STRING
+            Field:
+              IdentifierNode: Age
+              SimpleTypeNode INTEGER
+            Field:
+              IdentifierNode: WorkHours
+              ArrayTypeNode:
+                Range:
+                  RenameTypeNode:
+                    IdentifierNode: TDay
+                Element type:
+                  SimpleTypeNode INTEGER
+        Type 27:
+          IdentifierNode: TFamiliy
+          RecordTypeNode:
+            Field:
+              IdentifierNode: Father
+              RenameTypeNode:
+                IdentifierNode: TPerson
+            Field:
+              IdentifierNode: Mother
+              RenameTypeNode:
+                IdentifierNode: TPerson
+            Field:
+              IdentifierNode: Children
+              ArrayTypeNode:
+                Range:
+                  ConstRangeTypeNode:
+                    ConstantInteger<1>
+                    ConstantInteger<10>
+                Element type:
+                  RenameTypeNode:
+                    IdentifierNode: TPerson
+      Variables:
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
