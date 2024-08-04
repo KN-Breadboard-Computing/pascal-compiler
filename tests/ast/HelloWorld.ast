@@ -5,36 +5,37 @@ ProgramNode HelloWorld:
       Types:
       Variables:
         Group 0:
-          SimpleTypeNode STRING
+          RenameTypeNode:
+            IdentifierNode: string
           Identifiers:
             IdentifierNode: name
             IdentifierNode: surname
       Routines:
     RoutineBodyNode:
       CompoundStatementNode:
-        BuiltinCallNode WRITE
+        BuiltinCallNode: WRITE
           ArgumentsListNode:
             SpecialExpressionNode: CONST
               ConstantString<Hello, World! >
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           Arguments: nullptr
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           ArgumentsListNode:
             SpecialExpressionNode: CONST
               ConstantString<What is your name?>
-        BuiltinCallNode READ
+        BuiltinCallNode: READ
           ArgumentsListNode:
             SpecialExpressionNode: VARIABLE
               IdentifierNode: name
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           ArgumentsListNode:
             SpecialExpressionNode: CONST
               ConstantString<What is your surname?>
-        BuiltinCallNode READ
+        BuiltinCallNode: READ
           ArgumentsListNode:
             SpecialExpressionNode: VARIABLE
               IdentifierNode: surname
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           ArgumentsListNode:
             SpecialExpressionNode: CONST
               ConstantString<Hello, >
@@ -46,5 +47,5 @@ ProgramNode HelloWorld:
               IdentifierNode: surname
             SpecialExpressionNode: CONST
               ConstantChar<!>
-        BuiltinCallNode READLN
+        BuiltinCallNode: READLN
           Arguments: nullptr

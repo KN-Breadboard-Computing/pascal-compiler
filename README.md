@@ -7,18 +7,82 @@ This project can run on Linux, make sure you have flex and bison. If you do not 
 Then compile the project with the `make` command.
 
 # Supported Pascal Syntax
+The `tests/input` directory contains examples showing the syntax described below.
+
+## Identifiers
++ Pascal is case insensitive.
++ must begin with letter(a-zA-z) or underscore(_).
++ following chars can be letters(a-zA-Z), digits(0-9) or underscore(_) in any combination.
+
+## Math Operators
++ \+ - addition
++ \- - subtraction / unary negative
++ \* - multiplication
++ / - integer division
++ \% - modulo
+
+## Boolean Operators
++ NOT - logical negation
++ AND - logical conjunction
++ OR - logical alternation
++ XOR - exclusive alternation
++ < -	less than
++ \>	- greater than
++ =	- equal to
++ <= - less than or equal to
++ \>= - greater than or equal to
++ <> - not equal to
+
+## Built-in Functions
+```
+Read(Variable);
+Readln;
+```
+
+```
+Write(Expression, ..., Expression);
+Writeln(Expression, ..., Expression);
+Writeln;
+```
+
+```
+AbsoluteValue := Abs(Value);
+```
+
+```
+IntValue := Ord('A');
+CharValue := Chr(65);
+```
+
+```
+NplusOne := Succ(N);
+NminusOne := Pred(N);
+```
+
+```
+BooleanValue := Odd(IntValue);
+```
+
+```
+MemoryRead(AddressHigh, AddressLow, DestinationVariable);
+MemoryWrite(AddressHigh, AddressLow, SourceVariable);
+
+StackRead(AddressHigh, AddressLow, DestinationVariable);
+StackWrite(AddressHigh, AddressLow, SourceVariable);
+```
+
 ## Program Structure
 ```
 PROGRAM ProgramName;
 
 CONST
-(* Constant declarations *)
+  (* Constant declarations *)
 
 TYPE
-(* Type declarations *)
+  (* Type declarations *)
 
 VAR
-(* Global variable declarations *)
+  (* Global variable declarations *)
 
 (* Procedure/function definitions *)
 
@@ -29,55 +93,49 @@ END.
 
 ## Procedures & Functions
 ```
-procedure Name (FormalParameterList);
+PROCEDURE Name (FormalParameterList);
 
-const
+CONST
   (* Constants *)
 
-var
+TYPE
+  (* Types *)
+
+VAR
   (* Variables *)
 
-begin
-  (* Statements *)
-end;
-```
-```
-function Name (FormalParameterList) : ReturnType;
+(* SubProcedure/SubFunction definitions *)
 
-const
+
+BEGIN
+  (* Statements *)
+END;
+```
+```
+FUNCTION Name (FormalParameterList) : ReturnType;
+
+CONST
   (* Constants *)
 
-var
+TYPE
+  (* Types *)
+
+VAR
   (* Variables *)
 
-begin
+(* SubProcedure/SubFunction definitions *)
+
+BEGIN
   (* Statements *)
-end;
+
+  Name := (* Function result *)
+END;
 ```
 ```
 FormalParameterList = ParameterGroup1; ... ; ParameterGroupn
 ```
 ```
 ParameterGroupk = Identifier1, ... Identifiern : DataType 
-```
-
-### Forward Referencing
-```
-procedure Later (parameter list); forward;
-
-procedure Sooner (parameter list);
-begin
-  ...
-  Later (parameter list);
-end;
-
-...
-
-procedure Later;
-begin
-  ...
-  Sooner (parameter list);
-end;
 ```
 
 
@@ -89,88 +147,88 @@ VariableName := Expression;
 
 ### If
 ```
-if BooleanExpression then
+IF BooleanExpression THEN
   StatementIfTrue;
 ```
 ```
-if BooleanExpression then
+IF BooleanExpression THEN
   StatementIfTrue
-else
+ELSE
   StatementIfFalse;
 ```
 ```
-if BooleanExpression then
-begin
-  Statement1;
-  Statement2;
-end;
+IF BooleanExpression THEN
+BEGIN
+  StatementIfTrue1;
+  StatementIfTrue2;
+END;
 ```
 ```
-if BooleanExpression then
-begin
-  Statement1;
-  Statement2;
-end
-else
-begin
-  Statement3;
-  Statement4;
-end;
+IF BooleanExpression THEN
+BEGIN
+  StatementIfTrue1;
+  StatementIfTrue2;
+END
+ELSE
+BEGIN
+  StatementIfFalse1;
+  StatementIfFalse2;
+EBD;
 ```
 
 ### Case 
 ```
-case selector of
-  List1:    Statement1;
-  List2:    Statement2;
+CASE Selector OF
+  Value1:     Statement1;
+  Value2:     Statement2;
   ...
-  Listn:    Statementn;
-  otherwise Statement   // optional
-end;
+  Valuen:     Statementn;
+  OTHERWISE   OtherwiseStatement;   (* optional *)
+END;
 ```
 
 ### For Loop
-Index cannot be changed inside the loop. 
-A loop can be interrupted using the `break` statement.
+`Index` cannot be changed inside the loop. 
+A loop can be interrupted using the `break` statement. Iteration can be skipped using `continue`.
 ```
-for Index := StartingLow to EndingHigh do
+FOR Index := StartingLow TO EndingHigh DO
   Statement;
 ```
 ```
-for Index := StartingHigh downto EndingLow do
+FOR Index := StartingHigh DOWNTO EndingLow DO
   Statement;
 ```
 ```
-for Index := StartingLow to EndingHigh do
-begin
+FOR Index := StartingLow TO EndingHigh DO
+BEGIN
   Statement1;
   Statement2;
-end;
+END;
 ```
 ```
-for Index := StartingHigh downto EndingLow d
-begin
+FOR Index := StartingHigh DOWNTO EndingLow DO
+BEGIN
   Statement1;
   Statement2;
-end;
+END;
 ```
 
 ### While Loop
-A loop can be interrupted using the `break` statement.
+A loop can be interrupted using the `break` statement. Iteration can be skipped using `continue`.
 ```
-while BooleanExpression do
+WHILE BooleanExpression DO
   Statement;
 ```
 ```
-while BooleanExpression do
-begin
+WHILE BooleanExpression DO
+BEGIN
   Statement1;
   Statement2;
-end;
+END;
 ```
 
 ### Repeat Until Loop
-A loop can be interrupted using the `break` statement.
+A loop can be interrupted using the `break` statement. Iteration can be skipped using `continue`.
 ```
 repeat
   Statement1;
@@ -179,6 +237,7 @@ until BooleanExpression;
 ```
 
 ## Comments
+Each of these comments is multiline.
 ```
 (* Comment *)
 ```
@@ -187,102 +246,92 @@ until BooleanExpression;
 ```
 
 ## Data Types
-### Declaring Custom Data Type
+
+### Basic Data Types
++ Bool $\in$ {TRUE, FALSE}
++ Char $\in$ [0, 255] (represent ASCII codes)
++ Integer $\in$ [-128, 127]
++ Unsigned $\in$ [0, 255]
+
+### Constants
 ```
-type
- DataTypeIdentifier = TypeSpecification;
+  ConstInt = -19;
+  ConstUInt = 28;
+  ConstChar = 'P';
+  ConstString = 'Hello, World!';
+  ConstTrue = TRUE;
+  ConstFalse = FALSE;
+  ConstMaxInt = MAXINT;
 ```
 
-### Enumeration Type
+### Type Renaming
 ```
-type
- DataTypeIdentifier = (Identifier1, ... Identifiern);
-```
-You can assign value to enumeration. For example:
-```
-type
- DataTypeIdentifier = (Identifier1=4, Identifier2, Identifier3=7);
+TIntTypeRename = Integer;
 ```
 
-### 1-Dimensional Array
+### Enumeration
 ```
-type
-  typename = array [EnumeratedType] of DataType;
-```
-
-For example - two equivalent definitions:
-```
-type
-  EnumType = 1..50;
-  ArrayType = array [EnumType] of char;
-
-type
-  ArrayType = array [1..50] of char;
+TDay = (Mon, Tue, Wed, Thu, Fri, Sat, Sun);
 ```
 
-### Multidimensional Array
+### Enumeration Range
 ```
-type
-  ArrayType = array [EnumType1, EnumType2] of DataType;
+TWorkDay = Mon..Fri;
+```
+
+### Subranges
+```
+TNumeric1 = 1..111;
+TNumeric2 = -17..19;
+TNumeric3 = 0..MaxInt;
+TBools = False..True;
+TLetters = 'a'..'z';
+```
+
+### Arrays
+```
+TIntArray = array[1..10] of Integer;
+TIntMatrix = array[1..10] of TIntArray;
+TCharMatrix = array[1..10] of array[1..10] of Char;
+
+TCharArrayBoolIndex = array[Boolean] of Char;
+TCharArrayCharIndex = array[Char] of Char;
+TCharArrayIntIndex = array[Integer] of Char;
+TCharArrayUIntIndex = array[Unsigned] of Char;
+
+TCharArrayCharRange = array['a'..'z'] of Char;
+TCharArrayBoolsRange = array[TBools] of Char;
+
+TWeekDayArray = array[TDay] of Integer;
+```
+
+### Array Access
+```
+ArrayElement := ArrayName[IndexExppression];
+```
+
+### Char Array Assign
+```
+CharsArray = array[1..5] of Char;
+CharsArray = 'Hello';
 ```
 
 ### Record
 ```
-type
-  TypeName = record
-    IdentifierList1 : DataType1;
-    ...
-    IdentifierListn : DataTypen;
+  TPerson = record
+    Name: Char;
+    Age: Integer;
+    WorkHours: array[TDay] of Integer;
+  end;
+
+  TFamiliy = record
+    Father: TPerson;
+    Mother: TPerson;
+    Children: array[1..10] of TPerson;
   end;
 ```
 
-### Pointer
-#### Type Creating
+### Record Access
 ```
-type
-	PointerType = ^DataType;
+RecordField := RecordName.FieldName;
 ```
-#### Allocating Memory For Variable
-```
-New(PointerVariable);
-```
-
-#### Accessing Variable
-```
-PointerVariable^ := 5;
-```
-
-#### Deallocating Memory
-```
-Dispose(PointerVariable);
-```
-
-## Identifiers
-+ Pascal is case insensitive.
-+ must begin with letter(a-zA-z) or underscore(_).
-+ following chars can be letters(a-zA-Z), digits(0-9) or underscore(_) in any combination.
-
-## Basic data types
-+ Bool $\in$ {TRUE, FALSE}
-+ Char $\in$ [0, 255] (represent ASCII codes)
-+ Short $\in$ [-128, 127]
-+ Byte $\in$ [0, 255]
-
-## Math Operators
-+ \+ - addition / unary positive
-+ \- - subtraction / unary negative
-+ \* - multiplication
-+ / - integer division
-+ \% - modulo
-
-## Boolean Operators
-+ not - logical negation
-+ and - logical conjunction
-+ or - logical alternation
-+ xor - exclusive alternation
-+ < -	less than
-+ \>	- greater than
-+ =	- equal to
-+ <= - less than or equal to
-+ \>= - greater than or equal to
-+ <> - not equal to

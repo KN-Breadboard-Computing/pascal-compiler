@@ -24,8 +24,7 @@ class CaseNode : public StatementNode {
 
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override {
     ExpressionNode* newExpression = dynamic_cast<ExpressionNode*>(expression_->clone().release());
-    std::vector<std::pair<AstNode*, StatementNode*>*>* newStatements =
-        new std::vector<std::pair<AstNode*, StatementNode*>*>{};
+    std::vector<std::pair<AstNode*, StatementNode*>*>* newStatements = new std::vector<std::pair<AstNode*, StatementNode*>*>{};
     for (auto& statement : *statements_) {
       newStatements->push_back(new std::pair<AstNode*, StatementNode*>{
           statement->first->clone().release(), dynamic_cast<StatementNode*>(statement->second->clone().release())});
@@ -35,15 +34,26 @@ class CaseNode : public StatementNode {
   }
 
   virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(2 * tab, ' ') << "CaseNode:" << std::endl;
-    out << std::string(2 * (tab + 1), ' ') << "expression: ";
-    expression_->print(out, tab + 1);
-    out << std::string(2 * (tab + 1), ' ') << "statements: " << std::endl;
+    if (getLabel().has_value()) {
+      out << std::string(tab, ' ') << "CaseNode with label: " << getLabel().value() << std::endl;
+    }
+    else {
+      out << std::string(tab, ' ') << "CaseNode:" << std::endl;
+    }
+
+    expression_->print(out, tab + 2);
+    size_t index{0};
     for (auto& statement : *statements_) {
-      out << std::string(2 * (tab + 2), ' ') << "Expression: ";
-      statement->first->print(out, tab + 2);
-      out << std::string(2 * (tab + 2), ' ') << "Statement: ";
-      statement->second->print(out, tab + 2);
+      out << std::string(tab + 2, ' ') << "Case " << index++ << ":\n";
+      out << std::string(tab + 4, ' ') << "Expression:\n";
+      if (statement->first != nullptr) {
+        statement->first->print(out, tab + 6);
+      }
+      else {
+        out << std::string(tab + 6, ' ') << "Otherwise\n";
+      }
+      out << std::string(tab + 4, ' ') << "Statement:\n";
+      statement->second->print(out, tab + 6);
     }
   }
 

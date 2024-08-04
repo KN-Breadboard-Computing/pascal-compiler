@@ -1,0 +1,67 @@
+ProgramNode RepeatsUntil:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+      Variables:
+        Group 0:
+          SimpleTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: i
+            IdentifierNode: j
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        AssignToVariableNode
+          IdentifierNode: i
+          SpecialExpressionNode: CONST
+            ConstantInteger<1>
+        RepeatNode:
+          ExpressionNode: GREATER
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: i
+            SpecialExpressionNode: CONST
+              ConstantInteger<5>
+          AssignToVariableNode
+            IdentifierNode: j
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>
+          RepeatNode:
+            ExpressionNode: GREATER
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: j
+              SpecialExpressionNode: CONST
+                ConstantInteger<5>
+            BuiltinCallNode: WRITELN
+              ArgumentsListNode:
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: i
+                SpecialExpressionNode: CONST
+                  ConstantString< * >
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: j
+                SpecialExpressionNode: CONST
+                  ConstantString< = >
+                ExpressionNode: MULTIPLICATION
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: i
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: j
+            AssignToVariableNode
+              IdentifierNode: j
+              ExpressionNode: ADDITION
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: j
+                SpecialExpressionNode: CONST
+                  ConstantInteger<1>
+          BuiltinCallNode: WRITELN
+            Arguments: nullptr
+          AssignToVariableNode
+            IdentifierNode: i
+            ExpressionNode: ADDITION
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: i
+              SpecialExpressionNode: CONST
+                ConstantInteger<1>
+        BuiltinCallNode: READLN
+          Arguments: nullptr

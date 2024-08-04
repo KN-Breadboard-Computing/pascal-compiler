@@ -1,0 +1,154 @@
+ProgramNode Ifs:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+      Variables:
+        Group 0:
+          SimpleTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: num
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        BuiltinCallNode: WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantString<Enter an integer: >
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: num
+        IfNode:
+          Condition:
+            ExpressionNode: GREATER
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: num
+              SpecialExpressionNode: CONST
+                ConstantInteger<0>
+          ThenStatement:
+            BuiltinCallNode: WRITELN
+              ArgumentsListNode:
+                SpecialExpressionNode: CONST
+                  ConstantString<The number is positive.>
+        IfNode:
+          Condition:
+            ExpressionNode: LESS
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: num
+              SpecialExpressionNode: CONST
+                ConstantInteger<0>
+          ThenStatement:
+            BuiltinCallNode: WRITELN
+              ArgumentsListNode:
+                SpecialExpressionNode: CONST
+                  ConstantString<The number is negative.>
+          ElseStatement:
+            BuiltinCallNode: WRITELN
+              ArgumentsListNode:
+                SpecialExpressionNode: CONST
+                  ConstantString<The number is zero or positive.>
+        IfNode:
+          Condition:
+            ExpressionNode: GREATER
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: num
+              SpecialExpressionNode: CONST
+                ConstantInteger<0>
+          ThenStatement:
+            BuiltinCallNode: WRITELN
+              ArgumentsListNode:
+                SpecialExpressionNode: CONST
+                  ConstantString<The number is positive.>
+          ElseStatement:
+            IfNode:
+              Condition:
+                ExpressionNode: LESS
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: num
+                  SpecialExpressionNode: CONST
+                    ConstantInteger<0>
+              ThenStatement:
+                BuiltinCallNode: WRITELN
+                  ArgumentsListNode:
+                    SpecialExpressionNode: CONST
+                      ConstantString<The number is negative.>
+              ElseStatement:
+                BuiltinCallNode: WRITELN
+                  ArgumentsListNode:
+                    SpecialExpressionNode: CONST
+                      ConstantString<The number is zero.>
+        IfNode:
+          Condition:
+            ExpressionNode: GREATER
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: num
+              SpecialExpressionNode: CONST
+                ConstantInteger<0>
+          ThenStatement:
+            CompoundStatementNode:
+              BuiltinCallNode: WRITELN
+                ArgumentsListNode:
+                  SpecialExpressionNode: CONST
+                    ConstantString<The number is positive.>
+              IfNode:
+                Condition:
+                  ExpressionNode: EQUAL
+                    ExpressionNode: MODULUS
+                      SpecialExpressionNode: VARIABLE
+                        IdentifierNode: num
+                      SpecialExpressionNode: CONST
+                        ConstantInteger<2>
+                    SpecialExpressionNode: CONST
+                      ConstantInteger<0>
+                ThenStatement:
+                  BuiltinCallNode: WRITELN
+                    ArgumentsListNode:
+                      SpecialExpressionNode: CONST
+                        ConstantString<It is also an even number.>
+                ElseStatement:
+                  BuiltinCallNode: WRITELN
+                    ArgumentsListNode:
+                      SpecialExpressionNode: CONST
+                        ConstantString<It is also an odd number.>
+          ElseStatement:
+            IfNode:
+              Condition:
+                ExpressionNode: LESS
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: num
+                  SpecialExpressionNode: CONST
+                    ConstantInteger<0>
+              ThenStatement:
+                CompoundStatementNode:
+                  BuiltinCallNode: WRITELN
+                    ArgumentsListNode:
+                      SpecialExpressionNode: CONST
+                        ConstantString<The number is negative.>
+                  IfNode:
+                    Condition:
+                      ExpressionNode: EQUAL
+                        ExpressionNode: MODULUS
+                          SpecialExpressionNode: VARIABLE
+                            IdentifierNode: num
+                          SpecialExpressionNode: CONST
+                            ConstantInteger<2>
+                        SpecialExpressionNode: CONST
+                          ConstantInteger<0>
+                    ThenStatement:
+                      BuiltinCallNode: WRITELN
+                        ArgumentsListNode:
+                          SpecialExpressionNode: CONST
+                            ConstantString<It is also an even number.>
+                    ElseStatement:
+                      BuiltinCallNode: WRITELN
+                        ArgumentsListNode:
+                          SpecialExpressionNode: CONST
+                            ConstantString<It is also an odd number.>
+              ElseStatement:
+                BuiltinCallNode: WRITELN
+                  ArgumentsListNode:
+                    SpecialExpressionNode: CONST
+                      ConstantString<The number is zero.>
+        BuiltinCallNode: WRITELN
+          Arguments: nullptr

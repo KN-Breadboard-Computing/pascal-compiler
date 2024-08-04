@@ -57,7 +57,13 @@ class UserDefineCallNode : public CallNode {
   }
 
   virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "UserDefineCallNode\n";
+    if (getLabel().has_value()) {
+      out << std::string(tab, ' ') << "UserDefineCallNode with label: " << getLabel().value() << '\n';
+    }
+    else {
+      out << std::string(tab, ' ') << "UserDefineCallNode\n";
+    }
+
     name_->print(out, tab + 2);
     arguments_->print(out, tab + 2);
   }
@@ -69,7 +75,7 @@ class UserDefineCallNode : public CallNode {
 
 class BuiltinCallNode : public CallNode {
  public:
-  enum FunctionName { READ, READLN, WRITE, WRITELN };
+  enum FunctionName { READ, READLN, WRITE, WRITELN, MEMORY_READ, MEMORY_WRITE, STACK_READ, STACK_WRITE };
 
   BuiltinCallNode() : CallNode{BUILTIN} {}
   BuiltinCallNode(FunctionName name, ArgumentsListNode* arguments)
@@ -93,7 +99,13 @@ class BuiltinCallNode : public CallNode {
   }
 
   virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "BuiltinCallNode ";
+    if (getLabel().has_value()) {
+      out << std::string(tab, ' ') << "BuiltinCallNode with label: " << getLabel().value() << ": ";
+    }
+    else {
+      out << std::string(tab, ' ') << "BuiltinCallNode: ";
+    }
+
     switch (name_) {
       case READ:
         out << "READ\n";
@@ -106,6 +118,18 @@ class BuiltinCallNode : public CallNode {
         break;
       case WRITELN:
         out << "WRITELN\n";
+        break;
+      case MEMORY_READ:
+        out << "MEMORY_READ\n";
+        break;
+      case MEMORY_WRITE:
+        out << "MEMORY_WRITE\n";
+        break;
+      case STACK_READ:
+        out << "STACK_READ\n";
+        break;
+      case STACK_WRITE:
+        out << "STACK_WRITE\n";
         break;
     }
     if (arguments_ != nullptr) {

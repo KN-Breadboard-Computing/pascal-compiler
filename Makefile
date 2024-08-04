@@ -26,7 +26,7 @@ test:
 	@for input_file in $(INPUT_FILES); do \
 		ast_file=$(AST_DIR)/`basename $$input_file .pas`.ast; \
 		asm_file=$(ASM_DIR)/`basename $$input_file .pas`.asm; \
-		./compiler $$input_file $$asm_file $$ast_file; \
+		./compiler $$input_file $$ast_file $$asm_file; \
 		echo ""; \
 		echo ""; \
 	done

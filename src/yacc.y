@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <utility>
 
 #include "../src/ast/program_node.hpp"
 #include "../src/LookupTable.hpp"
@@ -11,6 +12,7 @@
 
 ast::ProgramNode* resultAst;
 std::vector<std::string> parsingErrors;
+bool fatalError = false;
 LookupTable lookupTable;
 
 static void yyerror(const char *msg);
@@ -94,6 +96,8 @@ extern uint64_t linesCounter;
     ast::ForNode* forNode;
     ast::WhileNode* whileNode;
     ast::RepeatNode* repeatNode;
+    ast::BreakNode* breakNode;
+    ast::ContinueNode* continueNode;
     ast::IfNode* ifNode;
     ast::CallNode* callNode;
     ast::ExpressionNode* expressionNode;
@@ -107,23 +111,23 @@ extern uint64_t linesCounter;
 %token PROGRAM FUNCTION PROCEDURE CONST TYPE VAR BBEGIN END
 %token IDENT_NAME INTEGER BOOLEAN CHAR STRING
 %token TRUE FALSE MAXINT
-%token READ READLN WRITE WRITELN ABS CHR ODD ORD PRED SUCC
+%token READ READLN WRITE WRITELN MEMORYREAD MEMORYWRITE STACKREAD STACKWRITE ABS CHR ODD ORD PRED SUCC
 %token IF THEN ELSE REPEAT UNTIL WHILE DO CASE TO DOWNTO FOR
 %token EQUAL UNEQUAL GE GT LE LT ASSIGN PLUS MINUS MUL DIV OR AND NOT MOD
 %token LB RB LP RP SEMICOLON DOT DOUBLEDOT COMMA COLON
-%token INT_TYPE UNSIGNED_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE
-%token ARRAY OF RECORD GOTO
+%token INT_TYPE UNSIGNED_TYPE BOOL_TYPE CHAR_TYPE
+%token ARRAY OF RECORD GOTO BREAK CONTINUE OTHERWISE
 %token ERROR
 
 %type <token> PROGRAM FUNCTION PROCEDURE CONST TYPE VAR BBEGIN END
 %type <token> IDENT_NAME INTEGER BOOLEAN CHAR STRING
 %type <token> TRUE FALSE MAXINT
-%type <token> READ READLN WRITE WRITELN ABS CHR ODD ORD PRED SUCC
+%type <token> READ READLN WRITE WRITELN MEMORYREAD MEMORYWRITE STACKREAD STACKWRITE ABS CHR ODD ORD PRED SUCC
 %type <token> IF THEN ELSE REPEAT UNTIL WHILE DO CASE TO DOWNTO FOR
 %type <token> EQUAL UNEQUAL GE GT LE LT ASSIGN PLUS MINUS MUL DIV OR AND NOT MOD
 %type <token> LB RB LP RP SEMICOLON DOT DOUBLEDOT COMMA COLON
-%type <token> INT_TYPE UNSIGNED_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE
-%type <token> ARRAY OF RECORD GOTO
+%type <token> INT_TYPE UNSIGNED_TYPE BOOL_TYPE CHAR_TYPE
+%type <token> ARRAY OF RECORD GOTO BREAK CONTINUE
 %type <token> ERROR
 
 %type <programNode> program
@@ -760,13 +764,6 @@ simple_type :
         #endif
         $$ = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::CHAR);
     }
-|
-    STRING_TYPE {
-        #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse simple type - string" << std::endl;
-        #endif
-        $$ = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::STRING);
-    }
 ;
 
 name_list :
@@ -929,6 +926,20 @@ no_label_stmt :
         #endif
         $$ = $1;
     }
+|
+    BREAK {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse no label statement - break" << std::endl;
+        #endif
+        $$ = new ast::BreakNode();
+    }
+|
+    CONTINUE {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse no label statement - continue" << std::endl;
+        #endif
+        $$ = new ast::ContinueNode();
+    }
 ;
 
 assign_stmt :
@@ -1061,6 +1072,13 @@ case_expr :
         #endif
         $$ = new std::pair<ast::AstNode*, ast::StatementNode*>($1, $3);
     }
+|
+    OTHERWISE stmt SEMICOLON {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse case expr 3" << std::endl;
+        #endif
+        $$ = new std::pair<ast::AstNode*, ast::StatementNode*>(nullptr, $2);
+    }
 ;
 
 for_stmt :
@@ -1130,6 +1148,34 @@ proc_stmt :
             std::cout << "Yacc debug: Parse writeln statement with args" << std::endl;
         #endif
         $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITELN, $3);
+    }
+|
+    MEMORYREAD LP args_list RP {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse memory read statement" << std::endl;
+        #endif
+        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::MEMORY_READ, $3);
+    }
+|
+    MEMORYWRITE LP args_list RP {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse memory write statement" << std::endl;
+        #endif
+        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::MEMORY_WRITE, $3);
+    }
+|
+    STACKREAD LP args_list RP {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse stack read statement" << std::endl;
+        #endif
+        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::STACK_READ, $3);
+    }
+|
+    STACKWRITE LP args_list RP {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse stack write statement" << std::endl;
+        #endif
+        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::STACK_WRITE, $3);
     }
 ;
 
@@ -1372,9 +1418,10 @@ factor :
 
 void yyerror(const char *s) {
     std::cerr << "Error: " << s << " at line " << linesCounter << std::endl;
+    fatalError = true;
 }
 
-std::unique_ptr<ast::ProgramNode> parse(const std::string& inputFileName, std::vector<std::string>& errors) {
+std::unique_ptr<ast::ProgramNode> parse(const std::string& inputFileName, std::vector<std::string>& errors, bool& parsed) {
     yyin = fopen(inputFileName.c_str(), "r");
 
     if(yyin == nullptr) {
@@ -1385,5 +1432,6 @@ std::unique_ptr<ast::ProgramNode> parse(const std::string& inputFileName, std::v
     fclose(yyin);
 
     errors = std::move(parsingErrors);
+    parsed = !fatalError;
     return std::unique_ptr<ast::ProgramNode>(resultAst);
 }

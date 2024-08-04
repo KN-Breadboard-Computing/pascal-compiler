@@ -1,0 +1,237 @@
+ProgramNode Expressions:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+        Type 0:
+          IdentifierNode: TLogicResult
+          RecordTypeNode:
+            Field:
+              IdentifierNode: r1
+              IdentifierNode: r2
+              SimpleTypeNode BOOLEAN
+      Variables:
+        Group 0:
+          SimpleTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: a
+            IdentifierNode: b
+            IdentifierNode: c
+            IdentifierNode: d
+            IdentifierNode: e
+            IdentifierNode: f
+        Group 1:
+          SimpleTypeNode BOOLEAN
+          Identifiers:
+            IdentifierNode: g
+            IdentifierNode: h
+            IdentifierNode: i
+            IdentifierNode: j
+            IdentifierNode: k
+            IdentifierNode: l
+        Group 2:
+          RenameTypeNode:
+            IdentifierNode: TLogicResult
+          Identifiers:
+            IdentifierNode: lr
+        Group 3:
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantInteger<1>
+                ConstantInteger<5>
+            Element type:
+              SimpleTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: specialInts
+        Group 4:
+          SimpleTypeNode CHAR
+          Identifiers:
+            IdentifierNode: m
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: a
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: b
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: c
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: d
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: e
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: g
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: h
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: i
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: j
+        AssignToVariableNode
+          IdentifierNode: f
+          ExpressionNode: SUBTRACTION
+            SpecialExpressionNode: CONST
+              ConstantInteger<7>
+            ExpressionNode: MODULUS
+              SpecialExpressionNode: PARENTHESIS
+                ExpressionNode: SUBTRACTION
+                  ExpressionNode: ADDITION
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: a
+                    ExpressionNode: MULTIPLICATION
+                      ExpressionNode: MULTIPLICATION
+                        SpecialExpressionNode: VARIABLE
+                          IdentifierNode: b
+                        ExpressionNode: NEGATION
+                          SpecialExpressionNode: VARIABLE
+                            IdentifierNode: c
+                      SpecialExpressionNode: VARIABLE
+                        IdentifierNode: a
+                  ExpressionNode: DIVISION
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: d
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: e
+              SpecialExpressionNode: CONST
+                ConstantInteger<2>
+        AssignToRecordFieldNode
+          IdentifierNode: lr
+          IdentifierNode: r1
+          ExpressionNode: OR
+            ExpressionNode: AND
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: g
+              SpecialExpressionNode: PARENTHESIS
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: h
+            ExpressionNode: AND
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: i
+              SpecialExpressionNode: PARENTHESIS
+                ExpressionNode: OR
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: j
+                  ExpressionNode: NOT
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: g
+        AssignToRecordFieldNode
+          IdentifierNode: lr
+          IdentifierNode: r2
+          ExpressionNode: OR
+            ExpressionNode: OR
+              ExpressionNode: AND
+                SpecialExpressionNode: PARENTHESIS
+                  ExpressionNode: GREATER
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: a
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: b
+                SpecialExpressionNode: PARENTHESIS
+                  ExpressionNode: LESS
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: b
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: c
+              ExpressionNode: AND
+                SpecialExpressionNode: PARENTHESIS
+                  ExpressionNode: EQUAL
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: c
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: d
+                SpecialExpressionNode: PARENTHESIS
+                  ExpressionNode: NOT_EQUAL
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: d
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: e
+            ExpressionNode: AND
+              SpecialExpressionNode: PARENTHESIS
+                ExpressionNode: LESS_EQUAL
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: e
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: a
+              SpecialExpressionNode: PARENTHESIS
+                ExpressionNode: GREATER_EQUAL
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: a
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: b
+        AssignToVariableNode
+          IdentifierNode: k
+          ExpressionNode: AND
+            SpecialExpressionNode: RECORD_ACCESS
+              IdentifierNode: lr
+              IdentifierNode: r1
+            SpecialExpressionNode: RECORD_ACCESS
+              IdentifierNode: lr
+              IdentifierNode: r2
+        AssignToArrayNode
+          IdentifierNode: specialInts
+          SpecialExpressionNode: CONST
+            ConstantInteger<1>
+          SpecialExpressionNode: ABS
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: a
+        AssignToArrayNode
+          IdentifierNode: specialInts
+          SpecialExpressionNode: CONST
+            ConstantInteger<2>
+          SpecialExpressionNode: ORD
+            ArgumentsListNode:
+              SpecialExpressionNode: CONST
+                ConstantChar<a>
+        AssignToArrayNode
+          IdentifierNode: specialInts
+          SpecialExpressionNode: CONST
+            ConstantInteger<3>
+          SpecialExpressionNode: PRED
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: b
+        AssignToArrayNode
+          IdentifierNode: specialInts
+          SpecialExpressionNode: CONST
+            ConstantInteger<4>
+          SpecialExpressionNode: SUCC
+            ArgumentsListNode:
+              SpecialExpressionNode: ARRAY_ACCESS
+                IdentifierNode: specialInts
+                SpecialExpressionNode: CONST
+                  ConstantInteger<1>
+        AssignToVariableNode
+          IdentifierNode: l
+          SpecialExpressionNode: ODD
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: c
+        AssignToVariableNode
+          IdentifierNode: m
+          SpecialExpressionNode: CHR
+            ArgumentsListNode:
+              SpecialExpressionNode: ARRAY_ACCESS
+                IdentifierNode: specialInts
+                SpecialExpressionNode: CONST
+                  ConstantInteger<4>

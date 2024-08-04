@@ -14,6 +14,8 @@ class AstNode {
     ARGUMENTS_LIST,
     ARRAY,
     ASSIGN,
+    BREAK,
+    CONTINUE,
     CALL,
     CASE,
     COMPOUND_STATEMENT,

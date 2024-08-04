@@ -42,7 +42,12 @@ class RepeatNode : public StatementNode {
   }
 
   virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "RepeatNode:\n";
+    if(getLabel().has_value()) {
+      out << std::string(tab, ' ') << "RepeatNode with label: " << getLabel().value() << std::endl;
+    } else {
+      out << std::string(tab, ' ') << "RepeatNode:\n";
+    }
+
     condition_->print(out, tab + 2);
     for (const auto& statement : *statements_) {
       statement->print(out, tab + 2);

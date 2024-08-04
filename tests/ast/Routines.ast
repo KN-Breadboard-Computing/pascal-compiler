@@ -14,7 +14,8 @@ ProgramNode Routines:
                     ConstantInteger<1>
                     ConstantInteger<50>
                 Element type:
-                  SimpleTypeNode STRING
+                  RenameTypeNode:
+                    IdentifierNode: String
             Field:
               IdentifierNode: Age
               SimpleTypeNode INTEGER
@@ -122,7 +123,8 @@ ProgramNode Routines:
                   IdentifierNode: TPerson
               Params:
                 IdentifierNode: person
-          SimpleTypeNode STRING
+          RenameTypeNode:
+            IdentifierNode: string
           RoutineNode of type UNSPECIFIED:
             RoutineHeadNode:
               Constants:
@@ -221,7 +223,7 @@ ProgramNode Routines:
                 IdentifierNode: num1
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: num2
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           ArgumentsListNode:
             SpecialExpressionNode: CONST
               ConstantString<Add(>
@@ -240,7 +242,7 @@ ProgramNode Routines:
           ArgumentsListNode:
             SpecialExpressionNode: VARIABLE
               IdentifierNode: num1
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           ArgumentsListNode:
             SpecialExpressionNode: CONST
               ConstantString<After Increment, num1 = >
@@ -256,7 +258,7 @@ ProgramNode Routines:
           IdentifierNode: Age
           SpecialExpressionNode: CONST
             ConstantInteger<25>
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           ArgumentsListNode:
             SpecialExpressionNode: CALL
               IdentifierNode: GetFullName
@@ -270,7 +272,7 @@ ProgramNode Routines:
               IdentifierNode: person
             SpecialExpressionNode: CONST
               ConstantInteger<30>
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           ArgumentsListNode:
             SpecialExpressionNode: CONST
               ConstantString<After SetAge, >

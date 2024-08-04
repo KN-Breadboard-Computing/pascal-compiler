@@ -33,12 +33,11 @@ class StatementNode : public AstNode {
   }
 
   virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "StatementNode:\n";
     if (label_.has_value()) {
-      out << std::string(tab + 2, ' ') << "Label: " << label_.value() << '\n';
+      out << std::string(tab, ' ') << "StatementNode with label: " << label_.value() << '\n';
     }
     else {
-      out << std::string(tab + 2, ' ') << "Label: None\n";
+      out << std::string(tab, ' ') << "StatementNode\n";
     }
   }
 

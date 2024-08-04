@@ -5,7 +5,7 @@ type
   TMyInt = Integer;
   TMyUInt = Unsigned;
   TMyChar = Char;
-  TMyString = String;
+  TMyChar = Char;
   TMyBool = Boolean;
   TMyReBool = TMyBool;
 
@@ -28,19 +28,19 @@ type
   TMyIntMatrix = array[1..10] of TMyIntArray;
   TMyCharMatrix = array[1..10] of array[1..10] of Char;
 
-  TMyStringArrayBoolIndex = array[Boolean] of String;
-  TMyStringArrayCharIndex = array[Char] of String;
-  TMyStringArrayIntIndex = array[Integer] of String;
-  TMyStringArrayUIntIndex = array[Unsigned] of String;
+  TMyCharArrayBoolIndex = array[Boolean] of Char;
+  TMyCharArrayCharIndex = array[Char] of Char;
+  TMyCharArrayIntIndex = array[Integer] of Char;
+  TMyCharArrayUIntIndex = array[Unsigned] of Char;
 
-  TMyStringArrayCharRange = array['a'..'z'] of String;
-  TMyStringArrayBoolsRange = array[TBools] of String;
+  TMyCharArrayCharRange = array['a'..'z'] of Char;
+  TMyCharArrayBoolsRange = array[TBools] of Char;
 
   TMyWeekDayArray = array[TDay] of Char;
 
 (* Record type *)
   TPerson = record
-    Name: String;
+    Name: Char;
     Age: Integer;
     WorkHours: array[TDay] of Integer;
   end;

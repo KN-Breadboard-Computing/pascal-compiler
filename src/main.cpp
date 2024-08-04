@@ -1,9 +1,9 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #include "ast/program_node.hpp"
 
-std::unique_ptr<ast::ProgramNode> parse(const std::string& inputFileName, std::vector<std::string>& errors);
+std::unique_ptr<ast::ProgramNode> parse(const std::string& inputFileName, std::vector<std::string>& errors, bool& parsed);
 
 int main(int argc, char* argv[]) {
   if (argc != 4) {
@@ -16,17 +16,24 @@ int main(int argc, char* argv[]) {
   std::string outputAsmFileName{argv[3]};
 
   std::vector<std::string> errors;
-  auto program = parse(inputFileName, errors);
+  bool parsed;
+  auto program = parse(inputFileName, errors, parsed);
 
-  if(errors.size() > 0) {
-    for(auto& error : errors) {
+  if (errors.size() > 0) {
+    for (auto& error : errors) {
       std::cerr << error << std::endl;
     }
-    return 1;
   }
 
-  std::ofstream outputAsmFile(outputAsmFileName);
-  program->print(outputAsmFile, 0);
+  if (parsed) {
+    std::cout << "Parsed successfully!" << std::endl;
+    std::ofstream outputAstFile(outputAstFileName);
+    program->print(outputAstFile, 0);
+  }
+  else {
+    std::cerr << "Failed to parse!" << std::endl;
+    return 1;
+  }
 
   return 0;
 }

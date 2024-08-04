@@ -73,6 +73,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <utility>
 
 #include "../src/ast/program_node.hpp"
 #include "../src/LookupTable.hpp"
@@ -81,6 +82,7 @@
 
 ast::ProgramNode* resultAst;
 std::vector<std::string> parsingErrors;
+bool fatalError = false;
 LookupTable lookupTable;
 
 static void yyerror(const char *msg);
@@ -90,7 +92,7 @@ int yylex(void);
 extern FILE* yyin;
 extern uint64_t linesCounter;
 
-#line 94 "out/parser.cpp"
+#line 96 "out/parser.cpp"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -141,108 +143,114 @@ enum yysymbol_kind_t
   YYSYMBOL_READLN = 20,                    /* READLN  */
   YYSYMBOL_WRITE = 21,                     /* WRITE  */
   YYSYMBOL_WRITELN = 22,                   /* WRITELN  */
-  YYSYMBOL_ABS = 23,                       /* ABS  */
-  YYSYMBOL_CHR = 24,                       /* CHR  */
-  YYSYMBOL_ODD = 25,                       /* ODD  */
-  YYSYMBOL_ORD = 26,                       /* ORD  */
-  YYSYMBOL_PRED = 27,                      /* PRED  */
-  YYSYMBOL_SUCC = 28,                      /* SUCC  */
-  YYSYMBOL_IF = 29,                        /* IF  */
-  YYSYMBOL_THEN = 30,                      /* THEN  */
-  YYSYMBOL_ELSE = 31,                      /* ELSE  */
-  YYSYMBOL_REPEAT = 32,                    /* REPEAT  */
-  YYSYMBOL_UNTIL = 33,                     /* UNTIL  */
-  YYSYMBOL_WHILE = 34,                     /* WHILE  */
-  YYSYMBOL_DO = 35,                        /* DO  */
-  YYSYMBOL_CASE = 36,                      /* CASE  */
-  YYSYMBOL_TO = 37,                        /* TO  */
-  YYSYMBOL_DOWNTO = 38,                    /* DOWNTO  */
-  YYSYMBOL_FOR = 39,                       /* FOR  */
-  YYSYMBOL_EQUAL = 40,                     /* EQUAL  */
-  YYSYMBOL_UNEQUAL = 41,                   /* UNEQUAL  */
-  YYSYMBOL_GE = 42,                        /* GE  */
-  YYSYMBOL_GT = 43,                        /* GT  */
-  YYSYMBOL_LE = 44,                        /* LE  */
-  YYSYMBOL_LT = 45,                        /* LT  */
-  YYSYMBOL_ASSIGN = 46,                    /* ASSIGN  */
-  YYSYMBOL_PLUS = 47,                      /* PLUS  */
-  YYSYMBOL_MINUS = 48,                     /* MINUS  */
-  YYSYMBOL_MUL = 49,                       /* MUL  */
-  YYSYMBOL_DIV = 50,                       /* DIV  */
-  YYSYMBOL_OR = 51,                        /* OR  */
-  YYSYMBOL_AND = 52,                       /* AND  */
-  YYSYMBOL_NOT = 53,                       /* NOT  */
-  YYSYMBOL_MOD = 54,                       /* MOD  */
-  YYSYMBOL_LB = 55,                        /* LB  */
-  YYSYMBOL_RB = 56,                        /* RB  */
-  YYSYMBOL_LP = 57,                        /* LP  */
-  YYSYMBOL_RP = 58,                        /* RP  */
-  YYSYMBOL_SEMICOLON = 59,                 /* SEMICOLON  */
-  YYSYMBOL_DOT = 60,                       /* DOT  */
-  YYSYMBOL_DOUBLEDOT = 61,                 /* DOUBLEDOT  */
-  YYSYMBOL_COMMA = 62,                     /* COMMA  */
-  YYSYMBOL_COLON = 63,                     /* COLON  */
-  YYSYMBOL_INT_TYPE = 64,                  /* INT_TYPE  */
-  YYSYMBOL_UNSIGNED_TYPE = 65,             /* UNSIGNED_TYPE  */
-  YYSYMBOL_BOOL_TYPE = 66,                 /* BOOL_TYPE  */
-  YYSYMBOL_CHAR_TYPE = 67,                 /* CHAR_TYPE  */
-  YYSYMBOL_STRING_TYPE = 68,               /* STRING_TYPE  */
-  YYSYMBOL_ARRAY = 69,                     /* ARRAY  */
-  YYSYMBOL_OF = 70,                        /* OF  */
-  YYSYMBOL_RECORD = 71,                    /* RECORD  */
-  YYSYMBOL_GOTO = 72,                      /* GOTO  */
-  YYSYMBOL_ERROR = 73,                     /* ERROR  */
-  YYSYMBOL_YYACCEPT = 74,                  /* $accept  */
-  YYSYMBOL_program = 75,                   /* program  */
-  YYSYMBOL_routine = 76,                   /* routine  */
-  YYSYMBOL_routine_head = 77,              /* routine_head  */
-  YYSYMBOL_routine_part = 78,              /* routine_part  */
-  YYSYMBOL_fun_decl = 79,                  /* fun_decl  */
-  YYSYMBOL_fun_head = 80,                  /* fun_head  */
-  YYSYMBOL_proc_decl = 81,                 /* proc_decl  */
-  YYSYMBOL_proc_head = 82,                 /* proc_head  */
-  YYSYMBOL_params = 83,                    /* params  */
-  YYSYMBOL_params_decl = 84,               /* params_decl  */
-  YYSYMBOL_params_type = 85,               /* params_type  */
-  YYSYMBOL_var_part = 86,                  /* var_part  */
-  YYSYMBOL_var_decl_list = 87,             /* var_decl_list  */
-  YYSYMBOL_var_decl = 88,                  /* var_decl  */
-  YYSYMBOL_const_part = 89,                /* const_part  */
-  YYSYMBOL_const_expr_list = 90,           /* const_expr_list  */
-  YYSYMBOL_const_expr = 91,                /* const_expr  */
-  YYSYMBOL_const_value = 92,               /* const_value  */
-  YYSYMBOL_type_part = 93,                 /* type_part  */
-  YYSYMBOL_type_decl_list = 94,            /* type_decl_list  */
-  YYSYMBOL_type_def = 95,                  /* type_def  */
-  YYSYMBOL_type_decl = 96,                 /* type_decl  */
-  YYSYMBOL_record_type_decl = 97,          /* record_type_decl  */
-  YYSYMBOL_field_decl_list = 98,           /* field_decl_list  */
-  YYSYMBOL_field_decl = 99,                /* field_decl  */
-  YYSYMBOL_array_type_decl = 100,          /* array_type_decl  */
-  YYSYMBOL_simple_type = 101,              /* simple_type  */
-  YYSYMBOL_name_list = 102,                /* name_list  */
-  YYSYMBOL_identifier = 103,               /* identifier  */
-  YYSYMBOL_routine_body = 104,             /* routine_body  */
-  YYSYMBOL_compound_stmt = 105,            /* compound_stmt  */
-  YYSYMBOL_stmt_list = 106,                /* stmt_list  */
-  YYSYMBOL_stmt = 107,                     /* stmt  */
-  YYSYMBOL_no_label_stmt = 108,            /* no_label_stmt  */
-  YYSYMBOL_assign_stmt = 109,              /* assign_stmt  */
-  YYSYMBOL_goto_stmt = 110,                /* goto_stmt  */
-  YYSYMBOL_if_stmt = 111,                  /* if_stmt  */
-  YYSYMBOL_else_clause = 112,              /* else_clause  */
-  YYSYMBOL_repeat_stmt = 113,              /* repeat_stmt  */
-  YYSYMBOL_while_stmt = 114,               /* while_stmt  */
-  YYSYMBOL_case_stmt = 115,                /* case_stmt  */
-  YYSYMBOL_case_expr_list = 116,           /* case_expr_list  */
-  YYSYMBOL_case_expr = 117,                /* case_expr  */
-  YYSYMBOL_for_stmt = 118,                 /* for_stmt  */
-  YYSYMBOL_proc_stmt = 119,                /* proc_stmt  */
-  YYSYMBOL_args_list = 120,                /* args_list  */
-  YYSYMBOL_expression = 121,               /* expression  */
-  YYSYMBOL_expr = 122,                     /* expr  */
-  YYSYMBOL_term = 123,                     /* term  */
-  YYSYMBOL_factor = 124                    /* factor  */
+  YYSYMBOL_MEMORYREAD = 23,                /* MEMORYREAD  */
+  YYSYMBOL_MEMORYWRITE = 24,               /* MEMORYWRITE  */
+  YYSYMBOL_STACKREAD = 25,                 /* STACKREAD  */
+  YYSYMBOL_STACKWRITE = 26,                /* STACKWRITE  */
+  YYSYMBOL_ABS = 27,                       /* ABS  */
+  YYSYMBOL_CHR = 28,                       /* CHR  */
+  YYSYMBOL_ODD = 29,                       /* ODD  */
+  YYSYMBOL_ORD = 30,                       /* ORD  */
+  YYSYMBOL_PRED = 31,                      /* PRED  */
+  YYSYMBOL_SUCC = 32,                      /* SUCC  */
+  YYSYMBOL_IF = 33,                        /* IF  */
+  YYSYMBOL_THEN = 34,                      /* THEN  */
+  YYSYMBOL_ELSE = 35,                      /* ELSE  */
+  YYSYMBOL_REPEAT = 36,                    /* REPEAT  */
+  YYSYMBOL_UNTIL = 37,                     /* UNTIL  */
+  YYSYMBOL_WHILE = 38,                     /* WHILE  */
+  YYSYMBOL_DO = 39,                        /* DO  */
+  YYSYMBOL_CASE = 40,                      /* CASE  */
+  YYSYMBOL_TO = 41,                        /* TO  */
+  YYSYMBOL_DOWNTO = 42,                    /* DOWNTO  */
+  YYSYMBOL_FOR = 43,                       /* FOR  */
+  YYSYMBOL_EQUAL = 44,                     /* EQUAL  */
+  YYSYMBOL_UNEQUAL = 45,                   /* UNEQUAL  */
+  YYSYMBOL_GE = 46,                        /* GE  */
+  YYSYMBOL_GT = 47,                        /* GT  */
+  YYSYMBOL_LE = 48,                        /* LE  */
+  YYSYMBOL_LT = 49,                        /* LT  */
+  YYSYMBOL_ASSIGN = 50,                    /* ASSIGN  */
+  YYSYMBOL_PLUS = 51,                      /* PLUS  */
+  YYSYMBOL_MINUS = 52,                     /* MINUS  */
+  YYSYMBOL_MUL = 53,                       /* MUL  */
+  YYSYMBOL_DIV = 54,                       /* DIV  */
+  YYSYMBOL_OR = 55,                        /* OR  */
+  YYSYMBOL_AND = 56,                       /* AND  */
+  YYSYMBOL_NOT = 57,                       /* NOT  */
+  YYSYMBOL_MOD = 58,                       /* MOD  */
+  YYSYMBOL_LB = 59,                        /* LB  */
+  YYSYMBOL_RB = 60,                        /* RB  */
+  YYSYMBOL_LP = 61,                        /* LP  */
+  YYSYMBOL_RP = 62,                        /* RP  */
+  YYSYMBOL_SEMICOLON = 63,                 /* SEMICOLON  */
+  YYSYMBOL_DOT = 64,                       /* DOT  */
+  YYSYMBOL_DOUBLEDOT = 65,                 /* DOUBLEDOT  */
+  YYSYMBOL_COMMA = 66,                     /* COMMA  */
+  YYSYMBOL_COLON = 67,                     /* COLON  */
+  YYSYMBOL_INT_TYPE = 68,                  /* INT_TYPE  */
+  YYSYMBOL_UNSIGNED_TYPE = 69,             /* UNSIGNED_TYPE  */
+  YYSYMBOL_BOOL_TYPE = 70,                 /* BOOL_TYPE  */
+  YYSYMBOL_CHAR_TYPE = 71,                 /* CHAR_TYPE  */
+  YYSYMBOL_ARRAY = 72,                     /* ARRAY  */
+  YYSYMBOL_OF = 73,                        /* OF  */
+  YYSYMBOL_RECORD = 74,                    /* RECORD  */
+  YYSYMBOL_GOTO = 75,                      /* GOTO  */
+  YYSYMBOL_BREAK = 76,                     /* BREAK  */
+  YYSYMBOL_CONTINUE = 77,                  /* CONTINUE  */
+  YYSYMBOL_OTHERWISE = 78,                 /* OTHERWISE  */
+  YYSYMBOL_ERROR = 79,                     /* ERROR  */
+  YYSYMBOL_YYACCEPT = 80,                  /* $accept  */
+  YYSYMBOL_program = 81,                   /* program  */
+  YYSYMBOL_routine = 82,                   /* routine  */
+  YYSYMBOL_routine_head = 83,              /* routine_head  */
+  YYSYMBOL_routine_part = 84,              /* routine_part  */
+  YYSYMBOL_fun_decl = 85,                  /* fun_decl  */
+  YYSYMBOL_fun_head = 86,                  /* fun_head  */
+  YYSYMBOL_proc_decl = 87,                 /* proc_decl  */
+  YYSYMBOL_proc_head = 88,                 /* proc_head  */
+  YYSYMBOL_params = 89,                    /* params  */
+  YYSYMBOL_params_decl = 90,               /* params_decl  */
+  YYSYMBOL_params_type = 91,               /* params_type  */
+  YYSYMBOL_var_part = 92,                  /* var_part  */
+  YYSYMBOL_var_decl_list = 93,             /* var_decl_list  */
+  YYSYMBOL_var_decl = 94,                  /* var_decl  */
+  YYSYMBOL_const_part = 95,                /* const_part  */
+  YYSYMBOL_const_expr_list = 96,           /* const_expr_list  */
+  YYSYMBOL_const_expr = 97,                /* const_expr  */
+  YYSYMBOL_const_value = 98,               /* const_value  */
+  YYSYMBOL_type_part = 99,                 /* type_part  */
+  YYSYMBOL_type_decl_list = 100,           /* type_decl_list  */
+  YYSYMBOL_type_def = 101,                 /* type_def  */
+  YYSYMBOL_type_decl = 102,                /* type_decl  */
+  YYSYMBOL_record_type_decl = 103,         /* record_type_decl  */
+  YYSYMBOL_field_decl_list = 104,          /* field_decl_list  */
+  YYSYMBOL_field_decl = 105,               /* field_decl  */
+  YYSYMBOL_array_type_decl = 106,          /* array_type_decl  */
+  YYSYMBOL_simple_type = 107,              /* simple_type  */
+  YYSYMBOL_name_list = 108,                /* name_list  */
+  YYSYMBOL_identifier = 109,               /* identifier  */
+  YYSYMBOL_routine_body = 110,             /* routine_body  */
+  YYSYMBOL_compound_stmt = 111,            /* compound_stmt  */
+  YYSYMBOL_stmt_list = 112,                /* stmt_list  */
+  YYSYMBOL_stmt = 113,                     /* stmt  */
+  YYSYMBOL_no_label_stmt = 114,            /* no_label_stmt  */
+  YYSYMBOL_assign_stmt = 115,              /* assign_stmt  */
+  YYSYMBOL_goto_stmt = 116,                /* goto_stmt  */
+  YYSYMBOL_if_stmt = 117,                  /* if_stmt  */
+  YYSYMBOL_else_clause = 118,              /* else_clause  */
+  YYSYMBOL_repeat_stmt = 119,              /* repeat_stmt  */
+  YYSYMBOL_while_stmt = 120,               /* while_stmt  */
+  YYSYMBOL_case_stmt = 121,                /* case_stmt  */
+  YYSYMBOL_case_expr_list = 122,           /* case_expr_list  */
+  YYSYMBOL_case_expr = 123,                /* case_expr  */
+  YYSYMBOL_for_stmt = 124,                 /* for_stmt  */
+  YYSYMBOL_proc_stmt = 125,                /* proc_stmt  */
+  YYSYMBOL_args_list = 126,                /* args_list  */
+  YYSYMBOL_expression = 127,               /* expression  */
+  YYSYMBOL_expr = 128,                     /* expr  */
+  YYSYMBOL_term = 129,                     /* term  */
+  YYSYMBOL_factor = 130                    /* factor  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -570,19 +578,19 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  4
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   528
+#define YYLAST   611
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  74
+#define YYNTOKENS  80
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  51
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  146
+#define YYNRULES  152
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  288
+#define YYNSTATES  308
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   328
+#define YYMAXUTOK   334
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -628,28 +636,30 @@ static const yytype_int8 yytranslate[] =
       35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
       45,    46,    47,    48,    49,    50,    51,    52,    53,    54,
       55,    56,    57,    58,    59,    60,    61,    62,    63,    64,
-      65,    66,    67,    68,    69,    70,    71,    72,    73
+      65,    66,    67,    68,    69,    70,    71,    72,    73,    74,
+      75,    76,    77,    78,    79
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   171,   171,   184,   198,   212,   228,   237,   246,   253,
-     261,   269,   277,   287,   296,   306,   316,   328,   341,   352,
-     365,   373,   382,   390,   400,   407,   416,   423,   432,   440,
-     450,   457,   467,   474,   483,   491,   501,   508,   518,   525,
-     532,   540,   551,   558,   565,   572,   581,   588,   597,   605,
-     615,   622,   632,   639,   646,   655,   664,   672,   682,   689,
-     699,   708,   715,   722,   729,   736,   743,   750,   757,   764,
-     773,   781,   791,   801,   810,   817,   827,   834,   842,   853,
-     861,   870,   877,   884,   891,   898,   905,   912,   919,   926,
-     935,   942,   949,   958,   967,   974,   984,   991,  1000,  1007,
-    1015,  1024,  1033,  1041,  1051,  1058,  1067,  1074,  1083,  1090,
-    1097,  1107,  1114,  1121,  1128,  1137,  1145,  1155,  1162,  1169,
-    1176,  1183,  1190,  1197,  1206,  1213,  1220,  1227,  1236,  1243,
-    1250,  1257,  1264,  1273,  1280,  1287,  1294,  1301,  1308,  1315,
-    1322,  1329,  1336,  1343,  1350,  1357,  1364
+       0,   175,   175,   188,   202,   216,   232,   241,   250,   257,
+     265,   273,   281,   291,   300,   310,   320,   332,   345,   356,
+     369,   377,   386,   394,   404,   411,   420,   427,   436,   444,
+     454,   461,   471,   478,   487,   495,   505,   512,   522,   529,
+     536,   544,   555,   562,   569,   576,   585,   592,   601,   609,
+     619,   626,   636,   643,   650,   659,   668,   676,   686,   693,
+     703,   712,   719,   726,   733,   740,   747,   754,   761,   770,
+     778,   788,   798,   807,   814,   824,   831,   839,   850,   858,
+     867,   874,   881,   888,   895,   902,   909,   916,   923,   930,
+     937,   946,   953,   960,   969,   978,   985,   995,  1002,  1011,
+    1018,  1026,  1035,  1044,  1052,  1062,  1069,  1076,  1085,  1092,
+    1101,  1108,  1115,  1125,  1132,  1139,  1146,  1153,  1160,  1167,
+    1174,  1183,  1191,  1201,  1208,  1215,  1222,  1229,  1236,  1243,
+    1252,  1259,  1266,  1273,  1282,  1289,  1296,  1303,  1310,  1319,
+    1326,  1333,  1340,  1347,  1354,  1361,  1368,  1375,  1382,  1389,
+    1396,  1403,  1410
 };
 #endif
 
@@ -668,23 +678,25 @@ static const char *const yytname[] =
   "\"end of file\"", "error", "\"invalid token\"", "PROGRAM", "FUNCTION",
   "PROCEDURE", "CONST", "TYPE", "VAR", "BBEGIN", "END", "IDENT_NAME",
   "INTEGER", "BOOLEAN", "CHAR", "STRING", "TRUE", "FALSE", "MAXINT",
-  "READ", "READLN", "WRITE", "WRITELN", "ABS", "CHR", "ODD", "ORD", "PRED",
-  "SUCC", "IF", "THEN", "ELSE", "REPEAT", "UNTIL", "WHILE", "DO", "CASE",
-  "TO", "DOWNTO", "FOR", "EQUAL", "UNEQUAL", "GE", "GT", "LE", "LT",
-  "ASSIGN", "PLUS", "MINUS", "MUL", "DIV", "OR", "AND", "NOT", "MOD", "LB",
-  "RB", "LP", "RP", "SEMICOLON", "DOT", "DOUBLEDOT", "COMMA", "COLON",
-  "INT_TYPE", "UNSIGNED_TYPE", "BOOL_TYPE", "CHAR_TYPE", "STRING_TYPE",
-  "ARRAY", "OF", "RECORD", "GOTO", "ERROR", "$accept", "program",
-  "routine", "routine_head", "routine_part", "fun_decl", "fun_head",
-  "proc_decl", "proc_head", "params", "params_decl", "params_type",
-  "var_part", "var_decl_list", "var_decl", "const_part", "const_expr_list",
-  "const_expr", "const_value", "type_part", "type_decl_list", "type_def",
-  "type_decl", "record_type_decl", "field_decl_list", "field_decl",
-  "array_type_decl", "simple_type", "name_list", "identifier",
-  "routine_body", "compound_stmt", "stmt_list", "stmt", "no_label_stmt",
-  "assign_stmt", "goto_stmt", "if_stmt", "else_clause", "repeat_stmt",
-  "while_stmt", "case_stmt", "case_expr_list", "case_expr", "for_stmt",
-  "proc_stmt", "args_list", "expression", "expr", "term", "factor", YY_NULLPTR
+  "READ", "READLN", "WRITE", "WRITELN", "MEMORYREAD", "MEMORYWRITE",
+  "STACKREAD", "STACKWRITE", "ABS", "CHR", "ODD", "ORD", "PRED", "SUCC",
+  "IF", "THEN", "ELSE", "REPEAT", "UNTIL", "WHILE", "DO", "CASE", "TO",
+  "DOWNTO", "FOR", "EQUAL", "UNEQUAL", "GE", "GT", "LE", "LT", "ASSIGN",
+  "PLUS", "MINUS", "MUL", "DIV", "OR", "AND", "NOT", "MOD", "LB", "RB",
+  "LP", "RP", "SEMICOLON", "DOT", "DOUBLEDOT", "COMMA", "COLON",
+  "INT_TYPE", "UNSIGNED_TYPE", "BOOL_TYPE", "CHAR_TYPE", "ARRAY", "OF",
+  "RECORD", "GOTO", "BREAK", "CONTINUE", "OTHERWISE", "ERROR", "$accept",
+  "program", "routine", "routine_head", "routine_part", "fun_decl",
+  "fun_head", "proc_decl", "proc_head", "params", "params_decl",
+  "params_type", "var_part", "var_decl_list", "var_decl", "const_part",
+  "const_expr_list", "const_expr", "const_value", "type_part",
+  "type_decl_list", "type_def", "type_decl", "record_type_decl",
+  "field_decl_list", "field_decl", "array_type_decl", "simple_type",
+  "name_list", "identifier", "routine_body", "compound_stmt", "stmt_list",
+  "stmt", "no_label_stmt", "assign_stmt", "goto_stmt", "if_stmt",
+  "else_clause", "repeat_stmt", "while_stmt", "case_stmt",
+  "case_expr_list", "case_expr", "for_stmt", "proc_stmt", "args_list",
+  "expression", "expr", "term", "factor", YY_NULLPTR
 };
 
 static const char *
@@ -694,7 +706,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-173)
+#define YYPACT_NINF (-183)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -708,35 +720,37 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-       5,    34,    16,     1,  -173,    36,    46,    15,    68,    72,
-    -173,    36,  -173,    58,    48,  -173,  -173,  -173,  -173,    36,
-     102,  -173,   473,  -173,    17,    36,  -173,    87,    36,   127,
-    -173,  -173,  -173,  -173,  -173,  -173,    30,    70,  -173,    83,
-      92,  -173,    97,   103,   429,  -173,   429,   429,    36,   153,
-     -25,  -173,   107,  -173,  -173,  -173,  -173,  -173,  -173,  -173,
-    -173,  -173,  -173,   358,    36,  -173,   -29,  -173,   160,   161,
-     127,  -173,     4,  -173,   114,  -173,  -173,  -173,   181,   429,
-     429,   429,   117,   119,   122,   123,   134,   139,   447,   429,
-     429,  -173,   -42,   262,    33,    22,  -173,   299,   282,   245,
-     138,  -173,   429,   429,   429,    36,  -173,    36,  -173,  -173,
-    -173,  -173,  -173,   142,    36,   137,   140,  -173,  -173,  -173,
-     145,  -173,    36,   358,   150,   150,  -173,  -173,    46,   149,
-      46,  -173,   151,    -8,   311,    -1,   429,   429,   429,   429,
-     429,   429,  -173,  -173,  -173,  -173,   301,   429,   429,    36,
-     328,   429,   429,   429,   429,   429,   429,   180,   429,   429,
-     429,   429,   429,   429,   429,   429,   328,   227,   429,   311,
-     224,    24,   166,    29,   371,   124,  -173,    74,   473,  -173,
-      36,  -173,   157,    14,   158,  -173,   164,  -173,   168,  -173,
-    -173,   429,  -173,    32,    37,    39,    45,    61,    62,  -173,
-     351,    63,  -173,   180,    33,    33,    33,    33,    33,    33,
-     328,  -173,    22,    22,    22,  -173,  -173,  -173,  -173,   311,
-    -173,   167,   170,   171,  -173,   475,   183,  -173,   429,  -173,
-     175,  -173,  -173,   358,  -173,  -173,  -173,    36,    93,  -173,
-      95,   371,  -173,  -173,   311,  -173,  -173,  -173,  -173,  -173,
-    -173,  -173,  -173,  -173,  -173,   328,   328,  -173,  -173,   429,
-     429,   429,   311,   165,   178,   101,  -173,    14,   371,  -173,
-     187,   188,   368,   466,   311,   358,  -173,   371,  -173,  -173,
-    -173,  -173,   328,   328,  -173,  -173,  -173,  -173
+       5,     6,    26,     4,  -183,    17,    45,    19,    79,    50,
+    -183,    17,  -183,    70,    52,  -183,  -183,  -183,  -183,    17,
+     112,  -183,    54,  -183,    20,    17,  -183,    91,    17,    85,
+    -183,  -183,  -183,  -183,  -183,  -183,     9,   129,  -183,    71,
+      87,  -183,   117,   126,   143,   160,   170,   183,   502,  -183,
+     502,   502,    17,   217,  -183,  -183,    58,  -183,   174,  -183,
+    -183,  -183,  -183,  -183,  -183,  -183,  -183,  -183,  -183,   454,
+      17,  -183,   105,  -183,   234,   236,    85,  -183,    18,  -183,
+     185,  -183,  -183,  -183,   387,   502,   502,   502,   502,   502,
+     502,   502,   188,   190,   191,   192,   200,   201,   550,   502,
+     502,  -183,    23,   282,    48,    -4,  -183,   327,   154,   -11,
+     213,  -183,   502,   502,   502,    17,  -183,    17,  -183,  -183,
+    -183,  -183,   205,    17,   202,   209,  -183,  -183,  -183,   203,
+    -183,    17,   454,   204,   204,  -183,  -183,    45,   210,    45,
+    -183,   215,   -44,   265,    -7,    14,    47,    75,    78,   502,
+     502,   502,   502,   502,   502,  -183,  -183,  -183,  -183,    84,
+     502,   502,    17,   357,   502,   502,   502,   502,   502,   502,
+     240,   502,   502,   502,   502,   502,   502,   502,   502,   357,
+     433,   502,   265,   211,    81,   228,   102,   475,   114,  -183,
+     128,    54,  -183,    17,  -183,   216,    96,   222,  -183,   232,
+    -183,   233,  -183,  -183,   502,  -183,  -183,  -183,  -183,  -183,
+     107,   115,   118,   123,   124,   161,  -183,   239,   166,  -183,
+     240,    48,    48,    48,    48,    48,    48,   357,  -183,    -4,
+      -4,    -4,  -183,  -183,  -183,  -183,   265,  -183,   357,   250,
+     252,   425,  -183,   164,   230,  -183,   502,  -183,   261,  -183,
+    -183,   454,  -183,  -183,  -183,    17,    88,  -183,   168,   475,
+    -183,  -183,   265,  -183,  -183,  -183,  -183,  -183,  -183,  -183,
+    -183,  -183,  -183,   237,   357,   357,  -183,  -183,   502,   502,
+     502,   265,   251,   260,   176,  -183,    96,   475,  -183,  -183,
+     269,   270,   296,   434,   265,   454,  -183,   475,  -183,  -183,
+    -183,  -183,   357,   357,  -183,  -183,  -183,  -183
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -745,56 +759,58 @@ static const yytype_int16 yypact[] =
 static const yytype_uint8 yydefact[] =
 {
        0,     0,     0,    32,     1,     0,    32,     5,     0,    46,
-      72,    33,    35,     0,     3,     4,    76,     6,    73,     0,
-      26,    34,     0,     2,    75,    47,    49,     0,     0,     8,
-      38,    40,    41,    42,    43,    44,     0,    37,    74,     0,
-       0,   111,     0,   113,     0,    76,     0,     0,     0,     0,
-     108,    82,    78,    80,    81,    83,    84,    85,    86,    87,
-      88,    89,    48,     0,    27,    29,     0,    71,     0,     0,
-       7,    11,    32,    12,     0,    39,    45,    36,    99,     0,
+      71,    33,    35,     0,     3,     4,    75,     6,    72,     0,
+      26,    34,     0,     2,    74,    47,    49,     0,     0,     8,
+      38,    40,    41,    42,    43,    44,     0,    37,    73,     0,
+       0,   113,     0,   115,     0,     0,     0,     0,     0,    75,
+       0,     0,     0,     0,    89,    90,   110,    81,    77,    79,
+      80,    82,    83,    84,    85,    86,    87,    88,    48,     0,
+      27,    29,     0,    70,     0,     0,     7,    11,    32,    12,
+       0,    39,    45,    36,   100,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,   135,   133,    99,   123,   127,   132,    99,     0,     0,
-       0,    93,     0,     0,     0,     0,    77,     0,    65,    66,
-      67,    68,    69,     0,     0,     0,    51,    54,    53,    52,
-      61,    28,     0,     0,    20,    20,     9,    10,    32,    16,
-      32,    79,     0,     0,   116,     0,     0,     0,     0,     0,
-       0,     0,    38,    44,   138,   137,     0,     0,     0,     0,
-      99,     0,     0,     0,     0,     0,     0,    96,     0,     0,
-       0,     0,     0,     0,     0,     0,    99,     0,     0,    90,
-       0,     0,     0,     0,     0,     0,    57,     0,     0,    50,
-       0,    70,    31,     0,     0,    19,    14,    15,     0,   110,
-     112,     0,   114,     0,     0,     0,     0,     0,     0,   136,
-       0,     0,   140,    96,   121,   122,   117,   118,   119,   120,
-      99,    95,   124,   125,   126,   128,   129,   131,   130,    98,
-     100,     0,     0,     0,   103,     0,     0,   109,     0,    62,
-       0,    55,    56,     0,    63,    64,    30,     0,     0,    23,
-       0,     0,    13,    18,   115,   141,   142,   143,   144,   145,
-     146,   139,   134,    94,    97,    99,    99,   101,   102,     0,
-       0,     0,    92,     0,    59,     0,    21,     0,     0,    17,
-       0,     0,     0,     0,    91,     0,    58,     0,    22,    25,
-     104,   105,    99,    99,    60,    24,   106,   107
+       0,   141,   139,   100,   129,   133,   138,   100,     0,     0,
+       0,    94,     0,     0,     0,     0,    76,     0,    65,    66,
+      67,    68,     0,     0,     0,    51,    54,    53,    52,    61,
+      28,     0,     0,    20,    20,     9,    10,    32,    16,    32,
+      78,     0,     0,   122,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,    38,    44,   144,   143,     0,
+       0,     0,     0,   100,     0,     0,     0,     0,     0,     0,
+      97,     0,     0,     0,     0,     0,     0,     0,     0,   100,
+       0,     0,    91,     0,     0,     0,     0,     0,     0,    57,
+       0,     0,    50,     0,    69,    31,     0,     0,    19,    14,
+      15,     0,   112,   114,     0,   116,   117,   118,   119,   120,
+       0,     0,     0,     0,     0,     0,   142,     0,     0,   146,
+      97,   127,   128,   123,   124,   125,   126,   100,    96,   130,
+     131,   132,   134,   135,   137,   136,    99,   101,   100,     0,
+       0,     0,   104,     0,     0,   111,     0,    62,     0,    55,
+      56,     0,    63,    64,    30,     0,     0,    23,     0,     0,
+      13,    18,   121,   147,   148,   149,   150,   151,   152,   145,
+     140,    95,    98,     0,   100,   100,   102,   103,     0,     0,
+       0,    93,     0,    59,     0,    21,     0,     0,    17,   107,
+       0,     0,     0,     0,    92,     0,    58,     0,    22,    25,
+     105,   106,   100,   100,    60,    24,   108,   109
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-    -173,  -173,    -2,  -173,  -173,   182,  -173,   184,  -173,   109,
-    -173,   -27,  -173,  -173,   191,  -173,  -173,   237,   -19,  -173,
-    -173,   232,  -122,  -173,  -173,    84,  -173,  -172,   -90,    -5,
-    -173,   252,   216,   -88,   198,  -173,  -173,  -173,    76,  -173,
-    -173,  -173,  -173,    77,  -173,  -173,     2,   -35,   372,   -94,
-     -48
+    -183,  -183,    -3,  -183,  -183,   258,  -183,   278,  -183,   221,
+    -183,    51,  -183,  -183,   286,  -183,  -183,   350,   -21,  -183,
+    -183,   337,  -128,  -183,  -183,   184,  -183,  -182,  -110,    -5,
+    -183,   363,   324,   -78,   290,  -183,  -183,  -183,   155,  -183,
+    -183,  -183,  -183,   150,  -183,  -183,    65,   -39,   220,   -10,
+     -83
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
-static const yytype_uint8 yydefgoto[] =
+static const yytype_int16 yydefgoto[] =
 {
-       0,     2,     7,     8,    70,    71,    72,    73,    74,   184,
-     238,   239,    29,    64,    65,     9,    11,    12,    91,    20,
-      25,    26,   116,   117,   175,   176,   118,   119,    66,    92,
-      17,    51,    24,    52,    53,    54,    55,    56,   211,    57,
-      58,    59,   223,   224,    60,    61,   133,   134,    94,    95,
-      96
+       0,     2,     7,     8,    76,    77,    78,    79,    80,   197,
+     256,   257,    29,    70,    71,     9,    11,    12,   101,    20,
+      25,    26,   125,   126,   188,   189,   127,   128,    72,   102,
+      17,    57,    24,    58,    59,    60,    61,    62,   228,    63,
+      64,    65,   241,   242,    66,    67,   142,   143,   104,   105,
+     106
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -802,171 +818,192 @@ static const yytype_uint8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
-      13,   182,   230,    37,    14,   157,    13,     5,     1,    93,
-       5,    98,    99,   147,    27,   148,     4,   173,   149,    50,
-      27,   102,   237,    67,   177,    10,    16,    38,    10,    39,
-     103,   132,   104,   122,   123,   105,    40,    41,    42,    43,
-     144,   145,    75,   100,   115,     3,    44,    10,    76,    45,
-     190,    46,     5,    47,   191,   146,    48,   192,   120,    67,
-       6,   191,   203,   128,   212,   213,   214,   169,   170,   269,
-     129,   161,   162,    50,   163,    15,   164,    16,   220,    19,
-     158,   159,   227,   135,   160,   177,   191,   229,    50,    49,
-     245,   122,    50,   240,   191,   246,   279,   247,    22,   191,
-     172,   191,    67,   248,   115,   285,   171,   191,    23,    67,
-      28,   264,   200,   215,   216,   217,   218,   181,   120,   249,
-     250,   252,   254,   191,   191,   191,   186,    63,   188,    77,
-     219,    68,    69,   225,   231,    10,   122,   233,   193,   194,
-     195,   196,   197,   198,   202,    50,    78,   265,   221,    79,
-     201,   266,   267,   284,    80,   115,   244,   122,   268,   234,
-      81,    50,   222,   122,   277,   101,   106,   270,   271,   120,
-      67,   124,   125,   130,   136,   235,   137,   240,    67,   138,
-     139,   257,    10,    30,   168,    31,    32,    33,    34,    35,
-      16,   140,    10,   262,   286,   287,   141,   174,   178,   179,
-      40,    41,    42,    43,   221,    50,   180,   183,   187,   189,
-      44,   210,   228,    45,   115,    46,   236,    47,   222,    36,
-      48,   241,   115,   242,   272,   273,   274,   243,   120,   261,
-     255,   263,    67,   256,   185,   275,   120,   276,    10,    30,
-     278,    31,    32,    33,    34,    35,   280,   281,    21,   115,
-      50,    50,   126,    49,   127,   121,   115,    62,   115,   232,
-      18,    97,    67,   120,   151,   152,   153,   154,   155,   156,
-     120,    16,   120,    10,    39,    36,   131,    50,    50,   253,
-     226,    40,    41,    42,    43,   151,   152,   153,   154,   155,
-     156,    44,   150,     0,    45,     0,    46,     0,    47,     0,
-     258,    48,   151,   152,   153,   154,   155,   156,    16,     0,
-      10,    39,     0,     0,     0,   167,     0,   166,    40,    41,
-      42,    43,   151,   152,   153,   154,   155,   156,    44,     0,
-       0,    45,   165,    46,    49,    47,     0,    16,    48,    10,
-      39,   151,   152,   153,   154,   155,   156,    40,    41,    42,
-      43,   151,   152,   153,   154,   155,   156,    44,     0,   199,
-      45,     0,    46,     0,    47,     0,     0,    48,     0,    10,
-      30,    49,    31,    32,    33,    34,    35,     0,     0,     0,
-       0,     0,    10,    30,     0,    31,    32,    33,    34,    35,
-       0,   151,   152,   153,   154,   155,   156,     0,     0,     0,
-      49,     0,     0,   282,     0,     0,    36,   251,   151,   152,
-     153,   154,   155,   156,     0,   107,     0,     0,     0,    36,
-       0,     0,   108,   109,   110,   111,   112,   113,   107,   114,
-       0,     0,     0,     0,     0,   108,   109,   110,   111,   112,
-      10,    30,     0,    31,    32,    33,    34,    35,     0,     0,
-       0,     0,    82,    83,    84,    85,    86,    87,    10,   142,
-       0,    31,    32,    33,    34,   143,     0,     0,     0,     0,
-      82,    83,    84,    85,    86,    87,     0,    88,     0,     0,
-       0,     0,    89,     0,     0,    30,    90,    31,    32,    33,
-      34,    35,     0,     0,     0,    88,     0,     0,     0,     0,
-      89,   283,     0,     0,    90,     0,   151,   152,   153,   154,
-     155,   156,   259,   260,     0,   151,   152,   153,   154,   155,
-     156,    36,     0,   204,   205,   206,   207,   208,   209
+      13,    37,   141,    14,   195,   248,    13,   186,     1,   103,
+       5,   108,   109,   190,    27,   157,   158,     3,   203,    56,
+      27,    81,   204,    73,     5,   170,     4,    82,    10,    16,
+      38,    10,    39,   164,   165,   166,   167,   168,   169,    40,
+      41,    42,    43,    44,    45,    46,    47,   110,   124,   174,
+     175,     5,   176,    48,   177,   205,    49,    19,    50,   204,
+      51,   159,   180,    52,   129,    73,    30,     6,    31,    32,
+      33,    34,    35,   182,   183,   138,   206,   288,   190,    56,
+     204,   137,   160,    15,   161,   220,   258,   162,    16,    74,
+      75,   232,   233,   234,   235,    53,    54,    55,    56,   171,
+     172,   237,    56,   173,   255,   299,    36,    10,   112,   207,
+     185,   124,    73,   204,    22,   305,    23,   113,    73,   114,
+      28,   217,   115,   283,   249,    10,   194,   129,   164,   165,
+     166,   167,   168,   169,   199,    69,   201,   208,    84,   236,
+     209,   204,   243,   245,   204,   284,   216,   204,    85,   272,
+     285,   286,   144,   145,   146,   147,   148,   219,    56,   239,
+     273,   229,   230,   231,   247,   262,   124,   304,   131,   263,
+     252,   131,   132,   204,    56,   240,   258,   264,    86,   184,
+     265,   204,   129,    73,   204,   266,   267,    87,   253,   204,
+     204,    73,    83,   179,   131,   251,   290,   291,   164,   165,
+     166,   167,   168,   169,    88,   278,   279,   281,   164,   165,
+     166,   167,   168,   169,   210,   211,   212,   213,   214,   215,
+     239,    89,    56,   268,   306,   307,   218,   204,   270,   111,
+     124,    90,   204,    56,   131,   287,   240,   116,   124,   292,
+     293,   294,   131,   297,    91,   133,   129,   134,   139,   149,
+      73,   150,   151,   152,   129,   164,   165,   166,   167,   168,
+     169,   153,   154,   181,   187,   196,   124,   191,   193,    56,
+      56,   244,   192,   200,   124,   227,   124,   202,   246,   254,
+     280,    73,   129,   164,   165,   166,   167,   168,   169,   259,
+     129,    16,   129,    10,    39,   260,   261,    56,    56,   269,
+     289,    40,    41,    42,    43,    44,    45,    46,    47,   164,
+     165,   166,   167,   168,   169,    48,   163,   274,    49,   275,
+      50,   282,    51,   296,   295,    52,   164,   165,   166,   167,
+     168,   169,   300,   301,   135,   302,    16,   298,    10,    39,
+     164,   165,   166,   167,   168,   169,    40,    41,    42,    43,
+      44,    45,    46,    47,   136,   198,   130,    53,    54,    55,
+      48,    21,    68,    49,   178,    50,    16,    51,    10,    39,
+      52,    18,   250,   107,   140,   271,    40,    41,    42,    43,
+      44,    45,    46,    47,   221,   222,   223,   224,   225,   226,
+      48,   277,     0,    49,     0,    50,    16,    51,    10,     0,
+      52,     0,    53,    54,    55,     0,    40,    41,    42,    43,
+      44,    45,    46,    47,     0,     0,     0,     0,     0,     0,
+      48,     0,     0,    49,     0,    50,     0,    51,     0,     0,
+      52,     0,    53,    54,    55,   276,    10,    30,     0,    31,
+      32,    33,    34,    35,    10,    30,     0,    31,    32,    33,
+      34,    35,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,    53,    54,    55,    10,    30,     0,    31,    32,
+      33,    34,    35,   303,     0,     0,     0,    36,   164,   165,
+     166,   167,   168,   169,     0,    36,    10,    30,     0,    31,
+      32,    33,    34,    35,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,   238,     0,     0,    36,     0,     0,     0,
+       0,   238,     0,    10,    30,   117,    31,    32,    33,    34,
+      35,     0,   118,   119,   120,   121,   122,    36,   123,    92,
+      93,    94,    95,    96,    97,     0,   117,     0,     0,     0,
+       0,     0,     0,   118,   119,   120,   121,     0,     0,     0,
+       0,     0,     0,     0,    98,     0,     0,     0,     0,    99,
+       0,    10,   155,   100,    31,    32,    33,    34,   156,     0,
+       0,     0,     0,     0,     0,     0,     0,    92,    93,    94,
+      95,    96,    97,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,    98,     0,     0,     0,     0,    99,     0,     0,
+       0,   100
 };
 
 static const yytype_int16 yycheck[] =
 {
-       5,   123,   174,    22,     6,    93,    11,     6,     3,    44,
-       6,    46,    47,    55,    19,    57,     0,   107,    60,    24,
-      25,    46,     8,    28,   114,    11,     9,    10,    11,    12,
-      55,    79,    57,    62,    63,    60,    19,    20,    21,    22,
-      88,    89,    12,    48,    63,    11,    29,    11,    18,    32,
-      58,    34,     6,    36,    62,    90,    39,    58,    63,    64,
-      59,    62,   150,    59,   158,   159,   160,   102,   103,   241,
-      72,    49,    50,    78,    52,    60,    54,     9,   166,     7,
-      47,    48,    58,    81,    51,   175,    62,    58,    93,    72,
-      58,    62,    97,   183,    62,    58,   268,    58,    40,    62,
-     105,    62,   107,    58,   123,   277,   104,    62,    60,   114,
-       8,   233,   147,   161,   162,   163,   164,   122,   123,    58,
-      58,    58,   210,    62,    62,    62,   128,    40,   130,    59,
-     165,     4,     5,   168,    10,    11,    62,    63,   136,   137,
-     138,   139,   140,   141,   149,   150,    63,   237,   167,    57,
-     148,    58,    59,   275,    57,   174,   191,    62,    63,   178,
-      57,   166,   167,    62,    63,    12,    59,   255,   256,   174,
-     175,    11,    11,    59,    57,   180,    57,   267,   183,    57,
-      57,    10,    11,    12,    46,    14,    15,    16,    17,    18,
-       9,    57,    11,   228,   282,   283,    57,    55,    61,    59,
-      19,    20,    21,    22,   223,   210,    61,    57,    59,    58,
-      29,    31,    46,    32,   233,    34,    59,    36,   223,    48,
-      39,    63,   241,    59,   259,   260,   261,    59,   233,    46,
-      63,    56,   237,    63,   125,    70,   241,    59,    11,    12,
-     267,    14,    15,    16,    17,    18,    59,    59,    11,   268,
-     255,   256,    70,    72,    70,    64,   275,    25,   277,   175,
-       8,    45,   267,   268,    40,    41,    42,    43,    44,    45,
-     275,     9,   277,    11,    12,    48,    78,   282,   283,   203,
-      56,    19,    20,    21,    22,    40,    41,    42,    43,    44,
-      45,    29,    30,    -1,    32,    -1,    34,    -1,    36,    -1,
-     223,    39,    40,    41,    42,    43,    44,    45,     9,    -1,
-      11,    12,    -1,    -1,    -1,    70,    -1,    35,    19,    20,
-      21,    22,    40,    41,    42,    43,    44,    45,    29,    -1,
-      -1,    32,    33,    34,    72,    36,    -1,     9,    39,    11,
-      12,    40,    41,    42,    43,    44,    45,    19,    20,    21,
-      22,    40,    41,    42,    43,    44,    45,    29,    -1,    58,
-      32,    -1,    34,    -1,    36,    -1,    -1,    39,    -1,    11,
-      12,    72,    14,    15,    16,    17,    18,    -1,    -1,    -1,
-      -1,    -1,    11,    12,    -1,    14,    15,    16,    17,    18,
-      -1,    40,    41,    42,    43,    44,    45,    -1,    -1,    -1,
-      72,    -1,    -1,    35,    -1,    -1,    48,    56,    40,    41,
-      42,    43,    44,    45,    -1,    57,    -1,    -1,    -1,    48,
-      -1,    -1,    64,    65,    66,    67,    68,    69,    57,    71,
-      -1,    -1,    -1,    -1,    -1,    64,    65,    66,    67,    68,
-      11,    12,    -1,    14,    15,    16,    17,    18,    -1,    -1,
-      -1,    -1,    23,    24,    25,    26,    27,    28,    11,    12,
-      -1,    14,    15,    16,    17,    18,    -1,    -1,    -1,    -1,
-      23,    24,    25,    26,    27,    28,    -1,    48,    -1,    -1,
-      -1,    -1,    53,    -1,    -1,    12,    57,    14,    15,    16,
-      17,    18,    -1,    -1,    -1,    48,    -1,    -1,    -1,    -1,
-      53,    35,    -1,    -1,    57,    -1,    40,    41,    42,    43,
-      44,    45,    37,    38,    -1,    40,    41,    42,    43,    44,
-      45,    48,    -1,   151,   152,   153,   154,   155,   156
+       5,    22,    85,     6,   132,   187,    11,   117,     3,    48,
+       6,    50,    51,   123,    19,    98,    99,    11,    62,    24,
+      25,    12,    66,    28,     6,   103,     0,    18,    11,     9,
+      10,    11,    12,    44,    45,    46,    47,    48,    49,    19,
+      20,    21,    22,    23,    24,    25,    26,    52,    69,    53,
+      54,     6,    56,    33,    58,    62,    36,     7,    38,    66,
+      40,   100,    73,    43,    69,    70,    12,    63,    14,    15,
+      16,    17,    18,   112,   113,    78,    62,   259,   188,    84,
+      66,    63,    59,    64,    61,   163,   196,    64,     9,     4,
+       5,   174,   175,   176,   177,    75,    76,    77,   103,    51,
+      52,   179,   107,    55,     8,   287,    52,    11,    50,    62,
+     115,   132,   117,    66,    44,   297,    64,    59,   123,    61,
+       8,   160,    64,   251,    10,    11,   131,   132,    44,    45,
+      46,    47,    48,    49,   137,    44,   139,    62,    67,   178,
+      62,    66,   181,    62,    66,   255,    62,    66,    61,   227,
+      62,    63,    87,    88,    89,    90,    91,   162,   163,   180,
+     238,   171,   172,   173,    62,   204,   187,   295,    66,    62,
+     191,    66,    67,    66,   179,   180,   286,    62,    61,   114,
+      62,    66,   187,   188,    66,    62,    62,    61,   193,    66,
+      66,   196,    63,    39,    66,    67,   274,   275,    44,    45,
+      46,    47,    48,    49,    61,    41,    42,   246,    44,    45,
+      46,    47,    48,    49,   149,   150,   151,   152,   153,   154,
+     241,    61,   227,    62,   302,   303,   161,    66,    62,    12,
+     251,    61,    66,   238,    66,    67,   241,    63,   259,   278,
+     279,   280,    66,    67,    61,    11,   251,    11,    63,    61,
+     255,    61,    61,    61,   259,    44,    45,    46,    47,    48,
+      49,    61,    61,    50,    59,    61,   287,    65,    65,   274,
+     275,    60,    63,    63,   295,    35,   297,    62,    50,    63,
+      50,   286,   287,    44,    45,    46,    47,    48,    49,    67,
+     295,     9,   297,    11,    12,    63,    63,   302,   303,    60,
+      63,    19,    20,    21,    22,    23,    24,    25,    26,    44,
+      45,    46,    47,    48,    49,    33,    34,    67,    36,    67,
+      38,    60,    40,    63,    73,    43,    44,    45,    46,    47,
+      48,    49,    63,    63,    76,    39,     9,   286,    11,    12,
+      44,    45,    46,    47,    48,    49,    19,    20,    21,    22,
+      23,    24,    25,    26,    76,   134,    70,    75,    76,    77,
+      33,    11,    25,    36,    37,    38,     9,    40,    11,    12,
+      43,     8,   188,    49,    84,   220,    19,    20,    21,    22,
+      23,    24,    25,    26,   164,   165,   166,   167,   168,   169,
+      33,   241,    -1,    36,    -1,    38,     9,    40,    11,    -1,
+      43,    -1,    75,    76,    77,    -1,    19,    20,    21,    22,
+      23,    24,    25,    26,    -1,    -1,    -1,    -1,    -1,    -1,
+      33,    -1,    -1,    36,    -1,    38,    -1,    40,    -1,    -1,
+      43,    -1,    75,    76,    77,    10,    11,    12,    -1,    14,
+      15,    16,    17,    18,    11,    12,    -1,    14,    15,    16,
+      17,    18,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    75,    76,    77,    11,    12,    -1,    14,    15,
+      16,    17,    18,    39,    -1,    -1,    -1,    52,    44,    45,
+      46,    47,    48,    49,    -1,    52,    11,    12,    -1,    14,
+      15,    16,    17,    18,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    78,    -1,    -1,    52,    -1,    -1,    -1,
+      -1,    78,    -1,    11,    12,    61,    14,    15,    16,    17,
+      18,    -1,    68,    69,    70,    71,    72,    52,    74,    27,
+      28,    29,    30,    31,    32,    -1,    61,    -1,    -1,    -1,
+      -1,    -1,    -1,    68,    69,    70,    71,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    52,    -1,    -1,    -1,    -1,    57,
+      -1,    11,    12,    61,    14,    15,    16,    17,    18,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    27,    28,    29,
+      30,    31,    32,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    52,    -1,    -1,    -1,    -1,    57,    -1,    -1,
+      -1,    61
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
-static const yytype_int8 yystos[] =
+static const yytype_uint8 yystos[] =
 {
-       0,     3,    75,    11,     0,     6,    59,    76,    77,    89,
-      11,    90,    91,   103,    76,    60,     9,   104,   105,     7,
-      93,    91,    40,    60,   106,    94,    95,   103,     8,    86,
-      12,    14,    15,    16,    17,    18,    48,    92,    10,    12,
-      19,    20,    21,    22,    29,    32,    34,    36,    39,    72,
-     103,   105,   107,   108,   109,   110,   111,   113,   114,   115,
-     118,   119,    95,    40,    87,    88,   102,   103,     4,     5,
-      78,    79,    80,    81,    82,    12,    18,    59,    63,    57,
-      57,    57,    23,    24,    25,    26,    27,    28,    48,    53,
-      57,    92,   103,   121,   122,   123,   124,   106,   121,   121,
-     103,    12,    46,    55,    57,    60,    59,    57,    64,    65,
-      66,    67,    68,    69,    71,    92,    96,    97,   100,   101,
-     103,    88,    62,    63,    11,    11,    79,    81,    59,    76,
-      59,   108,   124,   120,   121,   120,    57,    57,    57,    57,
-      57,    57,    12,    18,   124,   124,   121,    55,    57,    60,
-      30,    40,    41,    42,    43,    44,    45,   107,    47,    48,
-      51,    49,    50,    52,    54,    33,    35,    70,    46,   121,
-     121,   120,   103,   102,    55,    98,    99,   102,    61,    59,
-      61,   103,    96,    57,    83,    83,    76,    59,    76,    58,
-      58,    62,    58,   120,   120,   120,   120,   120,   120,    58,
-     121,   120,   103,   107,   122,   122,   122,   122,   122,   122,
-      31,   112,   123,   123,   123,   124,   124,   124,   124,   121,
-     107,    92,   103,   116,   117,   121,    56,    58,    46,    58,
-     101,    10,    99,    63,    92,   103,    59,     8,    84,    85,
-     102,    63,    59,    59,   121,    58,    58,    58,    58,    58,
-      58,    56,    58,   112,   107,    63,    63,    10,   117,    37,
-      38,    46,   121,    56,    96,   102,    58,    59,    63,   101,
-     107,   107,   121,   121,   121,    70,    59,    63,    85,   101,
-      59,    59,    35,    35,    96,   101,   107,   107
+       0,     3,    81,    11,     0,     6,    63,    82,    83,    95,
+      11,    96,    97,   109,    82,    64,     9,   110,   111,     7,
+      99,    97,    44,    64,   112,   100,   101,   109,     8,    92,
+      12,    14,    15,    16,    17,    18,    52,    98,    10,    12,
+      19,    20,    21,    22,    23,    24,    25,    26,    33,    36,
+      38,    40,    43,    75,    76,    77,   109,   111,   113,   114,
+     115,   116,   117,   119,   120,   121,   124,   125,   101,    44,
+      93,    94,   108,   109,     4,     5,    84,    85,    86,    87,
+      88,    12,    18,    63,    67,    61,    61,    61,    61,    61,
+      61,    61,    27,    28,    29,    30,    31,    32,    52,    57,
+      61,    98,   109,   127,   128,   129,   130,   112,   127,   127,
+     109,    12,    50,    59,    61,    64,    63,    61,    68,    69,
+      70,    71,    72,    74,    98,   102,   103,   106,   107,   109,
+      94,    66,    67,    11,    11,    85,    87,    63,    82,    63,
+     114,   130,   126,   127,   126,   126,   126,   126,   126,    61,
+      61,    61,    61,    61,    61,    12,    18,   130,   130,   127,
+      59,    61,    64,    34,    44,    45,    46,    47,    48,    49,
+     113,    51,    52,    55,    53,    54,    56,    58,    37,    39,
+      73,    50,   127,   127,   126,   109,   108,    59,   104,   105,
+     108,    65,    63,    65,   109,   102,    61,    89,    89,    82,
+      63,    82,    62,    62,    66,    62,    62,    62,    62,    62,
+     126,   126,   126,   126,   126,   126,    62,   127,   126,   109,
+     113,   128,   128,   128,   128,   128,   128,    35,   118,   129,
+     129,   129,   130,   130,   130,   130,   127,   113,    78,    98,
+     109,   122,   123,   127,    60,    62,    50,    62,   107,    10,
+     105,    67,    98,   109,    63,     8,    90,    91,   108,    67,
+      63,    63,   127,    62,    62,    62,    62,    62,    62,    60,
+      62,   118,   113,   113,    67,    67,    10,   123,    41,    42,
+      50,   127,    60,   102,   108,    62,    63,    67,   107,    63,
+     113,   113,   127,   127,   127,    73,    63,    67,    91,   107,
+      63,    63,    39,    39,   102,   107,   113,   113
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
-static const yytype_int8 yyr1[] =
+static const yytype_uint8 yyr1[] =
 {
-       0,    74,    75,    75,    75,    75,    76,    77,    78,    78,
-      78,    78,    78,    79,    79,    79,    79,    80,    81,    82,
-      83,    83,    84,    84,    85,    85,    86,    86,    87,    87,
-      88,    88,    89,    89,    90,    90,    91,    91,    92,    92,
-      92,    92,    92,    92,    92,    92,    93,    93,    94,    94,
-      95,    95,    96,    96,    96,    97,    98,    98,    99,    99,
-     100,   101,   101,   101,   101,   101,   101,   101,   101,   101,
-     102,   102,   103,   104,   105,   105,   106,   106,   106,   107,
-     107,   108,   108,   108,   108,   108,   108,   108,   108,   108,
-     109,   109,   109,   110,   111,   111,   112,   112,   113,   113,
-     114,   115,   116,   116,   117,   117,   118,   118,   119,   119,
-     119,   119,   119,   119,   119,   120,   120,   121,   121,   121,
-     121,   121,   121,   121,   122,   122,   122,   122,   123,   123,
-     123,   123,   123,   124,   124,   124,   124,   124,   124,   124,
-     124,   124,   124,   124,   124,   124,   124
+       0,    80,    81,    81,    81,    81,    82,    83,    84,    84,
+      84,    84,    84,    85,    85,    85,    85,    86,    87,    88,
+      89,    89,    90,    90,    91,    91,    92,    92,    93,    93,
+      94,    94,    95,    95,    96,    96,    97,    97,    98,    98,
+      98,    98,    98,    98,    98,    98,    99,    99,   100,   100,
+     101,   101,   102,   102,   102,   103,   104,   104,   105,   105,
+     106,   107,   107,   107,   107,   107,   107,   107,   107,   108,
+     108,   109,   110,   111,   111,   112,   112,   112,   113,   113,
+     114,   114,   114,   114,   114,   114,   114,   114,   114,   114,
+     114,   115,   115,   115,   116,   117,   117,   118,   118,   119,
+     119,   120,   121,   122,   122,   123,   123,   123,   124,   124,
+     125,   125,   125,   125,   125,   125,   125,   125,   125,   125,
+     125,   126,   126,   127,   127,   127,   127,   127,   127,   127,
+     128,   128,   128,   128,   129,   129,   129,   129,   129,   130,
+     130,   130,   130,   130,   130,   130,   130,   130,   130,   130,
+     130,   130,   130
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -978,15 +1015,16 @@ static const yytype_int8 yyr2[] =
        4,     3,     0,     2,     2,     1,     4,     3,     1,     2,
        1,     1,     1,     1,     1,     2,     0,     2,     2,     1,
        4,     3,     1,     1,     1,     3,     2,     1,     4,     3,
-       6,     1,     3,     3,     3,     1,     1,     1,     1,     1,
-       3,     1,     1,     1,     3,     2,     0,     3,     2,     3,
+       6,     1,     3,     3,     3,     1,     1,     1,     1,     3,
+       1,     1,     1,     3,     2,     0,     3,     2,     3,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
-       3,     6,     5,     2,     5,     4,     0,     2,     4,     0,
-       4,     5,     2,     1,     4,     4,     8,     8,     1,     4,
-       4,     1,     4,     1,     4,     3,     1,     3,     3,     3,
-       3,     3,     3,     1,     3,     3,     3,     1,     3,     3,
-       3,     3,     1,     1,     4,     1,     3,     2,     2,     4,
-       3,     4,     4,     4,     4,     4,     4
+       1,     3,     6,     5,     2,     5,     4,     0,     2,     4,
+       0,     4,     5,     2,     1,     4,     4,     3,     8,     8,
+       1,     4,     4,     1,     4,     1,     4,     4,     4,     4,
+       4,     3,     1,     3,     3,     3,     3,     3,     3,     1,
+       3,     3,     3,     1,     3,     3,     3,     3,     1,     1,
+       4,     1,     3,     2,     2,     4,     3,     4,     4,     4,
+       4,     4,     4
 };
 
 
@@ -1450,7 +1488,7 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: PROGRAM IDENT_NAME SEMICOLON routine DOT  */
-#line 171 "src/yacc.y"
+#line 175 "src/yacc.y"
                                              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse program 1: " << (*(yyvsp[-3].token).stringValue) << std::endl;
@@ -1463,11 +1501,11 @@ yyreduce:
         (yyval.programNode) = new ast::ProgramNode(std::move(name), (yyvsp[-1].routineNode));
         resultAst = (yyval.programNode);
     }
-#line 1467 "out/parser.cpp"
+#line 1505 "out/parser.cpp"
     break;
 
   case 3: /* program: PROGRAM IDENT_NAME SEMICOLON routine  */
-#line 184 "src/yacc.y"
+#line 188 "src/yacc.y"
                                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse program 2: " << (*(yyvsp[-2].token).stringValue) << std::endl;
@@ -1481,11 +1519,11 @@ yyreduce:
         resultAst = (yyval.programNode);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of end dot");
     }
-#line 1485 "out/parser.cpp"
+#line 1523 "out/parser.cpp"
     break;
 
   case 4: /* program: PROGRAM IDENT_NAME routine DOT  */
-#line 198 "src/yacc.y"
+#line 202 "src/yacc.y"
                                    {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse program 3: " << (*(yyvsp[-2].token).stringValue) << std::endl;
@@ -1499,11 +1537,11 @@ yyreduce:
         resultAst = (yyval.programNode);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 1503 "out/parser.cpp"
+#line 1541 "out/parser.cpp"
     break;
 
   case 5: /* program: PROGRAM IDENT_NAME routine  */
-#line 212 "src/yacc.y"
+#line 216 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse program 4: " << (*(yyvsp[-1].token).stringValue) << std::endl;
@@ -1517,44 +1555,44 @@ yyreduce:
         resultAst = (yyval.programNode);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon and end dot");
     }
-#line 1521 "out/parser.cpp"
+#line 1559 "out/parser.cpp"
     break;
 
   case 6: /* routine: routine_head routine_body  */
-#line 228 "src/yacc.y"
+#line 232 "src/yacc.y"
                               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse routine" << std::endl;
         #endif
         (yyval.routineNode) = new ast::RoutineNode((yyvsp[-1].routineHeadNode), (yyvsp[0].routineBodyNode));
     }
-#line 1532 "out/parser.cpp"
+#line 1570 "out/parser.cpp"
     break;
 
   case 7: /* routine_head: const_part type_part var_part routine_part  */
-#line 237 "src/yacc.y"
+#line 241 "src/yacc.y"
                                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse routine head" << std::endl;
         #endif
         (yyval.routineHeadNode) = new ast::RoutineHeadNode((yyvsp[-3].constPartList), (yyvsp[-2].typePartList), (yyvsp[-1].varPartList), (yyvsp[0].routinePartList));
     }
-#line 1543 "out/parser.cpp"
+#line 1581 "out/parser.cpp"
     break;
 
   case 8: /* routine_part: %empty  */
-#line 246 "src/yacc.y"
+#line 250 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty routine part" << std::endl;
         #endif
         (yyval.routinePartList) = new std::vector<ast::RoutineDeclarationNode*>();
     }
-#line 1554 "out/parser.cpp"
+#line 1592 "out/parser.cpp"
     break;
 
   case 9: /* routine_part: routine_part fun_decl  */
-#line 253 "src/yacc.y"
+#line 257 "src/yacc.y"
                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse routine part with fun decl 1" << std::endl;
@@ -1562,11 +1600,11 @@ yyreduce:
         (yyval.routinePartList) = (yyvsp[-1].routinePartList);
         (yyval.routinePartList)->push_back((yyvsp[0].routineDeclarationNode));
     }
-#line 1566 "out/parser.cpp"
+#line 1604 "out/parser.cpp"
     break;
 
   case 10: /* routine_part: routine_part proc_decl  */
-#line 261 "src/yacc.y"
+#line 265 "src/yacc.y"
                            {
        #ifdef YACC_DEBUG
            std::cout << "Yacc debug: Parse routine part with proc decl 1" << std::endl;
@@ -1574,11 +1612,11 @@ yyreduce:
        (yyval.routinePartList) = (yyvsp[-1].routinePartList);
        (yyval.routinePartList)->push_back((yyvsp[0].routineDeclarationNode));
     }
-#line 1578 "out/parser.cpp"
+#line 1616 "out/parser.cpp"
     break;
 
   case 11: /* routine_part: fun_decl  */
-#line 269 "src/yacc.y"
+#line 273 "src/yacc.y"
              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse routine part with fun decl 2" << std::endl;
@@ -1586,11 +1624,11 @@ yyreduce:
         (yyval.routinePartList) = new std::vector<ast::RoutineDeclarationNode*>();
         (yyval.routinePartList)->push_back((yyvsp[0].routineDeclarationNode));
     }
-#line 1590 "out/parser.cpp"
+#line 1628 "out/parser.cpp"
     break;
 
   case 12: /* routine_part: proc_decl  */
-#line 277 "src/yacc.y"
+#line 281 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse routine part with proc decl 2" << std::endl;
@@ -1598,11 +1636,11 @@ yyreduce:
         (yyval.routinePartList) = new std::vector<ast::RoutineDeclarationNode*>();
         (yyval.routinePartList)->push_back((yyvsp[0].routineDeclarationNode));
     }
-#line 1602 "out/parser.cpp"
+#line 1640 "out/parser.cpp"
     break;
 
   case 13: /* fun_decl: fun_head SEMICOLON routine SEMICOLON  */
-#line 287 "src/yacc.y"
+#line 291 "src/yacc.y"
                                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun decl 1" << std::endl;
@@ -1611,11 +1649,11 @@ yyreduce:
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[-1].routineNode)));
         (yyval.routineDeclarationNode)->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
     }
-#line 1615 "out/parser.cpp"
+#line 1653 "out/parser.cpp"
     break;
 
   case 14: /* fun_decl: fun_head SEMICOLON routine  */
-#line 296 "src/yacc.y"
+#line 300 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun decl 2" << std::endl;
@@ -1625,11 +1663,11 @@ yyreduce:
         (yyval.routineDeclarationNode)->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 1629 "out/parser.cpp"
+#line 1667 "out/parser.cpp"
     break;
 
   case 15: /* fun_decl: fun_head routine SEMICOLON  */
-#line 306 "src/yacc.y"
+#line 310 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun decl 3" << std::endl;
@@ -1639,11 +1677,11 @@ yyreduce:
         (yyval.routineDeclarationNode)->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 1643 "out/parser.cpp"
+#line 1681 "out/parser.cpp"
     break;
 
   case 16: /* fun_decl: fun_head routine  */
-#line 316 "src/yacc.y"
+#line 320 "src/yacc.y"
                      {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun decl 4" << std::endl;
@@ -1653,11 +1691,11 @@ yyreduce:
         (yyval.routineDeclarationNode)->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 1657 "out/parser.cpp"
+#line 1695 "out/parser.cpp"
     break;
 
   case 17: /* fun_head: FUNCTION IDENT_NAME params COLON simple_type  */
-#line 328 "src/yacc.y"
+#line 332 "src/yacc.y"
                                                  {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun head " << (*(yyvsp[-3].token).stringValue) << std::endl;
@@ -1668,11 +1706,11 @@ yyreduce:
         std::string name{*(yyvsp[-3].token).stringValue};
         (yyval.routineDeclarationNode) = new ast::RoutineDeclarationNode(ast::RoutineDeclarationNode::RoutineType::FUNCTION, std::move(name), (yyvsp[-2].paramsNode), (yyvsp[0].simpleTypeNode), nullptr);
     }
-#line 1672 "out/parser.cpp"
+#line 1710 "out/parser.cpp"
     break;
 
   case 18: /* proc_decl: proc_head SEMICOLON routine SEMICOLON  */
-#line 341 "src/yacc.y"
+#line 345 "src/yacc.y"
                                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse proc decl" << std::endl;
@@ -1681,11 +1719,11 @@ yyreduce:
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[-1].routineNode)));
         (yyval.routineDeclarationNode)->setRoutineType(ast::RoutineDeclarationNode::RoutineType::PROCEDURE);
     }
-#line 1685 "out/parser.cpp"
+#line 1723 "out/parser.cpp"
     break;
 
   case 19: /* proc_head: PROCEDURE IDENT_NAME params  */
-#line 352 "src/yacc.y"
+#line 356 "src/yacc.y"
                                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse proc head " << (*(yyvsp[-1].token).stringValue) << std::endl;
@@ -1696,11 +1734,11 @@ yyreduce:
         std::string name{*(yyvsp[-1].token).stringValue};
         (yyval.routineDeclarationNode) = new ast::RoutineDeclarationNode(ast::RoutineDeclarationNode::RoutineType::PROCEDURE, std::move(name), (yyvsp[0].paramsNode), nullptr, nullptr);
     }
-#line 1700 "out/parser.cpp"
+#line 1738 "out/parser.cpp"
     break;
 
   case 20: /* params: %empty  */
-#line 365 "src/yacc.y"
+#line 369 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty params" << std::endl;
@@ -1708,22 +1746,22 @@ yyreduce:
         std::vector<ast::ParamsGroupNode *>* emptyParamsList{};
         (yyval.paramsNode) = new ast::ParamsNode(emptyParamsList);
     }
-#line 1712 "out/parser.cpp"
+#line 1750 "out/parser.cpp"
     break;
 
   case 21: /* params: LP params_decl RP  */
-#line 373 "src/yacc.y"
+#line 377 "src/yacc.y"
                       {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse params" << std::endl;
         #endif  
         (yyval.paramsNode) = new ast::ParamsNode((yyvsp[-1].paramsGroupList));
     }
-#line 1723 "out/parser.cpp"
+#line 1761 "out/parser.cpp"
     break;
 
   case 22: /* params_decl: params_decl SEMICOLON params_type  */
-#line 382 "src/yacc.y"
+#line 386 "src/yacc.y"
                                       {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse params decl 1" << std::endl;
@@ -1731,11 +1769,11 @@ yyreduce:
         (yyval.paramsGroupList) = (yyvsp[-2].paramsGroupList);
         (yyval.paramsGroupList)->push_back((yyvsp[0].paramsGroupNode));
     }
-#line 1735 "out/parser.cpp"
+#line 1773 "out/parser.cpp"
     break;
 
   case 23: /* params_decl: params_type  */
-#line 390 "src/yacc.y"
+#line 394 "src/yacc.y"
                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse params decl 2" << std::endl;
@@ -1743,55 +1781,55 @@ yyreduce:
         (yyval.paramsGroupList) = new std::vector<ast::ParamsGroupNode*>();
         (yyval.paramsGroupList)->push_back((yyvsp[0].paramsGroupNode));
     }
-#line 1747 "out/parser.cpp"
+#line 1785 "out/parser.cpp"
     break;
 
   case 24: /* params_type: VAR name_list COLON simple_type  */
-#line 400 "src/yacc.y"
+#line 404 "src/yacc.y"
                                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse params type 1" << std::endl;
         #endif
         (yyval.paramsGroupNode) = new ast::ParamsGroupNode(ast::ParamsGroupNode::PassType::PASS_BY_REFERENCE, (yyvsp[-2].identifierList), (yyvsp[0].simpleTypeNode));
     }
-#line 1758 "out/parser.cpp"
+#line 1796 "out/parser.cpp"
     break;
 
   case 25: /* params_type: name_list COLON simple_type  */
-#line 407 "src/yacc.y"
+#line 411 "src/yacc.y"
                                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse params type 2" << std::endl;
         #endif
         (yyval.paramsGroupNode) = new ast::ParamsGroupNode(ast::ParamsGroupNode::PassType::PASS_BY_VALUE, (yyvsp[-2].identifierList), (yyvsp[0].simpleTypeNode));
     }
-#line 1769 "out/parser.cpp"
+#line 1807 "out/parser.cpp"
     break;
 
   case 26: /* var_part: %empty  */
-#line 416 "src/yacc.y"
+#line 420 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty var part" << std::endl;
         #endif
         (yyval.varPartList) = new std::vector<std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>*>();
     }
-#line 1780 "out/parser.cpp"
+#line 1818 "out/parser.cpp"
     break;
 
   case 27: /* var_part: VAR var_decl_list  */
-#line 423 "src/yacc.y"
+#line 427 "src/yacc.y"
                       {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse var part" << std::endl;
         #endif
         (yyval.varPartList) = (yyvsp[0].varPartList);
     }
-#line 1791 "out/parser.cpp"
+#line 1829 "out/parser.cpp"
     break;
 
   case 28: /* var_decl_list: var_decl_list var_decl  */
-#line 432 "src/yacc.y"
+#line 436 "src/yacc.y"
                            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse var decl list 1" << std::endl;
@@ -1799,11 +1837,11 @@ yyreduce:
         (yyval.varPartList) = (yyvsp[-1].varPartList);
         (yyval.varPartList)->push_back((yyvsp[0].varPartListElement));
     }
-#line 1803 "out/parser.cpp"
+#line 1841 "out/parser.cpp"
     break;
 
   case 29: /* var_decl_list: var_decl  */
-#line 440 "src/yacc.y"
+#line 444 "src/yacc.y"
              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse var decl list 2" << std::endl;
@@ -1811,22 +1849,22 @@ yyreduce:
         (yyval.varPartList) = new std::vector<std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>*>();
         (yyval.varPartList)->push_back((yyvsp[0].varPartListElement));
     }
-#line 1815 "out/parser.cpp"
+#line 1853 "out/parser.cpp"
     break;
 
   case 30: /* var_decl: name_list COLON type_decl SEMICOLON  */
-#line 450 "src/yacc.y"
+#line 454 "src/yacc.y"
                                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse var decl 1" << std::endl;
         #endif
         (yyval.varPartListElement) = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>((yyvsp[-3].identifierList), (yyvsp[-1].typeNode));
     }
-#line 1826 "out/parser.cpp"
+#line 1864 "out/parser.cpp"
     break;
 
   case 31: /* var_decl: name_list COLON type_decl  */
-#line 457 "src/yacc.y"
+#line 461 "src/yacc.y"
                               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse var decl 2" << std::endl;
@@ -1834,33 +1872,33 @@ yyreduce:
         (yyval.varPartListElement) = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>((yyvsp[-2].identifierList), (yyvsp[0].typeNode));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 1838 "out/parser.cpp"
+#line 1876 "out/parser.cpp"
     break;
 
   case 32: /* const_part: %empty  */
-#line 467 "src/yacc.y"
+#line 471 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty const part" << std::endl;
         #endif
         (yyval.constPartList) = new std::vector<std::pair<ast::IdentifierNode*, ast::ConstantNode*>*>();
     }
-#line 1849 "out/parser.cpp"
+#line 1887 "out/parser.cpp"
     break;
 
   case 33: /* const_part: CONST const_expr_list  */
-#line 474 "src/yacc.y"
+#line 478 "src/yacc.y"
                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const part" << std::endl;
         #endif
         (yyval.constPartList) = (yyvsp[0].constPartList);
     }
-#line 1860 "out/parser.cpp"
+#line 1898 "out/parser.cpp"
     break;
 
   case 34: /* const_expr_list: const_expr_list const_expr  */
-#line 483 "src/yacc.y"
+#line 487 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const expr list 1" << std::endl;
@@ -1868,11 +1906,11 @@ yyreduce:
         (yyval.constPartList) = (yyvsp[-1].constPartList);
         (yyval.constPartList)->push_back((yyvsp[0].constPartListElement));
     }
-#line 1872 "out/parser.cpp"
+#line 1910 "out/parser.cpp"
     break;
 
   case 35: /* const_expr_list: const_expr  */
-#line 491 "src/yacc.y"
+#line 495 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const expr list 2" << std::endl;
@@ -1880,22 +1918,22 @@ yyreduce:
         (yyval.constPartList) = new std::vector<std::pair<ast::IdentifierNode*, ast::ConstantNode*>*>();
         (yyval.constPartList)->push_back((yyvsp[0].constPartListElement));
     }
-#line 1884 "out/parser.cpp"
+#line 1922 "out/parser.cpp"
     break;
 
   case 36: /* const_expr: identifier EQUAL const_value SEMICOLON  */
-#line 501 "src/yacc.y"
+#line 505 "src/yacc.y"
                                            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const expr 1" << std::endl;
         #endif
         (yyval.constPartListElement) = new std::pair<ast::IdentifierNode*, ast::ConstantNode*>((yyvsp[-3].identifierNode), (yyvsp[-1].constantNode));
     }
-#line 1895 "out/parser.cpp"
+#line 1933 "out/parser.cpp"
     break;
 
   case 37: /* const_expr: identifier EQUAL const_value  */
-#line 508 "src/yacc.y"
+#line 512 "src/yacc.y"
                                  {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const expr 2" << std::endl;
@@ -1903,44 +1941,44 @@ yyreduce:
         (yyval.constPartListElement) = new std::pair<ast::IdentifierNode*, ast::ConstantNode*>((yyvsp[-2].identifierNode), (yyvsp[0].constantNode));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 1907 "out/parser.cpp"
+#line 1945 "out/parser.cpp"
     break;
 
   case 38: /* const_value: INTEGER  */
-#line 518 "src/yacc.y"
+#line 522 "src/yacc.y"
             {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const value - integer `" << (yyvsp[0].token).numericalValue << "`" << std::endl;
         #endif
         (yyval.constantNode) = new ast::IntegerConstantNode((yyvsp[0].token).numericalValue);
     }
-#line 1918 "out/parser.cpp"
+#line 1956 "out/parser.cpp"
     break;
 
   case 39: /* const_value: MINUS INTEGER  */
-#line 525 "src/yacc.y"
+#line 529 "src/yacc.y"
                   {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const value - signed integer `" << -(yyvsp[0].token).numericalValue << "`" << std::endl;
         #endif
         (yyval.constantNode) = new ast::IntegerConstantNode(-(yyvsp[0].token).numericalValue);
     }
-#line 1929 "out/parser.cpp"
+#line 1967 "out/parser.cpp"
     break;
 
   case 40: /* const_value: CHAR  */
-#line 533 "src/yacc.y"
+#line 537 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const value - char `" << static_cast<char>((yyvsp[0].token).numericalValue) << "`" << std::endl;
         #endif
         (yyval.constantNode) = new ast::CharConstantNode(static_cast<char>((yyvsp[0].token).numericalValue));
     }
-#line 1940 "out/parser.cpp"
+#line 1978 "out/parser.cpp"
     break;
 
   case 41: /* const_value: STRING  */
-#line 540 "src/yacc.y"
+#line 544 "src/yacc.y"
            {
         std::string str{*(yyvsp[0].token).stringValue};
         str = str.substr(1, str.size() - 2);
@@ -1951,77 +1989,77 @@ yyreduce:
 
         (yyval.constantNode) = new ast::StringConstantNode(std::move(str));
     }
-#line 1955 "out/parser.cpp"
+#line 1993 "out/parser.cpp"
     break;
 
   case 42: /* const_value: TRUE  */
-#line 551 "src/yacc.y"
+#line 555 "src/yacc.y"
          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const value - true" << std::endl;
         #endif
         (yyval.constantNode) = new ast::BooleanConstantNode(true);
     }
-#line 1966 "out/parser.cpp"
+#line 2004 "out/parser.cpp"
     break;
 
   case 43: /* const_value: FALSE  */
-#line 558 "src/yacc.y"
+#line 562 "src/yacc.y"
           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const value - false" << std::endl;
         #endif
         (yyval.constantNode) = new ast::BooleanConstantNode(false);
     }
-#line 1977 "out/parser.cpp"
+#line 2015 "out/parser.cpp"
     break;
 
   case 44: /* const_value: MAXINT  */
-#line 565 "src/yacc.y"
+#line 569 "src/yacc.y"
            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const value - maxint" << std::endl;
         #endif
         (yyval.constantNode) = new ast::IntegerConstantNode(255);
     }
-#line 1988 "out/parser.cpp"
+#line 2026 "out/parser.cpp"
     break;
 
   case 45: /* const_value: MINUS MAXINT  */
-#line 572 "src/yacc.y"
+#line 576 "src/yacc.y"
                  {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const value - signed maxint" << std::endl;
         #endif
         (yyval.constantNode) = new ast::IntegerConstantNode(-255);
     }
-#line 1999 "out/parser.cpp"
+#line 2037 "out/parser.cpp"
     break;
 
   case 46: /* type_part: %empty  */
-#line 581 "src/yacc.y"
+#line 585 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty type part" << std::endl;
         #endif
         (yyval.typePartList) = new std::vector<std::pair<ast::IdentifierNode*, ast::TypeNode*>*>();
     }
-#line 2010 "out/parser.cpp"
+#line 2048 "out/parser.cpp"
     break;
 
   case 47: /* type_part: TYPE type_decl_list  */
-#line 588 "src/yacc.y"
+#line 592 "src/yacc.y"
                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse type part" << std::endl;
         #endif
         (yyval.typePartList) = (yyvsp[0].typePartList);
     }
-#line 2021 "out/parser.cpp"
+#line 2059 "out/parser.cpp"
     break;
 
   case 48: /* type_decl_list: type_decl_list type_def  */
-#line 597 "src/yacc.y"
+#line 601 "src/yacc.y"
                             {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse type decl list 1" << std::endl;
@@ -2029,11 +2067,11 @@ yyreduce:
         (yyval.typePartList) = (yyvsp[-1].typePartList);
         (yyval.typePartList)->push_back((yyvsp[0].typePartListElement));
     }
-#line 2033 "out/parser.cpp"
+#line 2071 "out/parser.cpp"
     break;
 
   case 49: /* type_decl_list: type_def  */
-#line 605 "src/yacc.y"
+#line 609 "src/yacc.y"
              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse type decl list 2" << std::endl;
@@ -2041,22 +2079,22 @@ yyreduce:
         (yyval.typePartList) = new std::vector<std::pair<ast::IdentifierNode*, ast::TypeNode*>*>();
         (yyval.typePartList)->push_back((yyvsp[0].typePartListElement));
     }
-#line 2045 "out/parser.cpp"
+#line 2083 "out/parser.cpp"
     break;
 
   case 50: /* type_def: identifier EQUAL type_decl SEMICOLON  */
-#line 615 "src/yacc.y"
+#line 619 "src/yacc.y"
                                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse type def 1" << std::endl;
         #endif
         (yyval.typePartListElement) = new std::pair<ast::IdentifierNode*, ast::TypeNode*>((yyvsp[-3].identifierNode), (yyvsp[-1].typeNode));
     }
-#line 2056 "out/parser.cpp"
+#line 2094 "out/parser.cpp"
     break;
 
   case 51: /* type_def: identifier EQUAL type_decl  */
-#line 622 "src/yacc.y"
+#line 626 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse type def 2" << std::endl;
@@ -2064,55 +2102,55 @@ yyreduce:
         (yyval.typePartListElement) = new std::pair<ast::IdentifierNode*, ast::TypeNode*>((yyvsp[-2].identifierNode), (yyvsp[0].typeNode));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 2068 "out/parser.cpp"
+#line 2106 "out/parser.cpp"
     break;
 
   case 52: /* type_decl: simple_type  */
-#line 632 "src/yacc.y"
+#line 636 "src/yacc.y"
                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type" << std::endl;
         #endif
         (yyval.typeNode) = (yyvsp[0].simpleTypeNode);
     }
-#line 2079 "out/parser.cpp"
+#line 2117 "out/parser.cpp"
     break;
 
   case 53: /* type_decl: array_type_decl  */
-#line 639 "src/yacc.y"
+#line 643 "src/yacc.y"
                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse array type" << std::endl;
         #endif
         (yyval.typeNode) = (yyvsp[0].arrayTypeNode);
     }
-#line 2090 "out/parser.cpp"
+#line 2128 "out/parser.cpp"
     break;
 
   case 54: /* type_decl: record_type_decl  */
-#line 646 "src/yacc.y"
+#line 650 "src/yacc.y"
                      {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse record type" << std::endl;
         #endif
         (yyval.typeNode) = (yyvsp[0].recordTypeNode);
     }
-#line 2101 "out/parser.cpp"
+#line 2139 "out/parser.cpp"
     break;
 
   case 55: /* record_type_decl: RECORD field_decl_list END  */
-#line 655 "src/yacc.y"
+#line 659 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse record type" << std::endl;
         #endif
         (yyval.recordTypeNode) = new ast::RecordTypeNode((yyvsp[-1].fieldDeclList));
     }
-#line 2112 "out/parser.cpp"
+#line 2150 "out/parser.cpp"
     break;
 
   case 56: /* field_decl_list: field_decl_list field_decl  */
-#line 664 "src/yacc.y"
+#line 668 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse field decl list 1" << std::endl;
@@ -2120,11 +2158,11 @@ yyreduce:
         (yyval.fieldDeclList) = (yyvsp[-1].fieldDeclList);
         (yyval.fieldDeclList)->push_back((yyvsp[0].fieldDeclListElement));
     }
-#line 2124 "out/parser.cpp"
+#line 2162 "out/parser.cpp"
     break;
 
   case 57: /* field_decl_list: field_decl  */
-#line 672 "src/yacc.y"
+#line 676 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse field decl list 2" << std::endl;
@@ -2132,22 +2170,22 @@ yyreduce:
         (yyval.fieldDeclList) = new std::vector<std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>*>();
         (yyval.fieldDeclList)->push_back((yyvsp[0].fieldDeclListElement));
     }
-#line 2136 "out/parser.cpp"
+#line 2174 "out/parser.cpp"
     break;
 
   case 58: /* field_decl: name_list COLON type_decl SEMICOLON  */
-#line 682 "src/yacc.y"
+#line 686 "src/yacc.y"
                                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse field decl 1" << std::endl;
         #endif
         (yyval.fieldDeclListElement) = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>((yyvsp[-3].identifierList), (yyvsp[-1].typeNode));
     }
-#line 2147 "out/parser.cpp"
+#line 2185 "out/parser.cpp"
     break;
 
   case 59: /* field_decl: name_list COLON type_decl  */
-#line 689 "src/yacc.y"
+#line 693 "src/yacc.y"
                               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse field decl 2" << std::endl;
@@ -2155,121 +2193,110 @@ yyreduce:
         (yyval.fieldDeclListElement) = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>((yyvsp[-2].identifierList), (yyvsp[0].typeNode));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 2159 "out/parser.cpp"
+#line 2197 "out/parser.cpp"
     break;
 
   case 60: /* array_type_decl: ARRAY LB simple_type RB OF type_decl  */
-#line 699 "src/yacc.y"
+#line 703 "src/yacc.y"
                                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse array type" << std::endl;
         #endif
         (yyval.arrayTypeNode) = new ast::ArrayTypeNode((yyvsp[-3].simpleTypeNode), (yyvsp[0].typeNode));
     }
-#line 2170 "out/parser.cpp"
+#line 2208 "out/parser.cpp"
     break;
 
   case 61: /* simple_type: identifier  */
-#line 708 "src/yacc.y"
+#line 712 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - identifier" << std::endl;
         #endif
         (yyval.simpleTypeNode) = new ast::RenameTypeNode((yyvsp[0].identifierNode));
     }
-#line 2181 "out/parser.cpp"
+#line 2219 "out/parser.cpp"
     break;
 
   case 62: /* simple_type: LP name_list RP  */
-#line 715 "src/yacc.y"
+#line 719 "src/yacc.y"
                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - parentheses" << std::endl;
         #endif
         (yyval.simpleTypeNode) = new ast::EnumerationTypeNode((yyvsp[-1].identifierList));
     }
-#line 2192 "out/parser.cpp"
+#line 2230 "out/parser.cpp"
     break;
 
   case 63: /* simple_type: const_value DOUBLEDOT const_value  */
-#line 722 "src/yacc.y"
+#line 726 "src/yacc.y"
                                       {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - range 1" << std::endl;
         #endif
         (yyval.simpleTypeNode) = new ast::ConstRangeTypeNode((yyvsp[-2].constantNode), (yyvsp[0].constantNode));
     }
-#line 2203 "out/parser.cpp"
+#line 2241 "out/parser.cpp"
     break;
 
   case 64: /* simple_type: identifier DOUBLEDOT identifier  */
-#line 729 "src/yacc.y"
+#line 733 "src/yacc.y"
                                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - range 4" << std::endl;
         #endif
         (yyval.simpleTypeNode) = new ast::VarRangeTypeNode((yyvsp[-2].identifierNode), (yyvsp[0].identifierNode));
     }
-#line 2214 "out/parser.cpp"
+#line 2252 "out/parser.cpp"
     break;
 
   case 65: /* simple_type: INT_TYPE  */
-#line 736 "src/yacc.y"
+#line 740 "src/yacc.y"
              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - int" << std::endl;
         #endif
         (yyval.simpleTypeNode) = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::INTEGER);
     }
-#line 2225 "out/parser.cpp"
+#line 2263 "out/parser.cpp"
     break;
 
   case 66: /* simple_type: UNSIGNED_TYPE  */
-#line 743 "src/yacc.y"
+#line 747 "src/yacc.y"
                   {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - unsigned" << std::endl;
         #endif
         (yyval.simpleTypeNode) = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::UNSIGNED);
     }
-#line 2236 "out/parser.cpp"
+#line 2274 "out/parser.cpp"
     break;
 
   case 67: /* simple_type: BOOL_TYPE  */
-#line 750 "src/yacc.y"
+#line 754 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - bool" << std::endl;
         #endif
         (yyval.simpleTypeNode) = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::BOOLEAN);
     }
-#line 2247 "out/parser.cpp"
+#line 2285 "out/parser.cpp"
     break;
 
   case 68: /* simple_type: CHAR_TYPE  */
-#line 757 "src/yacc.y"
+#line 761 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - char" << std::endl;
         #endif
         (yyval.simpleTypeNode) = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::CHAR);
     }
-#line 2258 "out/parser.cpp"
+#line 2296 "out/parser.cpp"
     break;
 
-  case 69: /* simple_type: STRING_TYPE  */
-#line 764 "src/yacc.y"
-                {
-        #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse simple type - string" << std::endl;
-        #endif
-        (yyval.simpleTypeNode) = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::STRING);
-    }
-#line 2269 "out/parser.cpp"
-    break;
-
-  case 70: /* name_list: name_list COMMA identifier  */
-#line 773 "src/yacc.y"
+  case 69: /* name_list: name_list COMMA identifier  */
+#line 770 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse name list 1" << std::endl;
@@ -2277,11 +2304,11 @@ yyreduce:
         (yyval.identifierList) = (yyvsp[-2].identifierList);
         (yyval.identifierList)->push_back((yyvsp[0].identifierNode));
     }
-#line 2281 "out/parser.cpp"
+#line 2308 "out/parser.cpp"
     break;
 
-  case 71: /* name_list: identifier  */
-#line 781 "src/yacc.y"
+  case 70: /* name_list: identifier  */
+#line 778 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse name list 2" << std::endl;
@@ -2289,11 +2316,11 @@ yyreduce:
         (yyval.identifierList) = new std::vector<ast::IdentifierNode*>();
         (yyval.identifierList)->push_back((yyvsp[0].identifierNode));
     }
-#line 2293 "out/parser.cpp"
+#line 2320 "out/parser.cpp"
     break;
 
-  case 72: /* identifier: IDENT_NAME  */
-#line 791 "src/yacc.y"
+  case 71: /* identifier: IDENT_NAME  */
+#line 788 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse identifier `" << (*(yyvsp[0].token).stringValue) << "`" << std::endl;
@@ -2301,33 +2328,33 @@ yyreduce:
         std::string name{*(yyvsp[0].token).stringValue};
         (yyval.identifierNode) = new ast::IdentifierNode(std::move(name));
     }
-#line 2305 "out/parser.cpp"
+#line 2332 "out/parser.cpp"
     break;
 
-  case 73: /* routine_body: compound_stmt  */
-#line 801 "src/yacc.y"
+  case 72: /* routine_body: compound_stmt  */
+#line 798 "src/yacc.y"
                   {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse routine body" << std::endl;
         #endif
         (yyval.routineBodyNode) = new ast::RoutineBodyNode((yyvsp[0].compoundStatementNode));
     }
-#line 2316 "out/parser.cpp"
+#line 2343 "out/parser.cpp"
     break;
 
-  case 74: /* compound_stmt: BBEGIN stmt_list END  */
-#line 810 "src/yacc.y"
+  case 73: /* compound_stmt: BBEGIN stmt_list END  */
+#line 807 "src/yacc.y"
                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse compound statement 1" << std::endl;
         #endif
         (yyval.compoundStatementNode) = new ast::CompoundStatementNode((yyvsp[-1].statementNodeList));
     }
-#line 2327 "out/parser.cpp"
+#line 2354 "out/parser.cpp"
     break;
 
-  case 75: /* compound_stmt: BBEGIN stmt_list  */
-#line 817 "src/yacc.y"
+  case 74: /* compound_stmt: BBEGIN stmt_list  */
+#line 814 "src/yacc.y"
                      {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse compound statement 2" << std::endl;
@@ -2335,22 +2362,22 @@ yyreduce:
         (yyval.compoundStatementNode) = new ast::CompoundStatementNode((yyvsp[0].statementNodeList));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of end");
     }
-#line 2339 "out/parser.cpp"
+#line 2366 "out/parser.cpp"
     break;
 
-  case 76: /* stmt_list: %empty  */
-#line 827 "src/yacc.y"
+  case 75: /* stmt_list: %empty  */
+#line 824 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty statement list" << std::endl;
         #endif
         (yyval.statementNodeList) = new std::vector<ast::StatementNode*>();
     }
-#line 2350 "out/parser.cpp"
+#line 2377 "out/parser.cpp"
     break;
 
-  case 77: /* stmt_list: stmt_list stmt SEMICOLON  */
-#line 834 "src/yacc.y"
+  case 76: /* stmt_list: stmt_list stmt SEMICOLON  */
+#line 831 "src/yacc.y"
                              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse statement list 1" << std::endl;
@@ -2358,11 +2385,11 @@ yyreduce:
         (yyval.statementNodeList) = (yyvsp[-2].statementNodeList);
         (yyval.statementNodeList)->push_back((yyvsp[-1].statementNode));
     }
-#line 2362 "out/parser.cpp"
+#line 2389 "out/parser.cpp"
     break;
 
-  case 78: /* stmt_list: stmt_list stmt  */
-#line 842 "src/yacc.y"
+  case 77: /* stmt_list: stmt_list stmt  */
+#line 839 "src/yacc.y"
                    {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse statement list 2" << std::endl;
@@ -2371,11 +2398,11 @@ yyreduce:
         (yyval.statementNodeList)->push_back((yyvsp[0].statementNode));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 2375 "out/parser.cpp"
+#line 2402 "out/parser.cpp"
     break;
 
-  case 79: /* stmt: INTEGER COLON no_label_stmt  */
-#line 853 "src/yacc.y"
+  case 78: /* stmt: INTEGER COLON no_label_stmt  */
+#line 850 "src/yacc.y"
                                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse statement with label " << (yyvsp[-2].token).numericalValue << std::endl;
@@ -2383,176 +2410,198 @@ yyreduce:
         (yyval.statementNode) = (yyvsp[0].statementNode);
         (yyval.statementNode)->setLabel((yyvsp[-2].token).numericalValue);
     }
-#line 2387 "out/parser.cpp"
+#line 2414 "out/parser.cpp"
     break;
 
-  case 80: /* stmt: no_label_stmt  */
-#line 861 "src/yacc.y"
+  case 79: /* stmt: no_label_stmt  */
+#line 858 "src/yacc.y"
                   {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse statement without label" << std::endl;
         #endif
         (yyval.statementNode) = (yyvsp[0].statementNode);
     }
-#line 2398 "out/parser.cpp"
+#line 2425 "out/parser.cpp"
     break;
 
-  case 81: /* no_label_stmt: assign_stmt  */
-#line 870 "src/yacc.y"
+  case 80: /* no_label_stmt: assign_stmt  */
+#line 867 "src/yacc.y"
                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - assign" << std::endl;
         #endif
         (yyval.statementNode)=(yyvsp[0].assignNode);
     }
-#line 2409 "out/parser.cpp"
+#line 2436 "out/parser.cpp"
     break;
 
-  case 82: /* no_label_stmt: compound_stmt  */
-#line 877 "src/yacc.y"
+  case 81: /* no_label_stmt: compound_stmt  */
+#line 874 "src/yacc.y"
                   {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - compound" << std::endl;
         #endif
         (yyval.statementNode) = (yyvsp[0].compoundStatementNode);
     }
-#line 2420 "out/parser.cpp"
+#line 2447 "out/parser.cpp"
     break;
 
-  case 83: /* no_label_stmt: goto_stmt  */
-#line 884 "src/yacc.y"
+  case 82: /* no_label_stmt: goto_stmt  */
+#line 881 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - goto" << std::endl;
         #endif
         (yyval.statementNode) = (yyvsp[0].gotoNode);
     }
-#line 2431 "out/parser.cpp"
+#line 2458 "out/parser.cpp"
     break;
 
-  case 84: /* no_label_stmt: if_stmt  */
-#line 891 "src/yacc.y"
+  case 83: /* no_label_stmt: if_stmt  */
+#line 888 "src/yacc.y"
             {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - if" << std::endl;
         #endif
         (yyval.statementNode) = (yyvsp[0].ifNode);
     }
-#line 2442 "out/parser.cpp"
+#line 2469 "out/parser.cpp"
     break;
 
-  case 85: /* no_label_stmt: repeat_stmt  */
-#line 898 "src/yacc.y"
+  case 84: /* no_label_stmt: repeat_stmt  */
+#line 895 "src/yacc.y"
                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - repeat" << std::endl;
         #endif
         (yyval.statementNode) = (yyvsp[0].repeatNode);
     }
-#line 2453 "out/parser.cpp"
+#line 2480 "out/parser.cpp"
     break;
 
-  case 86: /* no_label_stmt: while_stmt  */
-#line 905 "src/yacc.y"
+  case 85: /* no_label_stmt: while_stmt  */
+#line 902 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - while" << std::endl;
         #endif
         (yyval.statementNode) = (yyvsp[0].whileNode);
     }
-#line 2464 "out/parser.cpp"
+#line 2491 "out/parser.cpp"
     break;
 
-  case 87: /* no_label_stmt: case_stmt  */
-#line 912 "src/yacc.y"
+  case 86: /* no_label_stmt: case_stmt  */
+#line 909 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - case" << std::endl;
         #endif
         (yyval.statementNode) = (yyvsp[0].caseNode);
     }
-#line 2475 "out/parser.cpp"
+#line 2502 "out/parser.cpp"
     break;
 
-  case 88: /* no_label_stmt: for_stmt  */
-#line 919 "src/yacc.y"
+  case 87: /* no_label_stmt: for_stmt  */
+#line 916 "src/yacc.y"
              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - for" << std::endl;
         #endif
         (yyval.statementNode) = (yyvsp[0].forNode);
     }
-#line 2486 "out/parser.cpp"
+#line 2513 "out/parser.cpp"
     break;
 
-  case 89: /* no_label_stmt: proc_stmt  */
-#line 926 "src/yacc.y"
+  case 88: /* no_label_stmt: proc_stmt  */
+#line 923 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - proc" << std::endl;
         #endif
         (yyval.statementNode) = (yyvsp[0].callNode);
     }
-#line 2497 "out/parser.cpp"
+#line 2524 "out/parser.cpp"
     break;
 
-  case 90: /* assign_stmt: identifier ASSIGN expression  */
-#line 935 "src/yacc.y"
+  case 89: /* no_label_stmt: BREAK  */
+#line 930 "src/yacc.y"
+          {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse no label statement - break" << std::endl;
+        #endif
+        (yyval.statementNode) = new ast::BreakNode();
+    }
+#line 2535 "out/parser.cpp"
+    break;
+
+  case 90: /* no_label_stmt: CONTINUE  */
+#line 937 "src/yacc.y"
+             {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse no label statement - continue" << std::endl;
+        #endif
+        (yyval.statementNode) = new ast::ContinueNode();
+    }
+#line 2546 "out/parser.cpp"
+    break;
+
+  case 91: /* assign_stmt: identifier ASSIGN expression  */
+#line 946 "src/yacc.y"
                                  {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple assign statement" << std::endl;
         #endif
         (yyval.assignNode) = new ast::AssignToVariableNode((yyvsp[-2].identifierNode), (yyvsp[0].expressionNode));
     }
-#line 2508 "out/parser.cpp"
+#line 2557 "out/parser.cpp"
     break;
 
-  case 91: /* assign_stmt: identifier LB expression RB ASSIGN expression  */
-#line 942 "src/yacc.y"
+  case 92: /* assign_stmt: identifier LB expression RB ASSIGN expression  */
+#line 953 "src/yacc.y"
                                                   {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse array assign statement" << std::endl;
         #endif
         (yyval.assignNode) = new ast::AssignToArrayNode((yyvsp[-5].identifierNode), (yyvsp[-3].expressionNode), (yyvsp[0].expressionNode));
     }
-#line 2519 "out/parser.cpp"
+#line 2568 "out/parser.cpp"
     break;
 
-  case 92: /* assign_stmt: identifier DOT identifier ASSIGN expression  */
-#line 949 "src/yacc.y"
+  case 93: /* assign_stmt: identifier DOT identifier ASSIGN expression  */
+#line 960 "src/yacc.y"
                                                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse record assign statement" << std::endl;
         #endif
         (yyval.assignNode) = new ast::AssignToRecordFieldNode((yyvsp[-4].identifierNode), (yyvsp[-2].identifierNode), (yyvsp[0].expressionNode));
     }
-#line 2530 "out/parser.cpp"
+#line 2579 "out/parser.cpp"
     break;
 
-  case 93: /* goto_stmt: GOTO INTEGER  */
-#line 958 "src/yacc.y"
+  case 94: /* goto_stmt: GOTO INTEGER  */
+#line 969 "src/yacc.y"
                  {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse goto statement to " << (yyvsp[0].token).numericalValue << std::endl;
         #endif
         (yyval.gotoNode) = new ast::GotoNode((yyvsp[0].token).numericalValue);
     }
-#line 2541 "out/parser.cpp"
+#line 2590 "out/parser.cpp"
     break;
 
-  case 94: /* if_stmt: IF expression THEN stmt else_clause  */
-#line 967 "src/yacc.y"
+  case 95: /* if_stmt: IF expression THEN stmt else_clause  */
+#line 978 "src/yacc.y"
                                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse if statement 1" << std::endl;
         #endif
         (yyval.ifNode) = new ast::IfNode((yyvsp[-3].expressionNode), (yyvsp[-1].statementNode), (yyvsp[0].ifNode));
     }
-#line 2552 "out/parser.cpp"
+#line 2601 "out/parser.cpp"
     break;
 
-  case 95: /* if_stmt: IF expression stmt else_clause  */
-#line 974 "src/yacc.y"
+  case 96: /* if_stmt: IF expression stmt else_clause  */
+#line 985 "src/yacc.y"
                                    {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse if statement 2" << std::endl;
@@ -2560,76 +2609,76 @@ yyreduce:
         (yyval.ifNode) = new ast::IfNode((yyvsp[-2].expressionNode), (yyvsp[-1].statementNode), (yyvsp[0].ifNode));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of then");
     }
-#line 2564 "out/parser.cpp"
+#line 2613 "out/parser.cpp"
     break;
 
-  case 96: /* else_clause: %empty  */
-#line 984 "src/yacc.y"
+  case 97: /* else_clause: %empty  */
+#line 995 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty else clause" << std::endl;
         #endif
         (yyval.ifNode) = new ast::IfNode(nullptr, nullptr);
     }
-#line 2575 "out/parser.cpp"
+#line 2624 "out/parser.cpp"
     break;
 
-  case 97: /* else_clause: ELSE stmt  */
-#line 991 "src/yacc.y"
+  case 98: /* else_clause: ELSE stmt  */
+#line 1002 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse else clause" << std::endl;
         #endif
         (yyval.ifNode) = new ast::IfNode(nullptr, nullptr, (yyvsp[0].statementNode));
     }
-#line 2586 "out/parser.cpp"
+#line 2635 "out/parser.cpp"
     break;
 
-  case 98: /* repeat_stmt: REPEAT stmt_list UNTIL expression  */
-#line 1000 "src/yacc.y"
+  case 99: /* repeat_stmt: REPEAT stmt_list UNTIL expression  */
+#line 1011 "src/yacc.y"
                                       {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse repeat statement" << std::endl;
         #endif
         (yyval.repeatNode) = new ast::RepeatNode((yyvsp[0].expressionNode), (yyvsp[-2].statementNodeList));
     }
-#line 2597 "out/parser.cpp"
+#line 2646 "out/parser.cpp"
     break;
 
-  case 99: /* repeat_stmt: %empty  */
-#line 1007 "src/yacc.y"
+  case 100: /* repeat_stmt: %empty  */
+#line 1018 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty repeat statement" << std::endl;
         #endif
     }
-#line 2607 "out/parser.cpp"
+#line 2656 "out/parser.cpp"
     break;
 
-  case 100: /* while_stmt: WHILE expression DO stmt  */
-#line 1015 "src/yacc.y"
+  case 101: /* while_stmt: WHILE expression DO stmt  */
+#line 1026 "src/yacc.y"
                              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse while statement" << std::endl;
         #endif
         (yyval.whileNode) = new ast::WhileNode((yyvsp[-2].expressionNode), (yyvsp[0].statementNode));
     }
-#line 2618 "out/parser.cpp"
+#line 2667 "out/parser.cpp"
     break;
 
-  case 101: /* case_stmt: CASE expression OF case_expr_list END  */
-#line 1024 "src/yacc.y"
+  case 102: /* case_stmt: CASE expression OF case_expr_list END  */
+#line 1035 "src/yacc.y"
                                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case statement" << std::endl;
         #endif
         (yyval.caseNode) = new ast::CaseNode((yyvsp[-3].expressionNode), (yyvsp[-1].caseExprList));
     }
-#line 2629 "out/parser.cpp"
+#line 2678 "out/parser.cpp"
     break;
 
-  case 102: /* case_expr_list: case_expr_list case_expr  */
-#line 1033 "src/yacc.y"
+  case 103: /* case_expr_list: case_expr_list case_expr  */
+#line 1044 "src/yacc.y"
                              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case expr list 1" << std::endl;
@@ -2637,11 +2686,11 @@ yyreduce:
         (yyval.caseExprList) = (yyvsp[-1].caseExprList);
         (yyval.caseExprList)->push_back((yyvsp[0].caseExpr));
     }
-#line 2641 "out/parser.cpp"
+#line 2690 "out/parser.cpp"
     break;
 
-  case 103: /* case_expr_list: case_expr  */
-#line 1041 "src/yacc.y"
+  case 104: /* case_expr_list: case_expr  */
+#line 1052 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case expr list 2" << std::endl;
@@ -2649,77 +2698,88 @@ yyreduce:
         (yyval.caseExprList) = new std::vector<std::pair<ast::AstNode*, ast::StatementNode*>*>();
         (yyval.caseExprList)->push_back((yyvsp[0].caseExpr));
     }
-#line 2653 "out/parser.cpp"
+#line 2702 "out/parser.cpp"
     break;
 
-  case 104: /* case_expr: const_value COLON stmt SEMICOLON  */
-#line 1051 "src/yacc.y"
+  case 105: /* case_expr: const_value COLON stmt SEMICOLON  */
+#line 1062 "src/yacc.y"
                                      {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case expr 1" << std::endl;
         #endif
         (yyval.caseExpr) = new std::pair<ast::AstNode*, ast::StatementNode*>((yyvsp[-3].constantNode), (yyvsp[-1].statementNode));
     }
-#line 2664 "out/parser.cpp"
+#line 2713 "out/parser.cpp"
     break;
 
-  case 105: /* case_expr: identifier COLON stmt SEMICOLON  */
-#line 1058 "src/yacc.y"
+  case 106: /* case_expr: identifier COLON stmt SEMICOLON  */
+#line 1069 "src/yacc.y"
                                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case expr 2" << std::endl;
         #endif
         (yyval.caseExpr) = new std::pair<ast::AstNode*, ast::StatementNode*>((yyvsp[-3].identifierNode), (yyvsp[-1].statementNode));
     }
-#line 2675 "out/parser.cpp"
+#line 2724 "out/parser.cpp"
     break;
 
-  case 106: /* for_stmt: FOR identifier ASSIGN expression TO expression DO stmt  */
-#line 1067 "src/yacc.y"
+  case 107: /* case_expr: OTHERWISE stmt SEMICOLON  */
+#line 1076 "src/yacc.y"
+                             {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse case expr 3" << std::endl;
+        #endif
+        (yyval.caseExpr) = new std::pair<ast::AstNode*, ast::StatementNode*>(nullptr, (yyvsp[-1].statementNode));
+    }
+#line 2735 "out/parser.cpp"
+    break;
+
+  case 108: /* for_stmt: FOR identifier ASSIGN expression TO expression DO stmt  */
+#line 1085 "src/yacc.y"
                                                            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse for statement 1" << std::endl;
         #endif
         (yyval.forNode) = new ast::ForNode((yyvsp[-6].identifierNode), (yyvsp[-4].expressionNode), (yyvsp[-2].expressionNode), (yyvsp[0].statementNode), ast::ForNode::Direction::INCREMENT);
     }
-#line 2686 "out/parser.cpp"
+#line 2746 "out/parser.cpp"
     break;
 
-  case 107: /* for_stmt: FOR identifier ASSIGN expression DOWNTO expression DO stmt  */
-#line 1074 "src/yacc.y"
+  case 109: /* for_stmt: FOR identifier ASSIGN expression DOWNTO expression DO stmt  */
+#line 1092 "src/yacc.y"
                                                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse for statement 2" << std::endl;
         #endif
         (yyval.forNode) = new ast::ForNode((yyvsp[-6].identifierNode), (yyvsp[-4].expressionNode), (yyvsp[-2].expressionNode), (yyvsp[0].statementNode), ast::ForNode::Direction::DECREMENT);
     }
-#line 2697 "out/parser.cpp"
+#line 2757 "out/parser.cpp"
     break;
 
-  case 108: /* proc_stmt: identifier  */
-#line 1083 "src/yacc.y"
+  case 110: /* proc_stmt: identifier  */
+#line 1101 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse procedure statement" << std::endl;
         #endif
         (yyval.callNode) = new ast::UserDefineCallNode((yyvsp[0].identifierNode), nullptr);
     }
-#line 2708 "out/parser.cpp"
+#line 2768 "out/parser.cpp"
     break;
 
-  case 109: /* proc_stmt: identifier LP args_list RP  */
-#line 1090 "src/yacc.y"
+  case 111: /* proc_stmt: identifier LP args_list RP  */
+#line 1108 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse procedure statement with args" << std::endl;
         #endif
         (yyval.callNode) = new ast::UserDefineCallNode((yyvsp[-3].identifierNode), (yyvsp[-1].argsList));
     }
-#line 2719 "out/parser.cpp"
+#line 2779 "out/parser.cpp"
     break;
 
-  case 110: /* proc_stmt: READ LP factor RP  */
-#line 1097 "src/yacc.y"
+  case 112: /* proc_stmt: READ LP factor RP  */
+#line 1115 "src/yacc.y"
                       {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse read statement" << std::endl;
@@ -2728,55 +2788,99 @@ yyreduce:
         args->addArgument((yyvsp[-1].expressionNode));
         (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::READ, args);
     }
-#line 2732 "out/parser.cpp"
+#line 2792 "out/parser.cpp"
     break;
 
-  case 111: /* proc_stmt: READLN  */
-#line 1107 "src/yacc.y"
+  case 113: /* proc_stmt: READLN  */
+#line 1125 "src/yacc.y"
            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse readln statement" << std::endl;
         #endif
         (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::READLN, nullptr);
     }
-#line 2743 "out/parser.cpp"
+#line 2803 "out/parser.cpp"
     break;
 
-  case 112: /* proc_stmt: WRITE LP args_list RP  */
-#line 1114 "src/yacc.y"
+  case 114: /* proc_stmt: WRITE LP args_list RP  */
+#line 1132 "src/yacc.y"
                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse write statement" << std::endl;
         #endif
         (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITE, (yyvsp[-1].argsList));
     }
-#line 2754 "out/parser.cpp"
+#line 2814 "out/parser.cpp"
     break;
 
-  case 113: /* proc_stmt: WRITELN  */
-#line 1121 "src/yacc.y"
+  case 115: /* proc_stmt: WRITELN  */
+#line 1139 "src/yacc.y"
             {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse writeln statement" << std::endl;
         #endif
         (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITELN, nullptr);
     }
-#line 2765 "out/parser.cpp"
+#line 2825 "out/parser.cpp"
     break;
 
-  case 114: /* proc_stmt: WRITELN LP args_list RP  */
-#line 1128 "src/yacc.y"
+  case 116: /* proc_stmt: WRITELN LP args_list RP  */
+#line 1146 "src/yacc.y"
                             {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse writeln statement with args" << std::endl;
         #endif
         (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITELN, (yyvsp[-1].argsList));
     }
-#line 2776 "out/parser.cpp"
+#line 2836 "out/parser.cpp"
     break;
 
-  case 115: /* args_list: args_list COMMA expression  */
-#line 1137 "src/yacc.y"
+  case 117: /* proc_stmt: MEMORYREAD LP args_list RP  */
+#line 1153 "src/yacc.y"
+                               {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse memory read statement" << std::endl;
+        #endif
+        (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::MEMORY_READ, (yyvsp[-1].argsList));
+    }
+#line 2847 "out/parser.cpp"
+    break;
+
+  case 118: /* proc_stmt: MEMORYWRITE LP args_list RP  */
+#line 1160 "src/yacc.y"
+                                {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse memory write statement" << std::endl;
+        #endif
+        (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::MEMORY_WRITE, (yyvsp[-1].argsList));
+    }
+#line 2858 "out/parser.cpp"
+    break;
+
+  case 119: /* proc_stmt: STACKREAD LP args_list RP  */
+#line 1167 "src/yacc.y"
+                              {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse stack read statement" << std::endl;
+        #endif
+        (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::STACK_READ, (yyvsp[-1].argsList));
+    }
+#line 2869 "out/parser.cpp"
+    break;
+
+  case 120: /* proc_stmt: STACKWRITE LP args_list RP  */
+#line 1174 "src/yacc.y"
+                               {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse stack write statement" << std::endl;
+        #endif
+        (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::STACK_WRITE, (yyvsp[-1].argsList));
+    }
+#line 2880 "out/parser.cpp"
+    break;
+
+  case 121: /* args_list: args_list COMMA expression  */
+#line 1183 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse args list 1" << std::endl;
@@ -2784,11 +2888,11 @@ yyreduce:
         (yyval.argsList) = (yyvsp[-2].argsList);
         (yyval.argsList)->addArgument((yyvsp[0].expressionNode));
     }
-#line 2788 "out/parser.cpp"
+#line 2892 "out/parser.cpp"
     break;
 
-  case 116: /* args_list: expression  */
-#line 1145 "src/yacc.y"
+  case 122: /* args_list: expression  */
+#line 1191 "src/yacc.y"
                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse args list 2" << std::endl;
@@ -2796,341 +2900,341 @@ yyreduce:
         (yyval.argsList) = new ast::ArgumentsListNode();
         (yyval.argsList)->addArgument((yyvsp[0].expressionNode));
     }
-#line 2800 "out/parser.cpp"
+#line 2904 "out/parser.cpp"
     break;
 
-  case 117: /* expression: expression GE expr  */
-#line 1155 "src/yacc.y"
+  case 123: /* expression: expression GE expr  */
+#line 1201 "src/yacc.y"
                        {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with greater or equal" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::GREATER_EQUAL);
     }
-#line 2811 "out/parser.cpp"
+#line 2915 "out/parser.cpp"
     break;
 
-  case 118: /* expression: expression GT expr  */
-#line 1162 "src/yacc.y"
+  case 124: /* expression: expression GT expr  */
+#line 1208 "src/yacc.y"
                        {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with greater" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::GREATER);
     }
-#line 2822 "out/parser.cpp"
+#line 2926 "out/parser.cpp"
     break;
 
-  case 119: /* expression: expression LE expr  */
-#line 1169 "src/yacc.y"
+  case 125: /* expression: expression LE expr  */
+#line 1215 "src/yacc.y"
                        {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with less or equal" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::LESS_EQUAL);
     }
-#line 2833 "out/parser.cpp"
+#line 2937 "out/parser.cpp"
     break;
 
-  case 120: /* expression: expression LT expr  */
-#line 1176 "src/yacc.y"
+  case 126: /* expression: expression LT expr  */
+#line 1222 "src/yacc.y"
                        {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with less" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::LESS);
     }
-#line 2844 "out/parser.cpp"
+#line 2948 "out/parser.cpp"
     break;
 
-  case 121: /* expression: expression EQUAL expr  */
-#line 1183 "src/yacc.y"
+  case 127: /* expression: expression EQUAL expr  */
+#line 1229 "src/yacc.y"
                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with equal" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::EQUAL);
     }
-#line 2855 "out/parser.cpp"
+#line 2959 "out/parser.cpp"
     break;
 
-  case 122: /* expression: expression UNEQUAL expr  */
-#line 1190 "src/yacc.y"
+  case 128: /* expression: expression UNEQUAL expr  */
+#line 1236 "src/yacc.y"
                             {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with not equal" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::NOT_EQUAL);
     }
-#line 2866 "out/parser.cpp"
+#line 2970 "out/parser.cpp"
     break;
 
-  case 123: /* expression: expr  */
-#line 1197 "src/yacc.y"
+  case 129: /* expression: expr  */
+#line 1243 "src/yacc.y"
          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple expression" << std::endl;
         #endif
         (yyval.expressionNode) = (yyvsp[0].expressionNode);
     }
-#line 2877 "out/parser.cpp"
+#line 2981 "out/parser.cpp"
     break;
 
-  case 124: /* expr: expr PLUS term  */
-#line 1206 "src/yacc.y"
+  case 130: /* expr: expr PLUS term  */
+#line 1252 "src/yacc.y"
                    {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with addition" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::ADDITION);
     }
-#line 2888 "out/parser.cpp"
+#line 2992 "out/parser.cpp"
     break;
 
-  case 125: /* expr: expr MINUS term  */
-#line 1213 "src/yacc.y"
+  case 131: /* expr: expr MINUS term  */
+#line 1259 "src/yacc.y"
                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with subtraction" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::SUBTRACTION);
     }
-#line 2899 "out/parser.cpp"
+#line 3003 "out/parser.cpp"
     break;
 
-  case 126: /* expr: expr OR term  */
-#line 1220 "src/yacc.y"
+  case 132: /* expr: expr OR term  */
+#line 1266 "src/yacc.y"
                  {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with or" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::OR);
     }
-#line 2910 "out/parser.cpp"
+#line 3014 "out/parser.cpp"
     break;
 
-  case 127: /* expr: term  */
-#line 1227 "src/yacc.y"
+  case 133: /* expr: term  */
+#line 1273 "src/yacc.y"
          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple term" << std::endl;
         #endif
         (yyval.expressionNode) = (yyvsp[0].expressionNode);
     }
-#line 2921 "out/parser.cpp"
+#line 3025 "out/parser.cpp"
     break;
 
-  case 128: /* term: term MUL factor  */
-#line 1236 "src/yacc.y"
+  case 134: /* term: term MUL factor  */
+#line 1282 "src/yacc.y"
                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with multiplication" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::MULTIPLICATION);
     }
-#line 2932 "out/parser.cpp"
+#line 3036 "out/parser.cpp"
     break;
 
-  case 129: /* term: term DIV factor  */
-#line 1243 "src/yacc.y"
+  case 135: /* term: term DIV factor  */
+#line 1289 "src/yacc.y"
                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with division" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::DIVISION);
     }
-#line 2943 "out/parser.cpp"
+#line 3047 "out/parser.cpp"
     break;
 
-  case 130: /* term: term MOD factor  */
-#line 1250 "src/yacc.y"
+  case 136: /* term: term MOD factor  */
+#line 1296 "src/yacc.y"
                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with modulus" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::MODULUS);
     }
-#line 2954 "out/parser.cpp"
+#line 3058 "out/parser.cpp"
     break;
 
-  case 131: /* term: term AND factor  */
-#line 1257 "src/yacc.y"
+  case 137: /* term: term AND factor  */
+#line 1303 "src/yacc.y"
                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with and" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode), ast::ExpressionNode::Operation::AND);
     }
-#line 2965 "out/parser.cpp"
+#line 3069 "out/parser.cpp"
     break;
 
-  case 132: /* term: factor  */
-#line 1264 "src/yacc.y"
+  case 138: /* term: factor  */
+#line 1310 "src/yacc.y"
            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple factor" << std::endl;
         #endif
         (yyval.expressionNode) = (yyvsp[0].expressionNode);
     }
-#line 2976 "out/parser.cpp"
+#line 3080 "out/parser.cpp"
     break;
 
-  case 133: /* factor: identifier  */
-#line 1273 "src/yacc.y"
+  case 139: /* factor: identifier  */
+#line 1319 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - identifier" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[0].identifierNode), ast::SpecialExpressionNode::FunctionName::VARIABLE);
     }
-#line 2987 "out/parser.cpp"
+#line 3091 "out/parser.cpp"
     break;
 
-  case 134: /* factor: identifier LP args_list RP  */
-#line 1280 "src/yacc.y"
+  case 140: /* factor: identifier LP args_list RP  */
+#line 1326 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - function call" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-3].identifierNode), (yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::CALL);
     }
-#line 2998 "out/parser.cpp"
+#line 3102 "out/parser.cpp"
     break;
 
-  case 135: /* factor: const_value  */
-#line 1287 "src/yacc.y"
+  case 141: /* factor: const_value  */
+#line 1333 "src/yacc.y"
                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - const value" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[0].constantNode), ast::SpecialExpressionNode::FunctionName::CONST);
     }
-#line 3009 "out/parser.cpp"
+#line 3113 "out/parser.cpp"
     break;
 
-  case 136: /* factor: LP expression RP  */
-#line 1294 "src/yacc.y"
+  case 142: /* factor: LP expression RP  */
+#line 1340 "src/yacc.y"
                      {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - parentheses" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].expressionNode), ast::SpecialExpressionNode::FunctionName::PARENTHESIS);
     }
-#line 3020 "out/parser.cpp"
+#line 3124 "out/parser.cpp"
     break;
 
-  case 137: /* factor: NOT factor  */
-#line 1301 "src/yacc.y"
+  case 143: /* factor: NOT factor  */
+#line 1347 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - not" << std::endl;
         #endif
        (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[0].expressionNode), ast::ExpressionNode::Operation::NOT);
     }
-#line 3031 "out/parser.cpp"
+#line 3135 "out/parser.cpp"
     break;
 
-  case 138: /* factor: MINUS factor  */
-#line 1308 "src/yacc.y"
+  case 144: /* factor: MINUS factor  */
+#line 1354 "src/yacc.y"
                  {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - negation" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::ExpressionNode((yyvsp[0].expressionNode), ast::ExpressionNode::Operation::NEGATION);
     }
-#line 3042 "out/parser.cpp"
+#line 3146 "out/parser.cpp"
     break;
 
-  case 139: /* factor: identifier LB expression RB  */
-#line 1315 "src/yacc.y"
+  case 145: /* factor: identifier LB expression RB  */
+#line 1361 "src/yacc.y"
                                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - array access" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-3].identifierNode), (yyvsp[-1].expressionNode), ast::SpecialExpressionNode::FunctionName::ARRAY_ACCESS);
     }
-#line 3053 "out/parser.cpp"
+#line 3157 "out/parser.cpp"
     break;
 
-  case 140: /* factor: identifier DOT identifier  */
-#line 1322 "src/yacc.y"
+  case 146: /* factor: identifier DOT identifier  */
+#line 1368 "src/yacc.y"
                               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - record access" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-2].identifierNode), (yyvsp[0].identifierNode), ast::SpecialExpressionNode::FunctionName::RECORD_ACCESS);
     }
-#line 3064 "out/parser.cpp"
+#line 3168 "out/parser.cpp"
     break;
 
-  case 141: /* factor: ABS LP args_list RP  */
-#line 1329 "src/yacc.y"
+  case 147: /* factor: ABS LP args_list RP  */
+#line 1375 "src/yacc.y"
                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - abs" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::ABS);
     }
-#line 3075 "out/parser.cpp"
+#line 3179 "out/parser.cpp"
     break;
 
-  case 142: /* factor: CHR LP args_list RP  */
-#line 1336 "src/yacc.y"
+  case 148: /* factor: CHR LP args_list RP  */
+#line 1382 "src/yacc.y"
                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - chr" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::CHR);
     }
-#line 3086 "out/parser.cpp"
+#line 3190 "out/parser.cpp"
     break;
 
-  case 143: /* factor: ODD LP args_list RP  */
-#line 1343 "src/yacc.y"
+  case 149: /* factor: ODD LP args_list RP  */
+#line 1389 "src/yacc.y"
                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - odd" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::ODD);
     }
-#line 3097 "out/parser.cpp"
+#line 3201 "out/parser.cpp"
     break;
 
-  case 144: /* factor: ORD LP args_list RP  */
-#line 1350 "src/yacc.y"
+  case 150: /* factor: ORD LP args_list RP  */
+#line 1396 "src/yacc.y"
                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - ord" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::ORD);
     }
-#line 3108 "out/parser.cpp"
+#line 3212 "out/parser.cpp"
     break;
 
-  case 145: /* factor: PRED LP args_list RP  */
-#line 1357 "src/yacc.y"
+  case 151: /* factor: PRED LP args_list RP  */
+#line 1403 "src/yacc.y"
                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - pred" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::PRED);
     }
-#line 3119 "out/parser.cpp"
+#line 3223 "out/parser.cpp"
     break;
 
-  case 146: /* factor: SUCC LP args_list RP  */
-#line 1364 "src/yacc.y"
+  case 152: /* factor: SUCC LP args_list RP  */
+#line 1410 "src/yacc.y"
                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - succ" << std::endl;
         #endif
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::SUCC);
     }
-#line 3130 "out/parser.cpp"
+#line 3234 "out/parser.cpp"
     break;
 
 
-#line 3134 "out/parser.cpp"
+#line 3238 "out/parser.cpp"
 
       default: break;
     }
@@ -3323,14 +3427,15 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 1371 "src/yacc.y"
+#line 1417 "src/yacc.y"
 
 
 void yyerror(const char *s) {
     std::cerr << "Error: " << s << " at line " << linesCounter << std::endl;
+    fatalError = true;
 }
 
-std::unique_ptr<ast::ProgramNode> parse(const std::string& inputFileName, std::vector<std::string>& errors) {
+std::unique_ptr<ast::ProgramNode> parse(const std::string& inputFileName, std::vector<std::string>& errors, bool& parsed) {
     yyin = fopen(inputFileName.c_str(), "r");
 
     if(yyin == nullptr) {
@@ -3341,5 +3446,6 @@ std::unique_ptr<ast::ProgramNode> parse(const std::string& inputFileName, std::v
     fclose(yyin);
 
     errors = std::move(parsingErrors);
+    parsed = !fatalError;
     return std::unique_ptr<ast::ProgramNode>(resultAst);
 }

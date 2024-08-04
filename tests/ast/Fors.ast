@@ -1,0 +1,101 @@
+ProgramNode Fors:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+      Variables:
+        Group 0:
+          SimpleTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: sum
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        ForNode
+          IdentifierNode: i
+          SpecialExpressionNode: CONST
+            ConstantInteger<1>
+          SpecialExpressionNode: CONST
+            ConstantInteger<5>
+          CompoundStatementNode:
+            ForNode
+              IdentifierNode: j
+              SpecialExpressionNode: CONST
+                ConstantInteger<1>
+              SpecialExpressionNode: CONST
+                ConstantInteger<5>
+              CompoundStatementNode:
+                BuiltinCallNode: WRITELN
+                  ArgumentsListNode:
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: i
+                    SpecialExpressionNode: CONST
+                      ConstantString< * >
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: j
+                    SpecialExpressionNode: CONST
+                      ConstantString< = >
+                    ExpressionNode: MULTIPLICATION
+                      SpecialExpressionNode: VARIABLE
+                        IdentifierNode: i
+                      SpecialExpressionNode: VARIABLE
+                        IdentifierNode: j
+            BuiltinCallNode: WRITELN
+              Arguments: nullptr
+        BuiltinCallNode: WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantString<Multiplication table is complete.>
+        AssignToVariableNode
+          IdentifierNode: sum
+          SpecialExpressionNode: CONST
+            ConstantInteger<0>
+        ForNode
+          IdentifierNode: count
+          SpecialExpressionNode: CONST
+            ConstantInteger<1>
+          SpecialExpressionNode: CONST
+            ConstantInteger<100>
+          AssignToVariableNode
+            IdentifierNode: sum
+            ExpressionNode: ADDITION
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: sum
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: count
+        AssignToVariableNode
+          IdentifierNode: sum
+          SpecialExpressionNode: CONST
+            ConstantInteger<0>
+        ForNode
+          IdentifierNode: count
+          SpecialExpressionNode: CONST
+            ConstantInteger<1>
+          SpecialExpressionNode: CONST
+            ConstantInteger<100>
+          CompoundStatementNode:
+            AssignToVariableNode
+              IdentifierNode: sum
+              ExpressionNode: ADDITION
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: sum
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: count
+            IfNode:
+              Condition:
+                ExpressionNode: EQUAL
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: count
+                  SpecialExpressionNode: CONST
+                    ConstantInteger<2>
+              ThenStatement:
+                ContinueNode
+            IfNode:
+              Condition:
+                ExpressionNode: EQUAL
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: sum
+                  SpecialExpressionNode: CONST
+                    ConstantInteger<34>
+              ThenStatement:
+                BreakNode

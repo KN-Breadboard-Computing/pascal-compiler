@@ -81,8 +81,6 @@ NQUOTE [^']
 {O}{R}                                                  {   return createToken(OR);                             }
 {P}{R}{O}{C}{E}{D}{U}{R}{E}                             {   return createToken(PROCEDURE);                      }
 {P}{R}{O}{G}{R}{A}{M}                                   {   return createToken(PROGRAM);                        }
-{R}{E}{A}{D}                                            {   return createToken(READ);                           }
-{R}{E}{A}{D}{L}{N}                                      {   return createToken(READLN);                         }
 {R}{E}{C}{O}{R}{D}                                      {   return createToken(RECORD);                         }
 {R}{E}{P}{E}{A}{T}                                      {   return createToken(REPEAT);                         }
 {T}{H}{E}{N}                                            {   return createToken(THEN);                           }
@@ -91,6 +89,10 @@ NQUOTE [^']
 {U}{N}{T}{I}{L}                                         {   return createToken(UNTIL);                          }
 {V}{A}{R}                                               {   return createToken(VAR);                            }
 {W}{H}{I}{L}{E}                                         {   return createToken(WHILE);                          }
+{G}{O}{T}{O}                                            {   return createToken(GOTO);                           }
+{B}{R}{E}{A}{K}                                         {   return createToken(BREAK);                          }
+{C}{O}{N}{T}{I}{N}{U}{E}                                {   return createToken(CONTINUE);                       }
+{O}{T}{H}{E}{R}{W}{I}{S}{E}                             {   return createToken(OTHERWISE);                      }
 
 {T}{R}{U}{E}                                            {   return createToken(TRUE);                           }
 {F}{A}{L}{S}{E}                                         {   return createToken(FALSE);                          }
@@ -103,13 +105,18 @@ NQUOTE [^']
 {P}{R}{E}{D}                                            {   return createToken(PRED);                           }
 {S}{U}{C}{C}                                            {   return createToken(SUCC);                           }
 
+{R}{E}{A}{D}                                            {   return createToken(READ);                           }
+{R}{E}{A}{D}{L}{N}                                      {   return createToken(READLN);                         }
 {W}{R}{I}{T}{E}                                         {   return createToken(WRITE);                          }
 {W}{R}{I}{T}{E}{L}{N}                                   {   return createToken(WRITELN);                        }
+{M}{E}{M}{O}{R}{Y}{R}{E}{A}{D}                          {   return createToken(MEMORYREAD);                     }
+{M}{E}{M}{O}{R}{Y}{W}{R}{I}{T}{E}                       {   return createToken(MEMORYWRITE);                    }
+{S}{T}{A}{C}{K}{R}{E}{A}{D}                             {   return createToken(STACKREAD);                      }
+{S}{T}{A}{C}{K}{W}{R}{I}{T}{E}                          {   return createToken(STACKWRITE);                     }
 
 {I}{N}{T}{E}{G}{E}{R}                                   {   return createToken(INT_TYPE);                       }
 {U}{N}{S}{I}{G}{N}{E}{D}                                {   return createToken(UNSIGNED_TYPE);                  }
 {C}{H}{A}{R}                                            {   return createToken(CHAR_TYPE);                      }
-{S}{T}{R}{I}{N}{G}                                      {   return createToken(STRING_TYPE);                    }
 {B}{O}{O}{L}{E}{A}{N}                                   {   return createToken(BOOL_TYPE);                      }
 
 ":="                                                    {   return createToken(ASSIGN);                         }
@@ -144,7 +151,7 @@ NQUOTE [^']
 
 "\n"                                                    {   linesCounter++;                                     }
 
-.                 {   std::cerr << "Error:  illegal character " << yytext[0] << " at line " << linesCounter;    }
+.   {   std::cerr << "Error:  illegal character " << yytext[0] << " at line " << linesCounter << std::endl;    }
 
 %%
 

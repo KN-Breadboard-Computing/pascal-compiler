@@ -54,7 +54,13 @@ class ForNode : public StatementNode {
   }
 
   void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "ForNode\n";
+    if (getLabel().has_value()) {
+      out << std::string(tab, ' ') << "ForNode with label: " << getLabel().value() << std::endl;
+    }
+    else {
+      out << std::string(tab, ' ') << "ForNode\n";
+    }
+
     iterator_->print(out, tab + 2);
     start_->print(out, tab + 2);
     end_->print(out, tab + 2);
@@ -67,6 +73,58 @@ class ForNode : public StatementNode {
   std::unique_ptr<ExpressionNode> end_;
   std::unique_ptr<StatementNode> statements_;
   Direction direction_;
+};
+
+class BreakNode : public StatementNode {
+ public:
+  BreakNode() : StatementNode{} { type_ = Type::BREAK; }
+  BreakNode(const BreakNode&) = delete;
+  BreakNode(BreakNode&&) = default;
+
+  BreakNode& operator=(const BreakNode&) = delete;
+  BreakNode& operator=(BreakNode&&) = default;
+
+  ~BreakNode() override = default;
+
+  [[nodiscard]] std::unique_ptr<AstNode> clone() const override {
+    auto clone = std::make_unique<BreakNode>();
+    return clone;
+  }
+
+  void print(std::ostream& out, int tab) const override {
+    if (getLabel().has_value()) {
+      out << std::string(tab, ' ') << "BreakNode with label: " << getLabel().value() << std::endl;
+    }
+    else {
+      out << std::string(tab, ' ') << "BreakNode\n";
+    }
+  }
+};
+
+class ContinueNode : public StatementNode {
+ public:
+  ContinueNode() : StatementNode{} { type_ = Type::CONTINUE; }
+  ContinueNode(const ContinueNode&) = delete;
+  ContinueNode(ContinueNode&&) = default;
+
+  ContinueNode& operator=(const ContinueNode&) = delete;
+  ContinueNode& operator=(ContinueNode&&) = default;
+
+  ~ContinueNode() override = default;
+
+  [[nodiscard]] std::unique_ptr<AstNode> clone() const override {
+    auto clone = std::make_unique<ContinueNode>();
+    return clone;
+  }
+
+  void print(std::ostream& out, int tab) const override {
+    if (getLabel().has_value()) {
+      out << std::string(tab, ' ') << "ContinueNode with label: " << getLabel().value() << std::endl;
+    }
+    else {
+      out << std::string(tab, ' ') << "ContinueNode\n";
+    }
+  }
 };
 }  // namespace ast
 

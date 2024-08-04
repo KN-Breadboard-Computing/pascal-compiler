@@ -13,8 +13,8 @@ ProgramNode TypeDeclarations:
           IdentifierNode: TMyChar
           SimpleTypeNode CHAR
         Type 3:
-          IdentifierNode: TMyString
-          SimpleTypeNode STRING
+          IdentifierNode: TMyChar
+          SimpleTypeNode CHAR
         Type 4:
           IdentifierNode: TMyBool
           SimpleTypeNode BOOLEAN
@@ -112,50 +112,50 @@ ProgramNode TypeDeclarations:
                 Element type:
                   SimpleTypeNode CHAR
         Type 19:
-          IdentifierNode: TMyStringArrayBoolIndex
+          IdentifierNode: TMyCharArrayBoolIndex
           ArrayTypeNode:
             Range:
               SimpleTypeNode BOOLEAN
             Element type:
-              SimpleTypeNode STRING
+              SimpleTypeNode CHAR
         Type 20:
-          IdentifierNode: TMyStringArrayCharIndex
+          IdentifierNode: TMyCharArrayCharIndex
           ArrayTypeNode:
             Range:
               SimpleTypeNode CHAR
             Element type:
-              SimpleTypeNode STRING
+              SimpleTypeNode CHAR
         Type 21:
-          IdentifierNode: TMyStringArrayIntIndex
+          IdentifierNode: TMyCharArrayIntIndex
           ArrayTypeNode:
             Range:
               SimpleTypeNode INTEGER
             Element type:
-              SimpleTypeNode STRING
+              SimpleTypeNode CHAR
         Type 22:
-          IdentifierNode: TMyStringArrayUIntIndex
+          IdentifierNode: TMyCharArrayUIntIndex
           ArrayTypeNode:
             Range:
               SimpleTypeNode UNSIGNED
             Element type:
-              SimpleTypeNode STRING
+              SimpleTypeNode CHAR
         Type 23:
-          IdentifierNode: TMyStringArrayCharRange
+          IdentifierNode: TMyCharArrayCharRange
           ArrayTypeNode:
             Range:
               ConstRangeTypeNode:
                 ConstantChar<a>
                 ConstantChar<z>
             Element type:
-              SimpleTypeNode STRING
+              SimpleTypeNode CHAR
         Type 24:
-          IdentifierNode: TMyStringArrayBoolsRange
+          IdentifierNode: TMyCharArrayBoolsRange
           ArrayTypeNode:
             Range:
               RenameTypeNode:
                 IdentifierNode: TBools
             Element type:
-              SimpleTypeNode STRING
+              SimpleTypeNode CHAR
         Type 25:
           IdentifierNode: TMyWeekDayArray
           ArrayTypeNode:
@@ -169,7 +169,7 @@ ProgramNode TypeDeclarations:
           RecordTypeNode:
             Field:
               IdentifierNode: Name
-              SimpleTypeNode STRING
+              SimpleTypeNode CHAR
             Field:
               IdentifierNode: Age
               SimpleTypeNode INTEGER

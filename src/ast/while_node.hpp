@@ -37,7 +37,13 @@ class WhileNode : public StatementNode {
   }
 
   virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "WhileNode:\n";
+    if (getLabel().has_value()) {
+      out << std::string(tab, ' ') << "WhileNode with label: " << getLabel().value() << std::endl;
+    }
+    else {
+      out << std::string(tab, ' ') << "WhileNode:\n";
+    }
+
     condition_->print(out, tab + 2);
     statements_->print(out, tab + 2);
   }

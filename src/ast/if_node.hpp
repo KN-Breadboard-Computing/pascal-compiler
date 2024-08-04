@@ -48,7 +48,13 @@ class IfNode : public StatementNode {
   }
 
   virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "IfNode:\n";
+    if (getLabel().has_value()) {
+      out << std::string(tab, ' ') << "IfNode with label: " << getLabel().value() << std::endl;
+    }
+    else {
+      out << std::string(tab, ' ') << "IfNode:\n";
+    }
+
     out << std::string(tab + 2, ' ') << "Condition:\n";
     condition_->print(out, tab + 4);
     out << std::string(tab + 2, ' ') << "ThenStatement:\n";

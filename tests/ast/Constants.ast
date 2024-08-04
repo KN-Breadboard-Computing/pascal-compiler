@@ -28,31 +28,31 @@ ProgramNode Constants:
       Routines:
     RoutineBodyNode:
       CompoundStatementNode:
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           ArgumentsListNode:
             SpecialExpressionNode: VARIABLE
               IdentifierNode: constInt
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           ArgumentsListNode:
             SpecialExpressionNode: VARIABLE
               IdentifierNode: constUInt
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           ArgumentsListNode:
             SpecialExpressionNode: VARIABLE
               IdentifierNode: constChar
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           ArgumentsListNode:
             SpecialExpressionNode: VARIABLE
               IdentifierNode: constString
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           ArgumentsListNode:
             SpecialExpressionNode: VARIABLE
               IdentifierNode: constTrue
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           ArgumentsListNode:
             SpecialExpressionNode: VARIABLE
               IdentifierNode: constFalse
-        BuiltinCallNode WRITELN
+        BuiltinCallNode: WRITELN
           ArgumentsListNode:
             SpecialExpressionNode: VARIABLE
               IdentifierNode: constMaxInt

@@ -45,7 +45,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 25 "src/yacc.y"
+#line 27 "src/yacc.y"
 
     #include <iostream>
     #include <stdlib.h>
@@ -112,57 +112,63 @@ extern int yydebug;
     READLN = 275,                  /* READLN  */
     WRITE = 276,                   /* WRITE  */
     WRITELN = 277,                 /* WRITELN  */
-    ABS = 278,                     /* ABS  */
-    CHR = 279,                     /* CHR  */
-    ODD = 280,                     /* ODD  */
-    ORD = 281,                     /* ORD  */
-    PRED = 282,                    /* PRED  */
-    SUCC = 283,                    /* SUCC  */
-    IF = 284,                      /* IF  */
-    THEN = 285,                    /* THEN  */
-    ELSE = 286,                    /* ELSE  */
-    REPEAT = 287,                  /* REPEAT  */
-    UNTIL = 288,                   /* UNTIL  */
-    WHILE = 289,                   /* WHILE  */
-    DO = 290,                      /* DO  */
-    CASE = 291,                    /* CASE  */
-    TO = 292,                      /* TO  */
-    DOWNTO = 293,                  /* DOWNTO  */
-    FOR = 294,                     /* FOR  */
-    EQUAL = 295,                   /* EQUAL  */
-    UNEQUAL = 296,                 /* UNEQUAL  */
-    GE = 297,                      /* GE  */
-    GT = 298,                      /* GT  */
-    LE = 299,                      /* LE  */
-    LT = 300,                      /* LT  */
-    ASSIGN = 301,                  /* ASSIGN  */
-    PLUS = 302,                    /* PLUS  */
-    MINUS = 303,                   /* MINUS  */
-    MUL = 304,                     /* MUL  */
-    DIV = 305,                     /* DIV  */
-    OR = 306,                      /* OR  */
-    AND = 307,                     /* AND  */
-    NOT = 308,                     /* NOT  */
-    MOD = 309,                     /* MOD  */
-    LB = 310,                      /* LB  */
-    RB = 311,                      /* RB  */
-    LP = 312,                      /* LP  */
-    RP = 313,                      /* RP  */
-    SEMICOLON = 314,               /* SEMICOLON  */
-    DOT = 315,                     /* DOT  */
-    DOUBLEDOT = 316,               /* DOUBLEDOT  */
-    COMMA = 317,                   /* COMMA  */
-    COLON = 318,                   /* COLON  */
-    INT_TYPE = 319,                /* INT_TYPE  */
-    UNSIGNED_TYPE = 320,           /* UNSIGNED_TYPE  */
-    BOOL_TYPE = 321,               /* BOOL_TYPE  */
-    CHAR_TYPE = 322,               /* CHAR_TYPE  */
-    STRING_TYPE = 323,             /* STRING_TYPE  */
-    ARRAY = 324,                   /* ARRAY  */
-    OF = 325,                      /* OF  */
-    RECORD = 326,                  /* RECORD  */
-    GOTO = 327,                    /* GOTO  */
-    ERROR = 328                    /* ERROR  */
+    MEMORYREAD = 278,              /* MEMORYREAD  */
+    MEMORYWRITE = 279,             /* MEMORYWRITE  */
+    STACKREAD = 280,               /* STACKREAD  */
+    STACKWRITE = 281,              /* STACKWRITE  */
+    ABS = 282,                     /* ABS  */
+    CHR = 283,                     /* CHR  */
+    ODD = 284,                     /* ODD  */
+    ORD = 285,                     /* ORD  */
+    PRED = 286,                    /* PRED  */
+    SUCC = 287,                    /* SUCC  */
+    IF = 288,                      /* IF  */
+    THEN = 289,                    /* THEN  */
+    ELSE = 290,                    /* ELSE  */
+    REPEAT = 291,                  /* REPEAT  */
+    UNTIL = 292,                   /* UNTIL  */
+    WHILE = 293,                   /* WHILE  */
+    DO = 294,                      /* DO  */
+    CASE = 295,                    /* CASE  */
+    TO = 296,                      /* TO  */
+    DOWNTO = 297,                  /* DOWNTO  */
+    FOR = 298,                     /* FOR  */
+    EQUAL = 299,                   /* EQUAL  */
+    UNEQUAL = 300,                 /* UNEQUAL  */
+    GE = 301,                      /* GE  */
+    GT = 302,                      /* GT  */
+    LE = 303,                      /* LE  */
+    LT = 304,                      /* LT  */
+    ASSIGN = 305,                  /* ASSIGN  */
+    PLUS = 306,                    /* PLUS  */
+    MINUS = 307,                   /* MINUS  */
+    MUL = 308,                     /* MUL  */
+    DIV = 309,                     /* DIV  */
+    OR = 310,                      /* OR  */
+    AND = 311,                     /* AND  */
+    NOT = 312,                     /* NOT  */
+    MOD = 313,                     /* MOD  */
+    LB = 314,                      /* LB  */
+    RB = 315,                      /* RB  */
+    LP = 316,                      /* LP  */
+    RP = 317,                      /* RP  */
+    SEMICOLON = 318,               /* SEMICOLON  */
+    DOT = 319,                     /* DOT  */
+    DOUBLEDOT = 320,               /* DOUBLEDOT  */
+    COMMA = 321,                   /* COMMA  */
+    COLON = 322,                   /* COLON  */
+    INT_TYPE = 323,                /* INT_TYPE  */
+    UNSIGNED_TYPE = 324,           /* UNSIGNED_TYPE  */
+    BOOL_TYPE = 325,               /* BOOL_TYPE  */
+    CHAR_TYPE = 326,               /* CHAR_TYPE  */
+    ARRAY = 327,                   /* ARRAY  */
+    OF = 328,                      /* OF  */
+    RECORD = 329,                  /* RECORD  */
+    GOTO = 330,                    /* GOTO  */
+    BREAK = 331,                   /* BREAK  */
+    CONTINUE = 332,                /* CONTINUE  */
+    OTHERWISE = 333,               /* OTHERWISE  */
+    ERROR = 334                    /* ERROR  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -171,7 +177,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 62 "src/yacc.y"
+#line 64 "src/yacc.y"
 
     Token token;
     ast::ProgramNode* programNode;
@@ -207,6 +213,8 @@ union YYSTYPE
     ast::ForNode* forNode;
     ast::WhileNode* whileNode;
     ast::RepeatNode* repeatNode;
+    ast::BreakNode* breakNode;
+    ast::ContinueNode* continueNode;
     ast::IfNode* ifNode;
     ast::CallNode* callNode;
     ast::ExpressionNode* expressionNode;
@@ -214,7 +222,7 @@ union YYSTYPE
     std::pair<ast::AstNode*, ast::StatementNode*>* caseExpr;
     ast::ArgumentsListNode* argsList;
 
-#line 218 "out/parser.hpp"
+#line 226 "out/parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

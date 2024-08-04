@@ -24,8 +24,14 @@ class GotoNode : public StatementNode {
   [[nodiscard]] std::unique_ptr<AstNode> clone() const override { return std::make_unique<GotoNode>(line_); }
 
   void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "GotoNode\n";
-    out << std::string(tab, ' ') << "  line: " << line_ << '\n';
+    if (getLabel().has_value()) {
+      out << std::string(tab, ' ') << "GotoNode with label: " << getLabel().value() << '\n';
+    }
+    else {
+      out << std::string(tab, ' ') << "GotoNode\n";
+    }
+
+    out << std::string(tab, ' ') << "  Line: " << line_ << '\n';
   }
 
  private:

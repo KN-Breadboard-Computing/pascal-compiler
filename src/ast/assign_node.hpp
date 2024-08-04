@@ -61,7 +61,13 @@ class AssignToVariableNode : public AssignNode {
   }
 
   void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "AssignToVariableNode\n";
+    if (getLabel().has_value()) {
+      out << std::string(tab, ' ') << "AssignToVariableNode with label: " << getLabel().value() << "\n";
+    }
+    else {
+      out << std::string(tab, ' ') << "AssignToVariableNode\n";
+    }
+
     variable_->print(out, tab + 2);
     expression_->print(out, tab + 2);
   }
@@ -102,7 +108,13 @@ class AssignToArrayNode : public AssignNode {
   }
 
   void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "AssignToArrayNode\n";
+    if (getLabel().has_value()) {
+      out << std::string(tab, ' ') << "AssignToArrayNode with label: " << getLabel().value() << "\n";
+    }
+    else {
+      out << std::string(tab, ' ') << "AssignToArrayNode\n";
+    }
+
     array_->print(out, tab + 2);
     index_->print(out, tab + 2);
     expression_->print(out, tab + 2);
@@ -145,7 +157,13 @@ class AssignToRecordFieldNode : public AssignNode {
   }
 
   void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "AssignToRecordFieldNode\n";
+    if(getLabel().has_value()) {
+      out << std::string(tab, ' ') << "AssignToRecordFieldNode with label: " << getLabel().value() << "\n";
+    }
+    else {
+      out << std::string(tab, ' ') << "AssignToRecordFieldNode\n";
+    }
+
     record_->print(out, tab + 2);
     field_->print(out, tab + 2);
     expression_->print(out, tab + 2);
