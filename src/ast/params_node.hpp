@@ -26,24 +26,9 @@ class ParamsNode : public AstNode {
 
   void setParams(std::unique_ptr<std::vector<ParamsGroupNode*>> params) { params_ = std::move(params); }
 
-  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override {
-    auto clone = std::make_unique<ParamsNode>();
-
-    std::vector<ParamsGroupNode*> params;
-    for (const auto& param : *params_) {
-      params.push_back(dynamic_cast<ParamsGroupNode*>(param->clone().release()));
-    }
-    clone->setParams(std::make_unique<std::vector<ParamsGroupNode*>>(std::move(params)));
-
-    return clone;
-  }
-
-  virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "ParamsNode:\n";
-    for (const auto& param : *params_) {
-      param->print(out, tab + 2);
-    }
-  }
+  virtual void accept(AstVisitor& visitor) const override;
+  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
+  virtual void print(std::ostream& out, int tab) const override;
 
  private:
   std::unique_ptr<std::vector<ParamsGroupNode*>> params_;

@@ -27,17 +27,9 @@ class ProgramNode : public AstNode {
   void setName(std::string name) { name_ = std::move(name); }
   void setRoutine(std::unique_ptr<RoutineNode> routine) { routine_ = std::move(routine); }
 
-  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override {
-    auto clone = std::make_unique<ProgramNode>();
-    clone->setName(name_);
-    clone->setRoutine(std::unique_ptr<RoutineNode>(dynamic_cast<RoutineNode*>(routine_->clone().release())));
-    return clone;
-  }
-
-  virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "ProgramNode " << name_ << ":\n";
-    routine_->print(out, tab + 2);
-  }
+  virtual void accept(AstVisitor& visitor) const override;
+  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
+  virtual void print(std::ostream& out, int tab) const override;
 
  private:
   std::string name_;

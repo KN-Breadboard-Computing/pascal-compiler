@@ -1,6 +1,7 @@
 #include "routine_decl_head_node.hpp"
 
 namespace ast {
+// RoutineHeadNode
 [[nodiscard]] std::unique_ptr<AstNode> RoutineHeadNode::clone() const {
   auto clone = std::make_unique<RoutineHeadNode>();
   if (constantsPart_ != nullptr) {
@@ -84,6 +85,11 @@ void RoutineHeadNode::print(std::ostream& out, int tab) const {
   }
 }
 
+void RoutineHeadNode::accept(AstVisitor& visitor) const {
+  visitor.visit(*this);
+}
+
+// RoutineDeclarationNode
 [[nodiscard]] std::unique_ptr<AstNode> RoutineDeclarationNode::clone() const {
   auto clone = std::make_unique<RoutineDeclarationNode>(routineType_, name_, nullptr, nullptr, nullptr);
   if (params_ != nullptr) {
@@ -113,6 +119,11 @@ void RoutineDeclarationNode::print(std::ostream& out, int tab) const {
   }
 }
 
+void RoutineDeclarationNode::accept(AstVisitor& visitor) const {
+  visitor.visit(*this);
+}
+
+// RoutineNode
 [[nodiscard]] std::unique_ptr<AstNode> RoutineNode::clone() const {
   RoutineHeadNode* newHead = dynamic_cast<RoutineHeadNode*>(head_->clone().release());
   RoutineBodyNode* newBody = dynamic_cast<RoutineBodyNode*>(body_->clone().release());
@@ -137,5 +148,9 @@ void RoutineNode::print(std::ostream& out, int tab) const {
   }
   head_->print(out, tab + 2);
   body_->print(out, tab + 2);
+}
+
+void RoutineNode::accept(AstVisitor& visitor) const {
+  visitor.visit(*this);
 }
 }  // namespace ast

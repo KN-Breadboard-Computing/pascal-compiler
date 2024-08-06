@@ -24,22 +24,9 @@ class StatementNode : public AstNode {
 
   void removeLabel() { label_ = std::nullopt; }
 
-  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override {
-    auto clone = std::make_unique<StatementNode>();
-    if (label_.has_value()) {
-      clone->setLabel(label_.value());
-    }
-    return clone;
-  }
-
-  virtual void print(std::ostream& out, int tab) const override {
-    if (label_.has_value()) {
-      out << std::string(tab, ' ') << "StatementNode with label: " << label_.value() << '\n';
-    }
-    else {
-      out << std::string(tab, ' ') << "StatementNode\n";
-    }
-  }
+  virtual void accept(AstVisitor& visitor) const override;
+  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
+  virtual void print(std::ostream& out, int tab) const override;
 
  private:
   std::optional<uint64_t> label_;

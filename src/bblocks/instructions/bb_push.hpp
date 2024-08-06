@@ -1,11 +1,13 @@
 #ifndef BBLOCKS_BB_PUSH_HPP
 #define BBLOCKS_BB_PUSH_HPP
 
-#include "BBInstruction.hpp"
+#include "bb_instruction.hpp"
 
 namespace bblocks {
 template <typename SrcT>
-concept PushArgs = (std::is_same_v<SrcT, VariableType> || std::is_same_v<NumericType> || std::is_same_v<SrcT, AddressType>);
+concept PushArgs = requires {
+  {std::is_same_v<SrcT, VariableType> || std::is_same_v<SrcT, NumericType> || std::is_same_v<SrcT, AddressType>};
+};
 
 template <typename SrcT>
 requires PushArgs<SrcT> class BBPush : public BBInstruction {
@@ -26,8 +28,8 @@ requires PushArgs<SrcT> class BBPush : public BBInstruction {
   [[nodiscard]] SrcT getSource() const { return source_; }
   [[nodiscard]] SourceType getSourceType() const { return sourceType_; }
 
-  friend virtual std::ostream& operator<<(std::ostream& out, const BBPush& instruction) override {
-    out << "PUSH ";
+  virtual void print(std::ostream& out, int tab) const override {
+    out << std::string(tab, ' ') << "PUSH ";
 
     switch (sourceType_) {
       case SourceType::VARIABLE:
@@ -40,8 +42,6 @@ requires PushArgs<SrcT> class BBPush : public BBInstruction {
         out << source_;
         break;
     }
-
-    return out;
   }
 
  private:

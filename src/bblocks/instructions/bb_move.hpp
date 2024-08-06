@@ -1,13 +1,14 @@
 #ifndef BBLOCKS_BB_MOVE_HPP
 #define BBLOCKS_BB_MOVE_HPP
 
-#include "BBInstruction.hpp"
+#include "bb_instruction.hpp"
 
 namespace bblocks {
 template <typename SrcT, typename DestT>
-concept MoveArgs =
-    (((std::is_same_v<DestT, VariableType> || std::is_same_v<DestT, AddressType>)) &&
-     ((std::is_same_v<SrcT, VariableType> || std::is_same_v<SrcT, NumericType> || std::is_same_v<SrcT, AddressType>)));
+concept MoveArgs = requires {
+  {std::is_same_v<SrcT, VariableType> || std::is_same_v<SrcT, NumericType> || std::is_same_v<SrcT, AddressType>};
+  {std::is_same_v<DestT, VariableType> || std::is_same_v<DestT, AddressType>};
+};
 
 template <typename SrcT, typename DestT>
 requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
@@ -16,7 +17,7 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
   enum class DestinationType { VARIABLE, ADDRESS };
 
   BBMove() = default;
-  BBMove(Arg1T source, Arg2T destination, SourceType sourceType, DestinationType destinationType)
+  BBMove(SrcT source, DestT destination, SourceType sourceType, DestinationType destinationType)
       : source_{source}, destination_{destination}, sourceType_{sourceType}, destinationType_{destinationType} {}
 
   BBMove(const BBMove&) = default;
@@ -27,13 +28,14 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
 
   ~BBMove() override = default;
 
-  [[nodiscard]] Arg1T getSource() const { return source_; }
-  [[nodiscard]] Arg2T getDestination() const { return destination_; }
+  [[nodiscard]] SrcT getSource() const { return source_; }
+  [[nodiscard]] DestT getDestination() const { return destination_; }
   [[nodiscard]] SourceType getSourceType() const { return sourceType_; }
   [[nodiscard]] DestinationType getDestinationType() const { return destinationType_; }
 
-  friend virtual std::ostream& operator<<(std::ostream& out, const BBMove& instruction) override {
-    out << "MOVE ";
+  virtual void print(std::ostream& out, int tab) const override {
+    out << std::string(tab, ' ') << "MOVE ";
+
     switch (sourceType_) {
       case SourceType::VARIABLE:
         out << source_;
@@ -56,8 +58,6 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
     }
 
     out << std::endl;
-
-    return out;
   }
 
  private:

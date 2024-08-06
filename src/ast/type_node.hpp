@@ -21,26 +21,9 @@ class TypeNode : public AstNode {
 
   [[nodiscard]] TypeType getTypeType() const { return typeType_; }
 
-  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override { return std::make_unique<TypeNode>(typeType_); }
-
-  virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "TypeNode ";
-    switch (typeType_) {
-      case SIMPLE:
-        out << "SIMPLE";
-        break;
-      case ARRAY:
-        out << "ARRAY";
-        break;
-      case RECORD:
-        out << "RECORD";
-        break;
-      default:
-        out << "UNSPECIFIED";
-        break;
-    }
-    out << '\n';
-  }
+  virtual void accept(AstVisitor& visitor) const override;
+  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
+  virtual void print(std::ostream& out, int tab) const override;
 
  private:
   TypeType typeType_;

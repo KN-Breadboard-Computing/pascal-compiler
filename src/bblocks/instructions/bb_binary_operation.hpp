@@ -1,13 +1,15 @@
 #ifndef BBLOCKS_BB_BINARY_OPERATION_HPP
 #define BBLOCKS_BB_BINARY_OPERATION_HPP
 
-#include "BBInstruction.hpp"
+#include "bb_instruction.hpp"
 
 namespace bblocks {
 template <typename Arg1T, typename Arg2T, typename DestT>
-concept BinaryOperationArgs = (((std::is_same_v<DestT, VariableType> || std::is_same_v<DestT, AddressType>)) &&
-                               ((std::is_same_v<Arg1T, VariableType> || std::is_same_v<Arg1T, NumericType>)) &&
-                               ((std::is_same_v<Arg2T, VariableType> || std::is_same_v<Arg2T, NumericType>)));
+concept BinaryOperationArgs = requires {
+  {std::is_same_v<Arg1T, VariableType> || std::is_same_v<Arg1T, NumericType>};
+  {std::is_same_v<Arg2T, VariableType> || std::is_same_v<Arg2T, NumericType>};
+  {std::is_same_v<DestT, VariableType> || std::is_same_v<DestT, AddressType>};
+};
 
 template <typename Arg1T, typename Arg2T, typename DestT>
 requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : public BBInstruction {
@@ -37,8 +39,8 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
   [[nodiscard]] OperationType getOperation() const { return operationType_; }
   [[nodiscard]] DestinationType getDestinationType() const { return destinationType_; }
 
-  friend virtual std::ostream& operator<<(std::ostream& out, const BBBinaryOperation& instruction) override {
-    out << "MOV " << source1_ << " ";
+  virtual void print(std::ostream& out, int tab) const override {
+    out << std::string(tab, ' ') << "MOV " << source1_ << " ";
 
     switch (operationType_) {
       case OperationType::ADD:
@@ -97,8 +99,6 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
     }
 
     out << std::endl;
-
-    return out;
   }
 
  private:

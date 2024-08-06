@@ -2,12 +2,13 @@
 #include <iostream>
 
 #include "ast/program_node.hpp"
+#include "bblocks/bb_cfg_generator.hpp"
 
 bool parse(const std::string& inputFileName, std::vector<std::string>& errors, std::unique_ptr<ast::ProgramNode>& program);
 
 int main(int argc, char* argv[]) {
-  if (argc != 4) {
-    std::cerr << "Usage: " << argv[0] << " <input-file> <output-ast-file> <output-asm-file>" << std::endl;
+  if (argc != 5) {
+    std::cerr << "Usage: " << argv[0] << " <input-file> <output-ast-file> <output-bblocks-file> <output-asm-file>" << std::endl;
     return 1;
   }
 
@@ -25,15 +26,17 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  if (parsed) {
-    std::cout << "Parsed successfully!" << std::endl;
-    std::ofstream outputAstFile(outputAstFileName);
-    outputAstFile << *program;
-  }
-  else {
+  if(!parsed) {
     std::cerr << "Failed to parse!" << std::endl;
     return 1;
   }
+
+  std::cout << "Parsed successfully!" << std::endl;
+  std::ofstream outputAstFile(outputAstFileName);
+  outputAstFile << *program;
+
+  bblocks::BbCfgGenerator cfgGenerator;
+  bblocks::ControlFlowGraph cfg = cfgGenerator.generate(program);
 
   return 0;
 }

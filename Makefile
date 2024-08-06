@@ -3,7 +3,7 @@ FFLAGS :=
 BB := bison
 BFLAGS :=
 CXX := clang++
-CXXFLAGS := -Wall -Wextra -pedantic -std=c++17 -O3 -g
+CXXFLAGS := -Wall -Wextra -pedantic -std=c++20 -O3 -g
 
 TEST_DIR = tests
 INPUT_DIR = $(TEST_DIR)/input
@@ -25,8 +25,9 @@ compiler:
 test:
 	@for input_file in $(INPUT_FILES); do \
 		ast_file=$(AST_DIR)/`basename $$input_file .pas`.ast; \
+		bblock_file=$(AST_DIR)/`basename $$input_file .pas`.bblock; \
 		asm_file=$(ASM_DIR)/`basename $$input_file .pas`.asm; \
-		./compiler $$input_file $$ast_file $$asm_file; \
+		./compiler $$input_file $$ast_file $$bblock_file $$asm_file; \
 		echo ""; \
 		echo ""; \
 	done

@@ -1,11 +1,13 @@
 #ifndef BBLOCKS_BB_POP_HPP
 #define BBLOCKS_BB_POP_HPP
 
-#include "BBInstruction.hpp"
+#include "bb_instruction.hpp"
 
 namespace bblocks {
 template <typename DestT>
-concept PopArgs = (std::is_same_v<DestT, VariableType> || std::is_same_v<DestT, AddressType>);
+concept PopArgs = requires {
+  {std::is_same_v<DestT, VariableType> || std::is_same_v<DestT, AddressType>};
+};
 
 template <typename DestT>
 requires PopArgs<DestT> class BBPop : public BBInstruction {
@@ -26,8 +28,8 @@ requires PopArgs<DestT> class BBPop : public BBInstruction {
   [[nodiscard]] DestT getDestination() const { return destination_; }
   [[nodiscard]] DestinationType getDestinationType() const { return destinationType_; }
 
-  friend virtual std::ostream& operator<<(std::ostream& out, const BBPop& instruction) override {
-    out << "POP ";
+  virtual void print(std::ostream& out, int tab) const override {
+    out << std::string(tab, ' ') << "POP ";
 
     switch (destinationType_) {
       case DestinationType::VARIABLE:
@@ -37,8 +39,6 @@ requires PopArgs<DestT> class BBPop : public BBInstruction {
         out << " TO [ " << destination_ << " ]";
         break;
     }
-
-    return out;
   }
 
  private:

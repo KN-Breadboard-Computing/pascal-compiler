@@ -7,6 +7,8 @@
 #include <vector>
 
 namespace ast {
+class AstVisitor;
+
 class AstNode {
  public:
   enum Type {
@@ -53,6 +55,7 @@ class AstNode {
 
   [[nodiscard]] Type getType() const { return type_; }
 
+  virtual void accept(AstVisitor& visitor) const = 0;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const = 0;
   virtual void print(std::ostream& out, int tab) const = 0;
 

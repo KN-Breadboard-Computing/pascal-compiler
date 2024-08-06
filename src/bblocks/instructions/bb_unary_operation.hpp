@@ -1,12 +1,14 @@
 #ifndef BBLOCKS_BB_UNARY_OPERATION_HPP
 #define BBLOCKS_BB_UNARY_OPERATION_HPP
 
-#include "BBInstruction.hpp"
+#include "bb_instruction.hpp"
 
 namespace bblocks {
 template <typename ArgT, typename DestT>
-concept UnaryOperationArgs = (((std::is_same_v<DestT, VariableType> || std::is_same_v<DestT, AddressType>)) &&
-                              ((std::is_same_v<ArgT, VariableType> || std::is_same_v<ArgT, NumericType>)));
+concept UnaryOperationArgs = requires {
+  {std::is_same_v<ArgT, VariableType> || std::is_same_v<ArgT, NumericType>};
+  {std::is_same_v<DestT, VariableType> || std::is_same_v<DestT, AddressType>};
+};
 
 template <typename ArgT, typename DestT>
 requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstruction {
@@ -31,8 +33,8 @@ requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstr
   [[nodiscard]] OperationType getOperation() const { return operationType_; }
   [[nodiscard]] DestinationType getDestinationType() const { return destinationType_; }
 
-  friend virtual std::ostream& operator<<(std::ostream& out, const BBUnaryOperation& instruction) override {
-    out << "MOV ";
+  virtual void print(std::ostream& out, int tab) const override {
+    out << std::string(tab, ' ') << "MOV ";
 
     switch (operationType_) {
       case OperationType::NEG:
@@ -59,8 +61,6 @@ requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstr
         out << " TO [ " << destination_ << " ]";
         break;
     }
-
-    return out;
   }
 
  private:

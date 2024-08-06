@@ -28,31 +28,9 @@ class RepeatNode : public StatementNode {
   void setCondition(std::unique_ptr<ExpressionNode> condition) { condition_ = std::move(condition); }
   void setStatements(std::unique_ptr<std::vector<StatementNode*>> statements) { statements_ = std::move(statements); }
 
-  virtual std::unique_ptr<AstNode> clone() const override {
-    auto clone = std::make_unique<RepeatNode>();
-
-    clone->setCondition(std::unique_ptr<ExpressionNode>(dynamic_cast<ExpressionNode*>(condition_->clone().release())));
-    std::vector<StatementNode*> statements;
-    for (const auto& statement : *statements_) {
-      statements.push_back(dynamic_cast<StatementNode*>(statement->clone().release()));
-    }
-    clone->setStatements(std::make_unique<std::vector<StatementNode*>>(std::move(statements)));
-
-    return clone;
-  }
-
-  virtual void print(std::ostream& out, int tab) const override {
-    if(getLabel().has_value()) {
-      out << std::string(tab, ' ') << "RepeatNode with label: " << getLabel().value() << std::endl;
-    } else {
-      out << std::string(tab, ' ') << "RepeatNode:\n";
-    }
-
-    condition_->print(out, tab + 2);
-    for (const auto& statement : *statements_) {
-      statement->print(out, tab + 2);
-    }
-  }
+  virtual void accept(AstVisitor& visitor) const override;
+  virtual std::unique_ptr<AstNode> clone() const override;
+  virtual void print(std::ostream& out, int tab) const override;
 
  private:
   std::unique_ptr<ExpressionNode> condition_;

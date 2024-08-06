@@ -24,17 +24,9 @@ class RoutineBodyNode : public AstNode {
 
   void setStatements(std::unique_ptr<CompoundStatementNode> statements) { statements_ = std::move(statements); }
 
-  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override {
-    auto clone = std::make_unique<RoutineBodyNode>();
-    clone->setStatements(std::unique_ptr<CompoundStatementNode>(dynamic_cast<CompoundStatementNode*>(statements_->clone().release())));
-
-    return clone;
-  }
-
-  virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "RoutineBodyNode:\n";
-    statements_->print(out, tab + 2);
-  }
+  virtual void accept(AstVisitor& visitor) const override;
+  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
+  virtual void print(std::ostream& out, int tab) const override;
 
  private:
   std::unique_ptr<CompoundStatementNode> statements_;

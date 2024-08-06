@@ -1,9 +1,9 @@
 #ifndef BBLOCKS_BB_INSTRUCTION_HPP
 #define BBLOCKS_BB_INSTRUCTION_HPP
 
+#include <type_traits>
 #include <ostream>
 #include <string>
-#include <type_traits>
 
 typedef std::string VariableType;
 typedef int64_t NumericType;
@@ -23,7 +23,12 @@ class BBInstruction {
 
   virtual ~BBInstruction() = default;
 
-  friend virtual std::ostream& operator<<(std::ostream& out, const BBInstruction& instruction) = 0;
+  virtual void print(std::ostream& out, int tab) const = 0;
+
+  friend std::ostream& operator<<(std::ostream& out, const BBInstruction& instruction) {
+    instruction.print(out, 0);
+    return out;
+  }
 };
 
 }  // namespace bblocks

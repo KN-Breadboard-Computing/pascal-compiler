@@ -24,20 +24,9 @@ class ArrayTypeNode : public TypeNode {
   [[nodiscard]] const std::unique_ptr<SimpleTypeNode>& getRange() const { return range_; }
   [[nodiscard]] const std::unique_ptr<TypeNode>& getElementType() const { return elementType_; }
 
-  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override {
-    SimpleTypeNode* newRange = dynamic_cast<SimpleTypeNode*>(range_->clone().release());
-    TypeNode* newElementType = dynamic_cast<TypeNode*>(elementType_->clone().release());
-
-    return std::make_unique<ArrayTypeNode>(newRange, newElementType);
-  }
-
-  virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "ArrayTypeNode:\n";
-    out << std::string(tab + 2, ' ') << "Range:\n";
-    range_->print(out, tab + 4);
-    out << std::string(tab + 2, ' ') << "Element type:\n";
-    elementType_->print(out, tab + 4);
-  }
+  virtual void accept(AstVisitor& visitor) const override;
+  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
+  virtual void print(std::ostream& out, int tab) const override;
 
  private:
   std::unique_ptr<SimpleTypeNode> range_;

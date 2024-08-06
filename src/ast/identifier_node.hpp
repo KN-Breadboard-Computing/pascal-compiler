@@ -21,11 +21,9 @@ class IdentifierNode : public AstNode {
 
   [[nodiscard]] const std::string& getName() const { return name_; }
 
-  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override { return std::make_unique<IdentifierNode>(name_); }
-
-  virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "IdentifierNode: " << name_ << '\n';
-  }
+  virtual void accept(AstVisitor& visitor) const override;
+  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
+  virtual void print(std::ostream& out, int tab) const override;
 
  private:
   std::string name_;

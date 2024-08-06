@@ -53,24 +53,9 @@ class AssignToVariableNode : public AssignNode {
   void setVariable(std::unique_ptr<IdentifierNode> variable) { variable_ = std::move(variable); }
   void setExpression(std::unique_ptr<ExpressionNode> expression) { expression_ = std::move(expression); }
 
-  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override {
-    IdentifierNode* newVariable = dynamic_cast<IdentifierNode*>(variable_->clone().release());
-    ExpressionNode* newExpression = dynamic_cast<ExpressionNode*>(expression_->clone().release());
-
-    return std::make_unique<AssignToVariableNode>(newVariable, newExpression);
-  }
-
-  void print(std::ostream& out, int tab) const override {
-    if (getLabel().has_value()) {
-      out << std::string(tab, ' ') << "AssignToVariableNode with label: " << getLabel().value() << "\n";
-    }
-    else {
-      out << std::string(tab, ' ') << "AssignToVariableNode\n";
-    }
-
-    variable_->print(out, tab + 2);
-    expression_->print(out, tab + 2);
-  }
+  virtual void accept(AstVisitor& visitor) const override;
+  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
+  void print(std::ostream& out, int tab) const override;
 
  private:
   std::unique_ptr<IdentifierNode> variable_;
@@ -99,26 +84,9 @@ class AssignToArrayNode : public AssignNode {
   void setIndex(std::unique_ptr<ExpressionNode> index) { index_ = std::move(index); }
   void setExpression(std::unique_ptr<ExpressionNode> expression) { expression_ = std::move(expression); }
 
-  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override {
-    IdentifierNode* newArray = dynamic_cast<IdentifierNode*>(array_->clone().release());
-    ExpressionNode* newIndex = dynamic_cast<ExpressionNode*>(index_->clone().release());
-    ExpressionNode* newExpression = dynamic_cast<ExpressionNode*>(expression_->clone().release());
-
-    return std::make_unique<AssignToArrayNode>(newArray, newIndex, newExpression);
-  }
-
-  void print(std::ostream& out, int tab) const override {
-    if (getLabel().has_value()) {
-      out << std::string(tab, ' ') << "AssignToArrayNode with label: " << getLabel().value() << "\n";
-    }
-    else {
-      out << std::string(tab, ' ') << "AssignToArrayNode\n";
-    }
-
-    array_->print(out, tab + 2);
-    index_->print(out, tab + 2);
-    expression_->print(out, tab + 2);
-  }
+  virtual void accept(AstVisitor& visitor) const override;
+  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
+  void print(std::ostream& out, int tab) const override;
 
  private:
   std::unique_ptr<IdentifierNode> array_;
@@ -148,26 +116,9 @@ class AssignToRecordFieldNode : public AssignNode {
   void setField(std::unique_ptr<IdentifierNode> field) { field_ = std::move(field); }
   void setExpression(std::unique_ptr<ExpressionNode> expression) { expression_ = std::move(expression); }
 
-  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override {
-    IdentifierNode* newRecord = dynamic_cast<IdentifierNode*>(record_->clone().release());
-    IdentifierNode* newField = dynamic_cast<IdentifierNode*>(field_->clone().release());
-    ExpressionNode* newExpression = dynamic_cast<ExpressionNode*>(expression_->clone().release());
-
-    return std::make_unique<AssignToRecordFieldNode>(newRecord, newField, newExpression);
-  }
-
-  void print(std::ostream& out, int tab) const override {
-    if(getLabel().has_value()) {
-      out << std::string(tab, ' ') << "AssignToRecordFieldNode with label: " << getLabel().value() << "\n";
-    }
-    else {
-      out << std::string(tab, ' ') << "AssignToRecordFieldNode\n";
-    }
-
-    record_->print(out, tab + 2);
-    field_->print(out, tab + 2);
-    expression_->print(out, tab + 2);
-  }
+  virtual void accept(AstVisitor& visitor) const override;
+  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
+  void print(std::ostream& out, int tab) const override;
 
  private:
   std::unique_ptr<IdentifierNode> record_;

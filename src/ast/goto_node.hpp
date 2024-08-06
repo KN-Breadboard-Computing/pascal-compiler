@@ -21,18 +21,9 @@ class GotoNode : public StatementNode {
 
   void setLine(uint64_t line) { line_ = line; }
 
-  [[nodiscard]] std::unique_ptr<AstNode> clone() const override { return std::make_unique<GotoNode>(line_); }
-
-  void print(std::ostream& out, int tab) const override {
-    if (getLabel().has_value()) {
-      out << std::string(tab, ' ') << "GotoNode with label: " << getLabel().value() << '\n';
-    }
-    else {
-      out << std::string(tab, ' ') << "GotoNode\n";
-    }
-
-    out << std::string(tab, ' ') << "  Line: " << line_ << '\n';
-  }
+  virtual void accept(AstVisitor& visitor) const override;
+  [[nodiscard]] std::unique_ptr<AstNode> clone() const override;
+  void print(std::ostream& out, int tab) const override;
 
  private:
   uint64_t line_;

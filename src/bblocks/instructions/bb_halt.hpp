@@ -1,7 +1,7 @@
 #ifndef BBLOCKS_BB_HALT_HPP
 #define BBLOCKS_BB_HALT_HPP
 
-#include "BBInstruction.hpp"
+#include "bb_instruction.hpp"
 
 namespace bblocks {
 class BBHalt : public BBInstruction {
@@ -16,9 +16,8 @@ class BBHalt : public BBInstruction {
 
   ~BBHalt() override = default;
 
-  friend virtual std::ostream& operator<<(std::ostream& out, const BBHalt& instruction) override {
-    out << "HALT" << std::endl;
-    return out;
+  virtual void print(std::ostream& out, int tab) const override {
+    out << std::string(tab, ' ') << "HALT" << std::endl;
   }
 };
 }  // namespace bblocks
