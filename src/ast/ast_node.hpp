@@ -56,6 +56,11 @@ class AstNode {
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const = 0;
   virtual void print(std::ostream& out, int tab) const = 0;
 
+  friend std::ostream& operator<<(std::ostream& out, const AstNode& node) {
+    node.print(out, 0);
+    return out;
+  }
+
  protected:
   Type type_;
 };

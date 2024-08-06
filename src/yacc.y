@@ -1421,7 +1421,7 @@ void yyerror(const char *s) {
     fatalError = true;
 }
 
-std::unique_ptr<ast::ProgramNode> parse(const std::string& inputFileName, std::vector<std::string>& errors, bool& parsed) {
+bool parse(const std::string& inputFileName, std::vector<std::string>& errors, std::unique_ptr<ast::ProgramNode>& program) {
     yyin = fopen(inputFileName.c_str(), "r");
 
     if(yyin == nullptr) {
@@ -1432,6 +1432,6 @@ std::unique_ptr<ast::ProgramNode> parse(const std::string& inputFileName, std::v
     fclose(yyin);
 
     errors = std::move(parsingErrors);
-    parsed = !fatalError;
-    return std::unique_ptr<ast::ProgramNode>(resultAst);
+    program = std::unique_ptr<ast::ProgramNode>(resultAst);
+    return !fatalError;
 }

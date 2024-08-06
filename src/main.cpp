@@ -3,7 +3,7 @@
 
 #include "ast/program_node.hpp"
 
-std::unique_ptr<ast::ProgramNode> parse(const std::string& inputFileName, std::vector<std::string>& errors, bool& parsed);
+bool parse(const std::string& inputFileName, std::vector<std::string>& errors, std::unique_ptr<ast::ProgramNode>& program);
 
 int main(int argc, char* argv[]) {
   if (argc != 4) {
@@ -16,8 +16,8 @@ int main(int argc, char* argv[]) {
   std::string outputAsmFileName{argv[3]};
 
   std::vector<std::string> errors;
-  bool parsed;
-  auto program = parse(inputFileName, errors, parsed);
+  std::unique_ptr<ast::ProgramNode> program;
+  auto parsed = parse(inputFileName, errors, program);
 
   if (errors.size() > 0) {
     for (auto& error : errors) {
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
   if (parsed) {
     std::cout << "Parsed successfully!" << std::endl;
     std::ofstream outputAstFile(outputAstFileName);
-    program->print(outputAstFile, 0);
+    outputAstFile << *program;
   }
   else {
     std::cerr << "Failed to parse!" << std::endl;
