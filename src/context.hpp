@@ -1,7 +1,7 @@
 #ifndef CONTEXT_HPP
 #define CONTEXT_HPP
 
-#define CONTEXT_DEBUG
+#undef CONTEXT_DEBUG
 
 #include <string>
 

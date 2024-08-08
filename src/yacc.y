@@ -33,6 +33,10 @@ std::string getTypeString(ast::TypeNode* type);
 std::string getTypeString(ast::ConstantNode::ConstantType type);
 std::string getConstantString(ast::ConstantNode* constant);
 
+bool isIntegerCompatible(ast::ExpressionNode* expr);
+bool isCharCompatible(ast::ExpressionNode* expr);
+bool isBooleanCompatible(ast::ExpressionNode* expr);
+bool isVariableRecordFieldArrayElementCompatible(ast::ExpressionNode* expr);
 %}
 
 %code requires
@@ -1209,9 +1213,15 @@ proc_stmt :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse read statement" << std::endl;
         #endif
-        ast::ArgumentsListNode* args = new ast::ArgumentsListNode();
-        args->addArgument($3);
-        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::READ, args);
+        if(isVariableRecordFieldArrayElementCompatible($3)) {
+            ast::ArgumentsListNode* args = new ast::ArgumentsListNode();
+            args->addArgument($3);
+            $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::READ, args);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for read - variable, record field or array element expected");
+            fatalError = true;
+        }
     }
 
 |
@@ -1247,28 +1257,88 @@ proc_stmt :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse memory read statement" << std::endl;
         #endif
-        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::MEMORY_READ, $3);
+        if($3->getArguments().size() == 3) {
+            if(!isIntegerCompatibile($3->getArguments().at(0)) || !isIntegerCompatibile($3->getArguments().at(1)))) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory read - first two arguments should be integers");
+                fatalError = true;
+            }
+            else if(!isIntegerCompatibile($3->getArguments().at(2)) && !isCharCompatibile($3->getArguments().at(2))) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory read - third argument should be integer or char");
+                fatalError = true;
+            }
+            else {
+                $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::MEMORY_READ, $3);
+            }
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong number of arguments for memory read - 3 arguments expected");
+        }
     }
 |
     MEMORYWRITE LP args_list RP {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse memory write statement" << std::endl;
         #endif
-        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::MEMORY_WRITE, $3);
+        if($3->getArguments().size() == 3) {
+            if(!isIntegerCompatibile($3->getArguments().at(0)) || !isIntegerCompatibile($3->getArguments().at(1))) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory write - first two arguments should be integers");
+                fatalError = true;
+            }
+            else if(!isIntegerCompatibile($3->getArguments().at(2)) && !isCharCompatibile($3->getArguments().at(2))) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory write - third argument should be integer or char");
+                fatalError = true;
+            }
+            else {
+                $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::MEMORY_WRITE, $3);
+            }
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong number of arguments for memory write - 3 arguments expected");
+        }
     }
 |
     STACKREAD LP args_list RP {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse stack read statement" << std::endl;
         #endif
-        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::STACK_READ, $3);
+        if($3->getArguments().size() == 3) {
+            if(!isIntegerCompatibile($3->getArguments().at(0)) || !isIntegerCompatibile($3->getArguments().at(1))) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack read - first two arguments should be integers");
+                fatalError = true;
+            }
+            else if(!isIntegerCompatibile($3->getArguments().at(2)) && !isCharCompatibile($3->getArguments().at(2))) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack read - third argument should be integer or char");
+                fatalError = true;
+            }
+            else {
+                $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::STACK_READ, $3);
+            }
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong number of arguments for stack read - 3 arguments expected");
+        }
     }
 |
     STACKWRITE LP args_list RP {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse stack write statement" << std::endl;
         #endif
-        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::STACK_WRITE, $3);
+        if($3->getArguments().size() == 3) {
+            if(!isIntegerCompatibile($3->getArguments().at(0)) || !isIntegerCompatibile($3->getArguments().at(1))) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack write - first two arguments should be integers");
+                fatalError = true;
+            }
+            else if(!isIntegerCompatibile($3->getArguments().at(2)) && !isCharCompatibile($3->getArguments().at(2))) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack write - third argument should be integer or char");
+                fatalError = true;
+            }
+            else {
+                $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::STACK_WRITE, $3);
+            }
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong number of arguments for stack write - 3 arguments expected");
+        }
     }
 ;
 
@@ -1295,42 +1365,79 @@ expression :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with greater or equal" << std::endl;
         #endif
-        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::GREATER_EQUAL);
+        if(isIntegerCompatibile($1) && isIntegerCompatibile($3) || isBooleanCompatibile($1) && isBooleanCompatibile($3) || isCharCompatibile($1) && isCharCompatibile($3)) {
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::GREATER_EQUAL);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for greater or equal - matching types expected");
+            fatalError = true;
+        }
     }
 |
     expression GT expr {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with greater" << std::endl;
         #endif
-        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::GREATER);
+        if(isIntegerCompatibile($1) && isIntegerCompatibile($3) || isBooleanCompatibile($1) && isBooleanCompatibile($3) || isCharCompatibile($1) && isCharCompatibile($3)) {
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::GREATER);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for greater - matching types expected");
+            fatalError = true;
+        }
     }
 |
     expression LE expr {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with less or equal" << std::endl;
         #endif
-        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::LESS_EQUAL);
+        if(isIntegerCompatibile($1) && isIntegerCompatibile($3) || isBooleanCompatibile($1) && isBooleanCompatibile($3) || isCharCompatibile($1) && isCharCompatibile($3)) {
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::LESS_EQUAL);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for less or equal - matching types expected");
+            fatalError = true;
+        }
     }
 |
     expression LT expr {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with less" << std::endl;
         #endif
-        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::LESS);
+        if(isIntegerCompatibile($1) && isIntegerCompatibile($3) || isBooleanCompatibile($1) && isBooleanCompatibile($3) || isCharCompatibile($1) && isCharCompatibile($3)) {
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::LESS);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for less - matching types expected");
+            fatalError = true;
+        }
     }
 |
     expression EQUAL expr {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with equal" << std::endl;
         #endif
-        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::EQUAL);
+        if(isIntegerCompatibile($1) && isIntegerCompatibile($3) || isBooleanCompatibile($1) && isBooleanCompatibile($3) || isCharCompatibile($1) && isCharCompatibile($3)) {
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::EQUAL);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for equal - matching types expected");
+            fatalError = true;
+        }
     }
 |
     expression UNEQUAL expr {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with not equal" << std::endl;
         #endif
-        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::NOT_EQUAL);
+        if(isIntegerCompatibile($1) && isIntegerCompatibile($3) || isBooleanCompatibile($1) && isBooleanCompatibile($3) || isCharCompatibile($1) && isCharCompatibile($3)) {
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::UNEQUAL);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for not equal - matching types expected");
+            fatalError = true;
+        }
+
     }
 |
     expr {
@@ -1346,21 +1453,39 @@ expr :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with addition" << std::endl;
         #endif
-        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::ADDITION);
+        if(isIntegerCompatibile($1) && isIntegerCompatibile($3)) {
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::ADDITION);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for addition - integer expected");
+            fatalError = true;
+        }
     }
 |
     expr MINUS term {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with subtraction" << std::endl;
         #endif
-        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::SUBTRACTION);
+        if(isIntegerCompatibile($1) && isIntegerCompatibile($3)) {
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::SUBTRACTION);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for subtraction - integer expected");
+            fatalError = true;
+        }
     }
 |
     expr OR term {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with or" << std::endl;
         #endif
-        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::OR);
+        if(isBooleanCompatibile($1) && isBooleanCompatibile($3)) {
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::OR);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for or - boolean expected");
+            fatalError = true;
+        }
     }
 |
     term {
@@ -1376,28 +1501,52 @@ term :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with multiplication" << std::endl;
         #endif
-        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::MULTIPLICATION);
+        if(isIntegerCompatibile($1) && isIntegerCompatibile($3)) {
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::MULTIPLICATION);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for mul - integer expected");
+            fatalError = true;
+        }
     }
 |
     term DIV factor {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with division" << std::endl;
         #endif
-        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::DIVISION);
+        if(isIntegerCompatibile($1) && isIntegerCompatibile($3)) {
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::DIVISION);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for div - integer expected");
+            fatalError = true;
+        }
     }
 |
     term MOD factor {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with modulus" << std::endl;
         #endif
-        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::MODULUS);
+        if(isIntegerCompatibile($1) && isIntegerCompatibile($3)) {
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::MODULUS);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for mod - integer expected");
+            fatalError = true;
+        }
     }
 |
     term AND factor {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with and" << std::endl;
         #endif
-        $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::AND);
+        if(isBooleanCompatibile($1) && isBooleanCompatibile($3)) {
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::AND);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for and - boolean expected");
+            fatalError = true;
+        }
     }
 |
     factor {
@@ -1441,14 +1590,27 @@ factor :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - not" << std::endl;
         #endif
-       $$ = new ast::ExpressionNode($2, ast::ExpressionNode::Operation::NOT);
+       if(isBooleanCompatibile($2)) {
+            $$ = new ast::ExpressionNode($2, ast::ExpressionNode::Operation::NEGATION);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for not - boolean expected");
+            fatalError = true;
+        }
     }
 |
     MINUS factor {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - negation" << std::endl;
         #endif
-        $$ = new ast::ExpressionNode($2, ast::ExpressionNode::Operation::NEGATION);
+        if(isIntegerCompatibile($2)) {
+            $$ = new ast::ExpressionNode($2, ast::ExpressionNode::Operation::NEGATION);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for negation - integer expected");
+            fatalError = true;
+        }
+
     }
 |
     identifier LB expression RB {
@@ -1469,42 +1631,120 @@ factor :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - abs" << std::endl;
         #endif
-        $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ABS);
+        if($3->getArguments().size() != 1) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong number of arguments for abs");
+            fatalError = true;
+        }
+        else {
+            ExpressionNode* arg = $3->getArguments().front();
+            if(isIntegerCompatibile(arg)) {
+                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ABS);
+            }
+            else {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for abs - integer expected");
+                fatalError = true;
+            }
+        }
     }
 |
     CHR LP args_list RP {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - chr" << std::endl;
         #endif
-        $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::CHR);
+        if($3->getArguments().size() != 1) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong number of arguments for chr");
+            fatalError = true;
+        }
+        else {
+            ExpressionNode* arg = $3->getArguments().front();
+            if(isIntegerCompatibile(arg)) {
+                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::CHR);
+            }
+            else {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for chr - integer expected");
+                fatalError = true;
+            }
+        }
     }
 |
     ODD LP args_list RP {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - odd" << std::endl;
         #endif
-        $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ODD);
+        if($3->getArguments().size() != 1) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong number of arguments for odd");
+            fatalError = true;
+        }
+        else {
+            ExpressionNode* arg = $3->getArguments().front();
+            if(isIntegerCompatibile(arg)) {
+                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ODD);
+            }
+            else {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for odd - integer expected");
+                fatalError = true;
+            }
+        }
     }
 |
     ORD LP args_list RP {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - ord" << std::endl;
         #endif
-        $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ORD);
+        if($3->getArguments().size() != 1) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong number of arguments for ord");
+            fatalError = true;
+        }
+        else {
+            ExpressionNode* arg = $3->getArguments().front();
+            if(isCharCompatibile(arg)) {
+                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ORD);
+            }
+            else {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for ord - char expected");
+                fatalError = true;
+            }
+        }
     }
 |
     PRED LP args_list RP {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - pred" << std::endl;
         #endif
-        $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::PRED);
+        if($3->getArguments().size() != 1) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong number of arguments for pred");
+            fatalError = true;
+        }
+        else {
+            ExpressionNode* arg = $3->getArguments().front();
+            if(isIntegerCompatibile(arg) || isCharCompatibile(arg)) {
+                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::PRED);
+            }
+            else {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for pred - integer or char expected");
+                fatalError = true;
+            }
+        }
     }
 |
     SUCC LP args_list RP {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - succ" << std::endl;
         #endif
-        $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::SUCC);
+        if($3->getArguments().size() != 1) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong number of arguments for succ");
+            fatalError = true;
+        }
+        else {
+            ExpressionNode* arg = $3->getArguments().front();
+            if(isIntegerCompatibile(arg) || isCharCompatibile(arg)) {
+                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::SUCC);
+            }
+            else {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for succ - integer or char expected");
+                fatalError = true;
+            }
+        }
     }
 ;
 %%
@@ -1700,4 +1940,20 @@ std::string getConstantString(ast::ConstantNode* constant) {
     else {
         return "unspecified";
     }
+}
+
+bool isIntegerCompatible(ast::ExpressionNode* expr) {
+    return true;
+}
+
+bool isCharCompatible(ast::ExpressionNode* expr) {
+    return true;
+}
+
+bool isBooleanCompatible(ast::ExpressionNode* expr) {
+    return true;
+}
+
+bool bool isVariableRecordFieldArrayElementCompatible(ast::ExpressionNode* expr) {
+    return true;
 }
