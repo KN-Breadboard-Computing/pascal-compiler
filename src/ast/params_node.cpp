@@ -1,11 +1,11 @@
 #include "params_node.hpp"
 
 namespace ast {
-virtual void ParamsNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void ParamsNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> ParamsNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> ParamsNode::clone() const {
   auto clone = std::make_unique<ParamsNode>();
 
   std::vector<ParamsGroupNode*> params;
@@ -17,7 +17,7 @@ virtual void ParamsNode::accept(AstVisitor& visitor) const override {
   return clone;
 }
 
-virtual void ParamsNode::print(std::ostream& out, int tab) const override {
+void ParamsNode::print(std::ostream& out, int tab) const {
   out << std::string(tab, ' ') << "ParamsNode:\n";
   for (const auto& param : *params_) {
     param->print(out, tab + 2);

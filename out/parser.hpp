@@ -45,7 +45,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 27 "src/yacc.y"
+#line 39 "src/yacc.y"
 
     #include <iostream>
     #include <stdlib.h>
@@ -177,7 +177,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 64 "src/yacc.y"
+#line 76 "src/yacc.y"
 
     Token token;
     ast::ProgramNode* programNode;

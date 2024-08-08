@@ -27,7 +27,7 @@ class ProgramNode : public AstNode {
   void setName(std::string name) { name_ = std::move(name); }
   void setRoutine(std::unique_ptr<RoutineNode> routine) { routine_ = std::move(routine); }
 
-  virtual void accept(AstVisitor& visitor) const override;
+  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream& out, int tab) const override;
 

@@ -6,17 +6,26 @@
 #include <vector>
 
 #include "instructions/bb_binary_operation.hpp"
+#include "instructions/bb_call.hpp"
 #include "instructions/bb_halt.hpp"
 #include "instructions/bb_instruction.hpp"
 #include "instructions/bb_move.hpp"
 #include "instructions/bb_pop.hpp"
 #include "instructions/bb_push.hpp"
+#include "instructions/bb_ret.hpp"
 #include "instructions/bb_unary_operation.hpp"
 
 namespace bblocks {
 class BasicBlock {
  public:
   BasicBlock() = default;
+
+  BasicBlock(const BasicBlock&) = delete;
+  BasicBlock(BasicBlock&&) = default;
+
+  BasicBlock& operator=(const BasicBlock&) = delete;
+  BasicBlock& operator=(BasicBlock&&) = default;
+
   virtual ~BasicBlock() = default;
 
   [[nodiscard]] const std::vector<std::unique_ptr<BBInstruction>>& getInstructions() const { return instructions_; }

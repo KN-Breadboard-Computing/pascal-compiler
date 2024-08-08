@@ -6,14 +6,15 @@
 #include <utility>
 
 #include "../src/ast/program_node.hpp"
-#include "../src/LookupTable.hpp"
+#include "../src/context.hpp"
 
-#define YACC_DEBUG
+#undef YACC_DEBUG
+
+Context* ctx = Context::getInstance();
 
 ast::ProgramNode* resultAst;
 std::vector<std::string> parsingErrors;
 bool fatalError = false;
-LookupTable lookupTable;
 
 static void yyerror(const char *msg);
 static int yyparse(void);
@@ -21,6 +22,17 @@ int yylex(void);
 
 extern FILE* yyin;
 extern uint64_t linesCounter;
+
+bool nameAlreadyUsed(std::string name);
+void saveType(ast::IdentifierNode* typeName, ast::TypeNode* typeDef);
+void saveConstant(ast::IdentifierNode* constName, ast::ConstantNode* constDef);
+void saveVariables(std::vector<ast::IdentifierNode*>* varNames, ast::TypeNode* typeDef);
+void saveRoutine(ast::RoutineDeclarationNode* routineDef);
+
+std::string getTypeString(ast::TypeNode* type);
+std::string getTypeString(ast::ConstantNode::ConstantType type);
+std::string getConstantString(ast::ConstantNode* constant);
+
 %}
 
 %code requires
@@ -177,8 +189,6 @@ program :
             std::cout << "Yacc debug: Parse program 1: " << (*$2.stringValue) << std::endl;
         #endif
 
-        lookupTable.pushNamespace("@program");
-
         std::string name{*$2.stringValue};
         $4->setSubType(ast::RoutineNode::SubType::MAIN);
         $$ = new ast::ProgramNode(std::move(name), $4);
@@ -189,8 +199,6 @@ program :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse program 2: " << (*$2.stringValue) << std::endl;
         #endif
-
-        lookupTable.pushNamespace("@program");
 
         std::string name{*$2.stringValue};
         $4->setSubType(ast::RoutineNode::SubType::MAIN);
@@ -204,8 +212,6 @@ program :
             std::cout << "Yacc debug: Parse program 3: " << (*$2.stringValue) << std::endl;
         #endif
 
-        lookupTable.pushNamespace("@program");
-
         std::string name{*$2.stringValue};
         $3->setSubType(ast::RoutineNode::SubType::MAIN);
         $$ = new ast::ProgramNode(std::move(name), $3);
@@ -217,8 +223,6 @@ program :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse program 4: " << (*$2.stringValue) << std::endl;
         #endif
-
-        lookupTable.pushNamespace("@program");
 
         std::string name{*$2.stringValue};
         $3->setSubType(ast::RoutineNode::SubType::MAIN);
@@ -256,32 +260,44 @@ routine_part :
 |
     routine_part fun_decl {
         #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse routine part with fun decl 1" << std::endl;
+            std::cout << "Yacc debug: Parse routine part with fun decl 1 " << $2->getName() << std::endl;
         #endif
+
+        saveRoutine($2);
+
         $$ = $1;
         $$->push_back($2);
     }
 |
     routine_part proc_decl {
        #ifdef YACC_DEBUG
-           std::cout << "Yacc debug: Parse routine part with proc decl 1" << std::endl;
+           std::cout << "Yacc debug: Parse routine part with proc decl 1 " << $2->getName() << std::endl;
        #endif
+
+       saveRoutine($2);
+
        $$ = $1;
        $$->push_back($2);
     }
 |
     fun_decl {
         #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse routine part with fun decl 2" << std::endl;
+            std::cout << "Yacc debug: Parse routine part with fun decl 2 " << $1->getName() << std::endl;
         #endif
+
+        saveRoutine($1);
+
         $$ = new std::vector<ast::RoutineDeclarationNode*>();
         $$->push_back($1);
     }
 |
     proc_decl {
         #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse routine part with proc decl 2" << std::endl;
+            std::cout << "Yacc debug: Parse routine part with proc decl 2 " << $1->getName() << std::endl;
         #endif
+
+        saveRoutine($1);
+
         $$ = new std::vector<ast::RoutineDeclarationNode*>();
         $$->push_back($1);
     }
@@ -292,6 +308,9 @@ fun_decl :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun decl 1" << std::endl;
         #endif
+
+        ctx->getLookupTable().popScope();
+
         $$ = $1;
         $$->setRoutine(std::unique_ptr<ast::RoutineNode>($3));
         $$->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
@@ -301,6 +320,9 @@ fun_decl :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun decl 2" << std::endl;
         #endif
+
+        ctx->getLookupTable().popScope();
+
         $$ = $1;
         $$->setRoutine(std::unique_ptr<ast::RoutineNode>($3));
         $$->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
@@ -311,6 +333,9 @@ fun_decl :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun decl 3" << std::endl;
         #endif
+
+        ctx->getLookupTable().popScope();
+
         $$ = $1;
         $$->setRoutine(std::unique_ptr<ast::RoutineNode>($2));
         $$->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
@@ -321,6 +346,9 @@ fun_decl :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun decl 4" << std::endl;
         #endif
+
+        ctx->getLookupTable().popScope();
+
         $$ = $1;
         $$->setRoutine(std::unique_ptr<ast::RoutineNode>($2));
         $$->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
@@ -334,10 +362,12 @@ fun_head :
             std::cout << "Yacc debug: Parse fun head " << (*$2.stringValue) << std::endl;
         #endif
 
-        lookupTable.pushNamespace("@" + (*$2.stringValue));
+        ctx->getLookupTable().pushScope(*$2.stringValue);
 
         std::string name{*$2.stringValue};
         $$ = new ast::RoutineDeclarationNode(ast::RoutineDeclarationNode::RoutineType::FUNCTION, std::move(name), $3, $5, nullptr);
+
+
     }
 ;
 
@@ -346,9 +376,51 @@ proc_decl :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse proc decl" << std::endl;
         #endif
+
+        ctx->getLookupTable().popScope();
+
         $$ = $1;
         $$->setRoutine(std::unique_ptr<ast::RoutineNode>($3));
         $$->setRoutineType(ast::RoutineDeclarationNode::RoutineType::PROCEDURE);
+    }
+|
+    proc_head routine SEMICOLON {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse proc decl" << std::endl;
+        #endif
+
+        ctx->getLookupTable().popScope();
+
+        $$ = $1;
+        $$->setRoutine(std::unique_ptr<ast::RoutineNode>($2));
+        $$->setRoutineType(ast::RoutineDeclarationNode::RoutineType::PROCEDURE);
+        parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
+    }
+|
+    proc_head SEMICOLON routine {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse proc decl" << std::endl;
+        #endif
+
+        ctx->getLookupTable().popScope();
+
+        $$ = $1;
+        $$->setRoutine(std::unique_ptr<ast::RoutineNode>($3));
+        $$->setRoutineType(ast::RoutineDeclarationNode::RoutineType::PROCEDURE);
+        parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
+    }
+|
+    proc_head routine {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse proc decl" << std::endl;
+        #endif
+
+        ctx->getLookupTable().popScope();
+
+        $$ = $1;
+        $$->setRoutine(std::unique_ptr<ast::RoutineNode>($2));
+        $$->setRoutineType(ast::RoutineDeclarationNode::RoutineType::PROCEDURE);
+        parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
 ;
 
@@ -358,7 +430,7 @@ proc_head :
             std::cout << "Yacc debug: Parse proc head " << (*$2.stringValue) << std::endl;
         #endif
 
-        lookupTable.pushNamespace("@" + (*$2.stringValue));
+        ctx->getLookupTable().pushScope(*$2.stringValue);
 
         std::string name{*$2.stringValue};
         $$ = new ast::RoutineDeclarationNode(ast::RoutineDeclarationNode::RoutineType::PROCEDURE, std::move(name), $3, nullptr, nullptr);
@@ -370,14 +442,14 @@ params :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty params" << std::endl;
         #endif
-        std::vector<ast::ParamsGroupNode *>* emptyParamsList{};
+        std::vector<ast::ParamsGroupNode *>* emptyParamsList = new std::vector<ast::ParamsGroupNode*>();
         $$ = new ast::ParamsNode(emptyParamsList);
     }
 |
     LP params_decl RP {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse params" << std::endl;
-        #endif  
+        #endif
         $$ = new ast::ParamsNode($2);
     }
 ;
@@ -455,6 +527,9 @@ var_decl :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse var decl 1" << std::endl;
         #endif
+
+        saveVariables($1, $3);
+
         $$ = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>($1, $3);
     }
 |
@@ -462,6 +537,9 @@ var_decl :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse var decl 2" << std::endl;
         #endif
+
+        saveVariables($1, $3);
+
         $$ = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>($1, $3);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
@@ -479,6 +557,7 @@ const_part :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const part" << std::endl;
         #endif
+
         $$ = $2;
     }
 ;
@@ -506,6 +585,9 @@ const_expr :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const expr 1" << std::endl;
         #endif
+
+        saveConstant($1, $3);
+
         $$ = new std::pair<ast::IdentifierNode*, ast::ConstantNode*>($1, $3);
     }
 |
@@ -513,6 +595,9 @@ const_expr :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const expr 2" << std::endl;
         #endif
+
+        saveConstant($1, $3);
+
         $$ = new std::pair<ast::IdentifierNode*, ast::ConstantNode*>($1, $3);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
@@ -602,6 +687,7 @@ type_decl_list :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse type decl list 1" << std::endl;
         #endif
+
         $$ = $1;
         $$->push_back($2);
     }
@@ -610,6 +696,7 @@ type_decl_list :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse type decl list 2" << std::endl;
         #endif
+
         $$ = new std::vector<std::pair<ast::IdentifierNode*, ast::TypeNode*>*>();
         $$->push_back($1);
     }
@@ -620,6 +707,9 @@ type_def :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse type def 1" << std::endl;
         #endif
+
+        saveType($1, $3);
+
         $$ = new std::pair<ast::IdentifierNode*, ast::TypeNode*>($1, $3);
     }
 |
@@ -627,6 +717,9 @@ type_def :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse type def 2" << std::endl;
         #endif
+
+        saveType($1, $3);
+
         $$ = new std::pair<ast::IdentifierNode*, ast::TypeNode*>($1, $3);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
@@ -1434,4 +1527,177 @@ bool parse(const std::string& inputFileName, std::vector<std::string>& errors, s
     errors = std::move(parsingErrors);
     program = std::unique_ptr<ast::ProgramNode>(resultAst);
     return !fatalError;
+}
+
+bool nameAlreadyUsed(std::string name) {
+    return ctx->getLookupTable().isVariableDefined(name, "") || ctx->getLookupTable().isRoutineDefined(name, "") || ctx->getLookupTable().isTypeDefined(name, "");
+}
+
+void saveType(ast::IdentifierNode* typeName, ast::TypeNode* typeDef) {
+    if(nameAlreadyUsed(typeName->getName())) {
+        parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + typeName->getName() + "` already used");
+    } else {
+        ctx->getLookupTable().defineType(LookupTable::TypeCategory::SIMPLE, typeName->getName(), getTypeString(typeDef));
+    }
+}
+
+void saveConstant(ast::IdentifierNode* constName, ast::ConstantNode* constDef) {
+    if(nameAlreadyUsed(constName->getName())) {
+        parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + constName->getName() + "` already used");
+    } else {
+        ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::CONSTANT, constName->getName(), getTypeString(constDef->getConstantType()));
+        ctx->getLookupTable().setVariableValue(constName->getName(), getConstantString(constDef));
+    }
+}
+
+void saveVariables(std::vector<ast::IdentifierNode*>* varNames, ast::TypeNode* typeDef) {
+    for(auto& varName : *varNames) {
+        if(nameAlreadyUsed(varName->getName())) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + varName->getName() + "` already used");
+        } else {
+            ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::VARIABLE, varName->getName(), getTypeString(typeDef));
+        }
+    }
+}
+
+void saveRoutine(ast::RoutineDeclarationNode* routineDef) {
+    if(nameAlreadyUsed(routineDef->getName())) {
+        parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + routineDef->getName() + "` already used");
+    } else {
+        std::vector<std::pair<std::string, std::string>> arguments;
+        for(const auto& paramGroup : *routineDef->getParams()->getParams()) {
+            std::string typeString = getTypeString(paramGroup->getParamsType().get());
+            for(const auto& param : *paramGroup->getParams()) {
+                arguments.emplace_back(param->getName(), typeString);
+            }
+        }
+
+        if(routineDef->getRoutineType() == ast::RoutineDeclarationNode::RoutineType::PROCEDURE) {
+            ctx->getLookupTable().defineRoutine(LookupTable::RoutineCategory::PROCEDURE, routineDef->getName(),
+                arguments, "void", "");
+        }
+        else {
+            ctx->getLookupTable().defineRoutine(LookupTable::RoutineCategory::FUNCTION, routineDef->getName(),
+                arguments, getTypeString(routineDef->getReturnType().get()), "");
+        }
+    }
+}
+
+std::string getTypeString(ast::TypeNode* type) {
+    if(type->getTypeType() == ast::TypeNode::TypeType::SIMPLE) {
+        auto* simpleType = dynamic_cast<ast::SimpleTypeNode*>(type);
+        switch(simpleType->getRepresentation()) {
+            case ast::SimpleTypeNode::Representation::INTEGER:
+                return "integer";
+            case ast::SimpleTypeNode::Representation::UNSIGNED:
+                return "unsigned";
+            case ast::SimpleTypeNode::Representation::BOOLEAN:
+                return "boolean";
+            case ast::SimpleTypeNode::Representation::CHAR:
+                return "char";
+            case ast::SimpleTypeNode::Representation::STRING:
+                return "string";
+            case ast::SimpleTypeNode::Representation::RENAMING: {
+                auto* renamingType = dynamic_cast<ast::RenameTypeNode*>(type);
+                if(!ctx->getLookupTable().isTypeDefined(renamingType->getIdentifier()->getName(), "")) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", unknown type `" + renamingType->getIdentifier()->getName() + "`");
+                    return "unspecified";
+                }
+                return ctx->getLookupTable().getType(renamingType->getIdentifier()->getName(), "").type;
+             }
+            case ast::SimpleTypeNode::Representation::ENUMERATION: {
+                auto* enumType = dynamic_cast<ast::EnumerationTypeNode*>(type);
+                std::string mergedEnum = "enum@";
+                for(auto& identifier : *enumType->getIdentifiers()) {
+                    mergedEnum += identifier->getName() + "@";
+                }
+                return mergedEnum;
+            }
+            case ast::SimpleTypeNode::Representation::CONST_RANGE: {
+                auto* rangeType = dynamic_cast<ast::ConstRangeTypeNode*>(type);
+                return "constrange@" + getConstantString(rangeType->getLowerBound().get()) + ".." + getConstantString(rangeType->getUpperBound().get());
+            }
+            case ast::SimpleTypeNode::Representation::VAR_RANGE: {
+                auto* rangeType = dynamic_cast<ast::VarRangeTypeNode*>(type);
+                std::string lb = rangeType->getLowerBound()->getName();
+                std::string ub = rangeType->getUpperBound()->getName();
+
+                auto properEnums = ctx->getLookupTable().getTypes(
+                [&](const std::string&, const LookupTable::TypeInfo& tf) {
+                    return tf.alive && tf.type.find("enum@") == 0 && tf.type.find("@" + lb + "@") != std::string::npos && tf.type.find("@" + ub + "@") != std::string::npos;
+                });
+
+                if(properEnums.empty()) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + lb + " and " + ub + " are not in any enum");
+                    return "unspecified";
+                }
+                else if(properEnums.size() > 1) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + lb + " and " + ub + " are in more than one enum");
+                    return "unspecified";
+                }
+
+                return "enumrange@" + properEnums.front().name + "@"  + lb + ".." + ub;
+            }
+            default:
+                return "unspecified";
+        }
+    }
+    else if(type->getTypeType() == ast::TypeNode::TypeType::ARRAY) {
+        auto* arrayType = dynamic_cast<ast::ArrayTypeNode*>(type);
+
+        std::string elementTypeName = getTypeString(arrayType->getElementType().get());
+        std::string rangeTypeName = getTypeString(arrayType->getRange().get());
+
+        return "array@@" + rangeTypeName + "@" + elementTypeName + "@@";
+    }
+    else if(type->getTypeType() == ast::TypeNode::TypeType::RECORD) {
+        auto* recordType = dynamic_cast<ast::RecordTypeNode*>(type);
+
+        std::string mergedRecord = "record@@";
+        for(auto& field : *recordType->getFields()) {
+            for(auto& identifier : *field->first) {
+                mergedRecord += identifier->getName() + "#" + getTypeString(field->second) + "@";
+            }
+        }
+
+        return mergedRecord + "@@";
+    }
+    else {
+        return "unspecified";
+    }
+}
+
+std::string getTypeString(ast::ConstantNode::ConstantType type) {
+    switch(type) {
+        case ast::ConstantNode::ConstantType::INTEGER:
+            return "integer";
+        case ast::ConstantNode::ConstantType::BOOLEAN:
+            return "boolean";
+        case ast::ConstantNode::ConstantType::CHAR:
+            return "char";
+        case ast::ConstantNode::ConstantType::STRING:
+            return "string";
+        default:
+            return "unspecified";
+    }
+}
+
+std::string getConstantString(ast::ConstantNode* constant) {
+    if(constant->getConstantType() == ast::ConstantNode::ConstantType::INTEGER) {
+        auto* intConst = dynamic_cast<ast::IntegerConstantNode*>(constant);
+        return std::to_string(intConst->getValue());
+    } else if(constant->getConstantType() == ast::ConstantNode::ConstantType::BOOLEAN) {
+        auto* boolConst = dynamic_cast<ast::BooleanConstantNode*>(constant);
+        return boolConst->getValue() ? "true" : "false";
+    } else if(constant->getConstantType() == ast::ConstantNode::ConstantType::CHAR) {
+        auto* charConst = dynamic_cast<ast::CharConstantNode*>(constant);
+        return std::string(1, charConst->getValue());
+    }
+    else if(constant->getConstantType() == ast::ConstantNode::ConstantType::STRING) {
+        auto* stringConst = dynamic_cast<ast::StringConstantNode*>(constant);
+        return stringConst->getValue();
+    }
+    else {
+        return "unspecified";
+    }
 }

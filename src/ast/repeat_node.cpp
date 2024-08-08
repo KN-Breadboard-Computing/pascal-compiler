@@ -1,9 +1,9 @@
 #include "repeat_node.hpp"
 
 namespace ast {
-virtual void RepeatNode::accept(AstVisitor& visitor) const override { visitor.visit(*this); }
+void RepeatNode::accept(const std::unique_ptr<AstVisitor>& visitor) const { visitor->visit(*this); }
 
-virtual std::unique_ptr<AstNode> RepeatNode::clone() const override {
+std::unique_ptr<AstNode> RepeatNode::clone() const {
   auto clone = std::make_unique<RepeatNode>();
 
   clone->setCondition(std::unique_ptr<ExpressionNode>(dynamic_cast<ExpressionNode*>(condition_->clone().release())));
@@ -16,7 +16,7 @@ virtual std::unique_ptr<AstNode> RepeatNode::clone() const override {
   return clone;
 }
 
-virtual void RepeatNode::print(std::ostream& out, int tab) const override {
+void RepeatNode::print(std::ostream& out, int tab) const {
   if(getLabel().has_value()) {
     out << std::string(tab, ' ') << "RepeatNode with label: " << getLabel().value() << std::endl;
   } else {

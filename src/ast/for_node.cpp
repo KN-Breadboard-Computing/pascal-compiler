@@ -2,11 +2,11 @@
 
 namespace ast {
 // ForNode
-virtual void ForNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void ForNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] std::unique_ptr<AstNode> ForNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> ForNode::clone() const {
   auto clone = std::make_unique<ForNode>();
   clone->setIterator(std::unique_ptr<IdentifierNode>(dynamic_cast<IdentifierNode*>(iterator_->clone().release())));
   clone->setStart(std::unique_ptr<ExpressionNode>(dynamic_cast<ExpressionNode*>(start_->clone().release())));
@@ -16,7 +16,7 @@ virtual void ForNode::accept(AstVisitor& visitor) const override {
   return clone;
 }
 
-void ForNode::print(std::ostream& out, int tab) const override {
+void ForNode::print(std::ostream& out, int tab) const {
   if (getLabel().has_value()) {
     out << std::string(tab, ' ') << "ForNode with label: " << getLabel().value() << std::endl;
   }
@@ -31,16 +31,16 @@ void ForNode::print(std::ostream& out, int tab) const override {
 }
 
 // BreakNode
-virtual void BreakNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void BreakNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] std::unique_ptr<AstNode> BreakNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> BreakNode::clone() const {
   auto clone = std::make_unique<BreakNode>();
   return clone;
 }
 
-void BreakNode::print(std::ostream& out, int tab) const override {
+void BreakNode::print(std::ostream& out, int tab) const {
   if (getLabel().has_value()) {
     out << std::string(tab, ' ') << "BreakNode with label: " << getLabel().value() << std::endl;
   }
@@ -50,16 +50,16 @@ void BreakNode::print(std::ostream& out, int tab) const override {
 }
 
 // ContinueNode
-virtual void ContinueNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void ContinueNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] std::unique_ptr<AstNode> ContinueNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> ContinueNode::clone() const {
   auto clone = std::make_unique<ContinueNode>();
   return clone;
 }
 
-void ContinueNode::print(std::ostream& out, int tab) const override {
+void ContinueNode::print(std::ostream& out, int tab) const {
   if (getLabel().has_value()) {
     out << std::string(tab, ' ') << "ContinueNode with label: " << getLabel().value() << std::endl;
   }

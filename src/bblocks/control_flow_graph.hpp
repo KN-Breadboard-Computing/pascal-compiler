@@ -15,17 +15,20 @@ class ControlFlowGraph {
  public:
   ControlFlowGraph() = default;
 
-  ControlFlowGraph(const ControlFlowGraph&) = default;
+  ControlFlowGraph(const ControlFlowGraph&) = delete;
   ControlFlowGraph(ControlFlowGraph&&) = default;
 
-  ControlFlowGraph& operator=(const ControlFlowGraph&) = default;
+  ControlFlowGraph& operator=(const ControlFlowGraph&) = delete;
   ControlFlowGraph& operator=(ControlFlowGraph&&) = default;
 
   virtual ~ControlFlowGraph() = default;
 
-  friend std::ostream& operator<<(std::ostream& out, const ControlFlowGraph& cfg) {
-    for (const auto& basicBlock : cfg.basicBlocks_) {
-      out << *basicBlock;
+  friend std::ostream& operator<<(std::ostream& out, const std::map<std::string, ControlFlowGraph>& cfgs) {
+    for (const auto& [name, cfg] : cfgs) {
+      out << "Control Flow Graph: " << name << std::endl;
+      for (const auto& basicBlock : cfg.basicBlocks_) {
+        out << *basicBlock;
+      }
     }
     return out;
   }

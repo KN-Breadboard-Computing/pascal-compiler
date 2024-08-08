@@ -55,7 +55,7 @@ class AstNode {
 
   [[nodiscard]] Type getType() const { return type_; }
 
-  virtual void accept(AstVisitor& visitor) const = 0;
+  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const = 0;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const = 0;
   virtual void print(std::ostream& out, int tab) const = 0;
 
@@ -68,5 +68,7 @@ class AstNode {
   Type type_;
 };
 }  // namespace ast
+
+#include "ast_visitor.hpp"
 
 #endif  // AST_AST_NODE_HPP

@@ -1,15 +1,15 @@
 #include "type_node.hpp"
 
 namespace ast {
-virtual void TypeNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void TypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> TypeNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> TypeNode::clone() const {
   return std::make_unique<TypeNode>(typeType_);
 }
 
-virtual void TypeNode::print(std::ostream& out, int tab) const override {
+void TypeNode::print(std::ostream& out, int tab) const {
   out << std::string(tab, ' ') << "TypeNode ";
   switch (typeType_) {
     case SIMPLE:

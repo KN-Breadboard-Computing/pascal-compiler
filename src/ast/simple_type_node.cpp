@@ -2,15 +2,15 @@
 
 namespace ast {
 // SimpleTypeNode
-virtual void SimpleTypeNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void SimpleTypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> SimpleTypeNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> SimpleTypeNode::clone() const {
   return std::make_unique<SimpleTypeNode>(representation_);
 }
 
-virtual void SimpleTypeNode::print(std::ostream& out, int tab) const override {
+void SimpleTypeNode::print(std::ostream& out, int tab) const {
   out << std::string(tab, ' ') << "SimpleTypeNode ";
   switch (representation_) {
     case INTEGER:
@@ -48,26 +48,26 @@ virtual void SimpleTypeNode::print(std::ostream& out, int tab) const override {
 }
 
 // RenameTypeNode
-virtual void RenameTypeNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void RenameTypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> RenameTypeNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> RenameTypeNode::clone() const {
   IdentifierNode* newIdentifier = dynamic_cast<IdentifierNode*>(identifier_->clone().release());
   return std::make_unique<RenameTypeNode>(newIdentifier);
 }
 
-virtual void RenameTypeNode::print(std::ostream& out, int tab) const override {
+void RenameTypeNode::print(std::ostream& out, int tab) const {
   out << std::string(tab, ' ') << "RenameTypeNode:\n";
   identifier_->print(out, tab + 2);
 }
 
 // EnumerationTypeNode
-virtual void EnumerationTypeNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void EnumerationTypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> EnumerationTypeNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> EnumerationTypeNode::clone() const {
   auto newIdentifiers = std::make_unique<std::vector<IdentifierNode*>>();
   for (const auto& identifier : *identifiers_) {
     newIdentifiers->push_back(dynamic_cast<IdentifierNode*>(identifier->clone().release()));
@@ -75,7 +75,7 @@ virtual void EnumerationTypeNode::accept(AstVisitor& visitor) const override {
   return std::make_unique<EnumerationTypeNode>(newIdentifiers.get());
 }
 
-virtual void EnumerationTypeNode::print(std::ostream& out, int tab) const override {
+void EnumerationTypeNode::print(std::ostream& out, int tab) const {
   out << std::string(tab, ' ') << "EnumerationTypeNode:\n";
   for (const auto& identifier : *identifiers_) {
     identifier->print(out, tab + 2);
@@ -83,34 +83,34 @@ virtual void EnumerationTypeNode::print(std::ostream& out, int tab) const overri
 }
 
 // ConstRangeTypeNode
-virtual void ConstRangeTypeNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void ConstRangeTypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> ConstRangeTypeNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> ConstRangeTypeNode::clone() const {
   ConstantNode* newLowerBound = dynamic_cast<ConstantNode*>(lowerBound_->clone().release());
   ConstantNode* newUpperBound = dynamic_cast<ConstantNode*>(upperBound_->clone().release());
   return std::make_unique<ConstRangeTypeNode>(newLowerBound, newUpperBound);
 }
 
-virtual void ConstRangeTypeNode::print(std::ostream& out, int tab) const override {
+void ConstRangeTypeNode::print(std::ostream& out, int tab) const {
   out << std::string(tab, ' ') << "ConstRangeTypeNode:\n";
   lowerBound_->print(out, tab + 2);
   upperBound_->print(out, tab + 2);
 }
 
 // VarRangeTypeNode
-virtual void VarRangeTypeNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void VarRangeTypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> VarRangeTypeNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> VarRangeTypeNode::clone() const {
   IdentifierNode* newLowerBound = dynamic_cast<IdentifierNode*>(lowerBound_->clone().release());
   IdentifierNode* newUpperBound = dynamic_cast<IdentifierNode*>(upperBound_->clone().release());
   return std::make_unique<VarRangeTypeNode>(newLowerBound, newUpperBound);
 }
 
-virtual void VarRangeTypeNode::print(std::ostream& out, int tab) const override {
+void VarRangeTypeNode::print(std::ostream& out, int tab) const {
   out << std::string(tab, ' ') << "VarRangeTypeNode:\n";
   lowerBound_->print(out, tab + 2);
   upperBound_->print(out, tab + 2);

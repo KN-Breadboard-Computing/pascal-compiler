@@ -1,11 +1,11 @@
 #include "record_type_node.hpp"
 
 namespace ast {
-virtual void RecordTypeNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void RecordTypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> RecordTypeNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> RecordTypeNode::clone() const {
   auto clone = std::make_unique<RecordTypeNode>();
 
   std::vector<std::pair<std::vector<IdentifierNode*>*, TypeNode*>*> fields;
@@ -22,7 +22,7 @@ virtual void RecordTypeNode::accept(AstVisitor& visitor) const override {
   return clone;
 }
 
-virtual void RecordTypeNode::print(std::ostream& out, int tab) const override {
+void RecordTypeNode::print(std::ostream& out, int tab) const {
   out << std::string(tab, ' ') << "RecordTypeNode:\n";
   for (const auto& field : *fields_) {
     out << std::string(tab + 2, ' ') << "Field:\n";

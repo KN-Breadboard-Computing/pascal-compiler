@@ -19,14 +19,8 @@ class StatementNode : public AstNode {
   ~StatementNode() override = default;
 
   [[nodiscard]] std::optional<uint64_t> getLabel() const { return label_; }
-
   void setLabel(uint64_t newLabel) { label_ = newLabel; }
-
   void removeLabel() { label_ = std::nullopt; }
-
-  virtual void accept(AstVisitor& visitor) const override;
-  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
-  virtual void print(std::ostream& out, int tab) const override;
 
  private:
   std::optional<uint64_t> label_;

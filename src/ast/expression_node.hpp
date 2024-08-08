@@ -49,7 +49,7 @@ class ExpressionNode : public AstNode {
   void setLeft(std::unique_ptr<ExpressionNode> left) { left_ = std::move(left); }
   void setRight(std::unique_ptr<ExpressionNode> right) { right_ = std::move(right); }
 
-  virtual void accept(AstVisitor& visitor) const override;
+  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream& out, int tab) const override;
 
@@ -84,7 +84,7 @@ class SpecialExpressionNode : public ExpressionNode {
   void setArgument1(std::unique_ptr<AstNode> argument1) { argument1_ = std::move(argument1); }
   void setArgument2(std::unique_ptr<AstNode> argument2) { argument2_ = std::move(argument2); }
 
-  virtual void accept(AstVisitor& visitor) const override;
+  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream& out, int tab) const override;
 

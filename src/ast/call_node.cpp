@@ -2,18 +2,18 @@
 
 namespace ast {
 // UserDefineCallNode
-virtual void UserDefineCallNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void UserDefineCallNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> UserDefineCallNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> UserDefineCallNode::clone() const {
   IdentifierNode* newName = dynamic_cast<IdentifierNode*>(name_->clone().release());
   ArgumentsListNode* newArguments = dynamic_cast<ArgumentsListNode*>(arguments_->clone().release());
 
   return std::make_unique<UserDefineCallNode>(newName, newArguments);
 }
 
-virtual void UserDefineCallNode::print(std::ostream& out, int tab) const override {
+void UserDefineCallNode::print(std::ostream& out, int tab) const {
   if (getLabel().has_value()) {
     out << std::string(tab, ' ') << "UserDefineCallNode with label: " << getLabel().value() << '\n';
   }
@@ -22,22 +22,27 @@ virtual void UserDefineCallNode::print(std::ostream& out, int tab) const overrid
   }
 
   name_->print(out, tab + 2);
-  arguments_->print(out, tab + 2);
+  if(arguments_ != nullptr) {
+    arguments_->print(out, tab + 2);
+  }
+  else {
+    out << std::string(tab + 2, ' ') << "Arguments: nullptr\n";
+  }
 }
 
 
 // BuiltinCallNode
-virtual void BuiltinCallNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void BuiltinCallNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> BuiltinCallNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> BuiltinCallNode::clone() const {
   ArgumentsListNode* newArguments = dynamic_cast<ArgumentsListNode*>(arguments_->clone().release());
 
   return std::make_unique<BuiltinCallNode>(name_, newArguments);
 }
 
-virtual void BuiltinCallNode::print(std::ostream& out, int tab) const override {
+void BuiltinCallNode::print(std::ostream& out, int tab) const {
   if (getLabel().has_value()) {
     out << std::string(tab, ' ') << "BuiltinCallNode with label: " << getLabel().value() << ": ";
   }

@@ -1,0 +1,321 @@
+ProgramNode Test:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+        Constant 0:
+          IdentifierNode: UpperToLower
+          ConstantInteger<32>
+      Types:
+        Type 0:
+          IdentifierNode: Str
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantInteger<1>
+                ConstantInteger<20>
+            Element type:
+              SimpleTypeNode CHAR
+        Type 1:
+          IdentifierNode: TPerson
+          RecordTypeNode:
+            Field:
+              IdentifierNode: Name
+              IdentifierNode: Surname
+              RenameTypeNode:
+                IdentifierNode: Str
+            Field:
+              IdentifierNode: Age
+              SimpleTypeNode INTEGER
+      Variables:
+        Group 0:
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantInteger<1>
+                ConstantInteger<3>
+            Element type:
+              RenameTypeNode:
+                IdentifierNode: TPerson
+          Identifiers:
+            IdentifierNode: family
+      Routines:
+        RoutineDeclarationNode:
+          Name: ReadPerson
+          ParamsNode:
+            ParamsGroupNode:
+              PassType: PASS_BY_REFERENCE
+              ParamsType:
+                RenameTypeNode:
+                  IdentifierNode: TPerson
+              Params:
+                IdentifierNode: p
+          RoutineNode of type UNSPECIFIED:
+            RoutineHeadNode:
+              Constants:
+              Types:
+              Variables:
+              Routines:
+                RoutineDeclarationNode:
+                  Name: ToLower
+                  ParamsNode:
+                    ParamsGroupNode:
+                      PassType: PASS_BY_REFERENCE
+                      ParamsType:
+                        RenameTypeNode:
+                          IdentifierNode: Str
+                      Params:
+                        IdentifierNode: s
+                  RoutineNode of type UNSPECIFIED:
+                    RoutineHeadNode:
+                      Constants:
+                      Types:
+                      Variables:
+                      Routines:
+                        RoutineDeclarationNode:
+                          Name: Add
+                          ParamsNode:
+                            ParamsGroupNode:
+                              PassType: PASS_BY_VALUE
+                              ParamsType:
+                                SimpleTypeNode INTEGER
+                              Params:
+                                IdentifierNode: a
+                                IdentifierNode: b
+                          SimpleTypeNode INTEGER
+                          RoutineNode of type UNSPECIFIED:
+                            RoutineHeadNode:
+                              Constants:
+                              Types:
+                              Variables:
+                              Routines:
+                            RoutineBodyNode:
+                              CompoundStatementNode:
+                                AssignToVariableNode
+                                  IdentifierNode: Result
+                                  ExpressionNode: ADDITION
+                                    SpecialExpressionNode: VARIABLE
+                                      IdentifierNode: a
+                                    SpecialExpressionNode: VARIABLE
+                                      IdentifierNode: b
+                    RoutineBodyNode:
+                      CompoundStatementNode:
+                        ForNode
+                          IdentifierNode: i
+                          SpecialExpressionNode: CONST
+                            ConstantInteger<1>
+                          SpecialExpressionNode: CONST
+                            ConstantInteger<20>
+                          AssignToArrayNode
+                            IdentifierNode: s
+                            SpecialExpressionNode: VARIABLE
+                              IdentifierNode: i
+                            SpecialExpressionNode: CHR
+                              ArgumentsListNode:
+                                SpecialExpressionNode: CALL
+                                  IdentifierNode: Add
+                                  ArgumentsListNode:
+                                    ExpressionNode: ADDITION
+                                      SpecialExpressionNode: ORD
+                                        ArgumentsListNode:
+                                          SpecialExpressionNode: ARRAY_ACCESS
+                                            IdentifierNode: s
+                                            SpecialExpressionNode: VARIABLE
+                                              IdentifierNode: i
+                                      SpecialExpressionNode: VARIABLE
+                                        IdentifierNode: UpperToLower
+            RoutineBodyNode:
+              CompoundStatementNode:
+                BuiltinCallNode: WRITELN
+                  ArgumentsListNode:
+                    SpecialExpressionNode: CONST
+                      ConstantString<Enter name: >
+                BuiltinCallNode: READ
+                  ArgumentsListNode:
+                    SpecialExpressionNode: RECORD_ACCESS
+                      IdentifierNode: p
+                      IdentifierNode: Name
+                UserDefineCallNode
+                  IdentifierNode: ToLower
+                  ArgumentsListNode:
+                    SpecialExpressionNode: RECORD_ACCESS
+                      IdentifierNode: p
+                      IdentifierNode: Name
+                BuiltinCallNode: WRITELN
+                  ArgumentsListNode:
+                    SpecialExpressionNode: CONST
+                      ConstantString<Enter surname: >
+                BuiltinCallNode: READ
+                  ArgumentsListNode:
+                    SpecialExpressionNode: RECORD_ACCESS
+                      IdentifierNode: p
+                      IdentifierNode: Surname
+                UserDefineCallNode
+                  IdentifierNode: ToLower
+                  ArgumentsListNode:
+                    SpecialExpressionNode: RECORD_ACCESS
+                      IdentifierNode: p
+                      IdentifierNode: Surname
+                BuiltinCallNode: WRITELN
+                  ArgumentsListNode:
+                    SpecialExpressionNode: CONST
+                      ConstantString<Enter age: >
+                BuiltinCallNode: READ
+                  ArgumentsListNode:
+                    SpecialExpressionNode: RECORD_ACCESS
+                      IdentifierNode: p
+                      IdentifierNode: Age
+        RoutineDeclarationNode:
+          Name: UpdatePerson
+          ParamsNode:
+            ParamsGroupNode:
+              PassType: PASS_BY_REFERENCE
+              ParamsType:
+                RenameTypeNode:
+                  IdentifierNode: TPerson
+              Params:
+                IdentifierNode: p
+          RoutineNode of type UNSPECIFIED:
+            RoutineHeadNode:
+              Constants:
+              Types:
+              Variables:
+              Routines:
+                RoutineDeclarationNode:
+                  Name: Add
+                  ParamsNode:
+                    ParamsGroupNode:
+                      PassType: PASS_BY_VALUE
+                      ParamsType:
+                        SimpleTypeNode INTEGER
+                      Params:
+                        IdentifierNode: a
+                        IdentifierNode: b
+                  SimpleTypeNode INTEGER
+                  RoutineNode of type UNSPECIFIED:
+                    RoutineHeadNode:
+                      Constants:
+                      Types:
+                      Variables:
+                      Routines:
+                    RoutineBodyNode:
+                      CompoundStatementNode:
+                        AssignToVariableNode
+                          IdentifierNode: Result
+                          ExpressionNode: ADDITION
+                            SpecialExpressionNode: VARIABLE
+                              IdentifierNode: a
+                            SpecialExpressionNode: VARIABLE
+                              IdentifierNode: b
+            RoutineBodyNode:
+              CompoundStatementNode:
+                AssignToRecordFieldNode
+                  IdentifierNode: p
+                  IdentifierNode: Age
+                  SpecialExpressionNode: CALL
+                    IdentifierNode: Add
+                    ArgumentsListNode:
+                      SpecialExpressionNode: RECORD_ACCESS
+                        IdentifierNode: p
+                        IdentifierNode: Age
+                      SpecialExpressionNode: CONST
+                        ConstantInteger<1>
+        RoutineDeclarationNode:
+          Name: GetPersonName
+          ParamsNode:
+            ParamsGroupNode:
+              PassType: PASS_BY_REFERENCE
+              ParamsType:
+                RenameTypeNode:
+                  IdentifierNode: TPerson
+              Params:
+                IdentifierNode: p
+          RenameTypeNode:
+            IdentifierNode: Str
+          RoutineNode of type UNSPECIFIED:
+            RoutineHeadNode:
+              Constants:
+              Types:
+              Variables:
+              Routines:
+            RoutineBodyNode:
+              CompoundStatementNode:
+                AssignToVariableNode
+                  IdentifierNode: Result
+                  SpecialExpressionNode: RECORD_ACCESS
+                    IdentifierNode: p
+                    IdentifierNode: Name
+        RoutineDeclarationNode:
+          Name: PrintPerson
+          ParamsNode:
+            ParamsGroupNode:
+              PassType: PASS_BY_VALUE
+              ParamsType:
+                RenameTypeNode:
+                  IdentifierNode: TPerson
+              Params:
+                IdentifierNode: p
+          RoutineNode of type UNSPECIFIED:
+            RoutineHeadNode:
+              Constants:
+              Types:
+              Variables:
+              Routines:
+            RoutineBodyNode:
+              CompoundStatementNode:
+                BuiltinCallNode: WRITELN
+                  ArgumentsListNode:
+                    SpecialExpressionNode: CONST
+                      ConstantString<Name: >
+                    SpecialExpressionNode: RECORD_ACCESS
+                      IdentifierNode: p
+                      IdentifierNode: Name
+                BuiltinCallNode: WRITELN
+                  ArgumentsListNode:
+                    SpecialExpressionNode: CONST
+                      ConstantString<Surname: >
+                    SpecialExpressionNode: RECORD_ACCESS
+                      IdentifierNode: p
+                      IdentifierNode: Surname
+                BuiltinCallNode: WRITELN
+                  ArgumentsListNode:
+                    SpecialExpressionNode: CONST
+                      ConstantString<Age: >
+                    SpecialExpressionNode: RECORD_ACCESS
+                      IdentifierNode: p
+                      IdentifierNode: Age
+    RoutineBodyNode:
+      CompoundStatementNode:
+        ForNode
+          IdentifierNode: i
+          SpecialExpressionNode: CONST
+            ConstantInteger<1>
+          SpecialExpressionNode: CONST
+            ConstantInteger<3>
+          CompoundStatementNode:
+            UserDefineCallNode
+              IdentifierNode: ReadPerson
+              ArgumentsListNode:
+                SpecialExpressionNode: ARRAY_ACCESS
+                  IdentifierNode: family
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: i
+            UserDefineCallNode
+              IdentifierNode: UpdatePerson
+              ArgumentsListNode:
+                SpecialExpressionNode: ARRAY_ACCESS
+                  IdentifierNode: family
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: i
+        ForNode
+          IdentifierNode: i
+          SpecialExpressionNode: CONST
+            ConstantInteger<1>
+          SpecialExpressionNode: CONST
+            ConstantInteger<3>
+          UserDefineCallNode
+            IdentifierNode: PrintPerson
+            ArgumentsListNode:
+              SpecialExpressionNode: ARRAY_ACCESS
+                IdentifierNode: family
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: i

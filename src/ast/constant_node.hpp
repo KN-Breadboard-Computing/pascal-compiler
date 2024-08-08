@@ -21,7 +21,7 @@ class ConstantNode : public AstNode {
 
   [[nodiscard]] ConstantType getConstantType() const { return constantType_; }
 
-  virtual void accept(AstVisitor& visitor) const override;
+  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
   [[nodiscard]] std::unique_ptr<AstNode> clone() const override;
   void print(std::ostream& out, int tab) const override;
 
@@ -45,28 +45,28 @@ class ConstantNodeSpec : public ConstantNode {
 
   [[nodiscard]] T getValue() const { return value_; }
 
-  virtual void accept(AstVisitor& visitor) const override { visitor.visit(*this); }
-
-  [[nodiscard]] std::unique_ptr<AstNode> clone() const override { return std::make_unique<ConstantNodeSpec<T, type>>(value_); }
-
-  void print(std::ostream& out, int tab) const override {
-    switch (type) {
-      case ConstantNode::INTEGER:
-        out << std::string(tab, ' ') << "ConstantInteger<" << value_ << ">\n";
-        break;
-      case ConstantNode::CHAR:
-        out << std::string(tab, ' ') << "ConstantChar<" << value_ << ">\n";
-        break;
-      case ConstantNode::BOOLEAN:
-        out << std::string(tab, ' ') << "ConstantBoolean<" << value_ << ">\n";
-        break;
-      case ConstantNode::STRING:
-        out << std::string(tab, ' ') << "ConstantString<" << value_ << ">\n";
-        break;
-      default:
-        break;
-    }
-  }
+//  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override { visitor->visit(*this); }
+//
+//  [[nodiscard]] std::unique_ptr<AstNode> clone() const override { return std::make_unique<ConstantNodeSpec<T, type>>(value_); }
+//
+//  void print(std::ostream& out, int tab) const override {
+//    switch (type) {
+//      case ConstantNode::INTEGER:
+//        out << std::string(tab, ' ') << "ConstantInteger<" << value_ << ">\n";
+//        break;
+//      case ConstantNode::CHAR:
+//        out << std::string(tab, ' ') << "ConstantChar<" << value_ << ">\n";
+//        break;
+//      case ConstantNode::BOOLEAN:
+//        out << std::string(tab, ' ') << "ConstantBoolean<" << value_ << ">\n";
+//        break;
+//      case ConstantNode::STRING:
+//        out << std::string(tab, ' ') << "ConstantString<" << value_ << ">\n";
+//        break;
+//      default:
+//        break;
+//    }
+//  }
 
  private:
   T value_;

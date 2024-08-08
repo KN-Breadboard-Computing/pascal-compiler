@@ -1,15 +1,15 @@
 #include "goto_node.hpp"
 
 namespace ast {
-virtual void GotoNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void GotoNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] std::unique_ptr<AstNode> GotoNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> GotoNode::clone() const {
   return std::make_unique<GotoNode>(line_);
 }
 
-void GotoNode::print(std::ostream& out, int tab) const override {
+void GotoNode::print(std::ostream& out, int tab) const {
   if (getLabel().has_value()) {
     out << std::string(tab, ' ') << "GotoNode with label: " << getLabel().value() << '\n';
   }

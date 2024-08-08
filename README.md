@@ -135,7 +135,8 @@ END;
 FormalParameterList = ParameterGroup1; ... ; ParameterGroupn
 ```
 ```
-ParameterGroupk = Identifier1, ... Identifiern : DataType 
+ParameterGroupk = Identifier1, ... Identifiern : DataType         (* pass arguments by value *)
+ParameterGroupk = VAR Identifier1, ... Identifiern : DataType     (* pass arguments by reference *)
 ```
 
 
@@ -236,6 +237,15 @@ repeat
 until BooleanExpression;
 ```
 
+### Goto
+```
+GOTO Label;
+.
+.
+.
+Label: Statement
+```
+
 ## Comments
 Each of these comments is multiline.
 ```
@@ -302,6 +312,8 @@ TCharArrayUIntIndex = array[Unsigned] of Char;
 TCharArrayCharRange = array['a'..'z'] of Char;
 TCharArrayBoolsRange = array[TBools] of Char;
 
+TIntLettersIndex = array['hello'] of Integer;
+
 TWeekDayArray = array[TDay] of Integer;
 ```
 
@@ -319,7 +331,7 @@ CharsArray = 'Hello';
 ### Record
 ```
   TPerson = record
-    Name: Char;
+    Name, Surname: Char;
     Age: Integer;
     WorkHours: array[TDay] of Integer;
   end;

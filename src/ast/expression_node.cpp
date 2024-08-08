@@ -2,18 +2,18 @@
 
 namespace ast {
 // ExpressionNode
-virtual void ExpressionNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void ExpressionNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> ExpressionNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> ExpressionNode::clone() const {
   ExpressionNode* newLeft = left_ == nullptr ? nullptr : dynamic_cast<ExpressionNode*>(left_->clone().release());
   ExpressionNode* newRight = right_ == nullptr ? nullptr : dynamic_cast<ExpressionNode*>(right_->clone().release());
 
   return std::make_unique<ExpressionNode>(newLeft, newRight, operation_);
 }
 
-virtual void ExpressionNode::print(std::ostream& out, int tab) const override {
+void ExpressionNode::print(std::ostream& out, int tab) const {
   switch (operation_) {
     case ADDITION:
       out << std::string(tab, ' ') << "ExpressionNode: ADDITION\n";
@@ -74,20 +74,20 @@ virtual void ExpressionNode::print(std::ostream& out, int tab) const override {
 }
 
 // SpecialExpressionNode
-virtual void SpecialExpressionNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void SpecialExpressionNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> SpecialExpressionNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> SpecialExpressionNode::clone() const {
   SpecialExpressionNode* newArgument1 =
       argument1_ == nullptr ? nullptr : dynamic_cast<SpecialExpressionNode*>(argument1_->clone().release());
   SpecialExpressionNode* newArgument2 =
       argument2_ == nullptr ? nullptr : dynamic_cast<SpecialExpressionNode*>(argument2_->clone().release());
 
-  return std::make_unique<SpecialExpressionNode>(functionName_, newArgument1, newArgument2);
+  return std::make_unique<SpecialExpressionNode>(newArgument1, newArgument2, functionName_);
 }
 
-virtual void SpecialExpressionNode::print(std::ostream& out, int tab) const override {
+void SpecialExpressionNode::print(std::ostream& out, int tab) const {
   switch (functionName_) {
     case VARIABLE:
       out << std::string(tab, ' ') << "SpecialExpressionNode: VARIABLE\n";

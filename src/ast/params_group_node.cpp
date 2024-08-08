@@ -1,11 +1,11 @@
 #include "params_group_node.hpp"
 
 namespace ast {
-virtual void ParamsGroupNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void ParamsGroupNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> ParamsGroupNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> ParamsGroupNode::clone() const {
   auto clone = std::make_unique<ParamsGroupNode>();
   clone->setPassType(passType_);
   clone->setParamsType(std::unique_ptr<SimpleTypeNode>(dynamic_cast<SimpleTypeNode*>(paramsType_->clone().release())));
@@ -19,7 +19,7 @@ virtual void ParamsGroupNode::accept(AstVisitor& visitor) const override {
   return clone;
 }
 
-virtual void ParamsGroupNode::print(std::ostream& out, int tab) const override {
+void ParamsGroupNode::print(std::ostream& out, int tab) const {
   out << std::string(tab, ' ') << "ParamsGroupNode:\n";
   out << std::string(tab + 2, ' ') << "PassType: ";
   switch (passType_) {

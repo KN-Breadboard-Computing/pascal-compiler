@@ -36,7 +36,7 @@ class IfNode : public StatementNode {
   void setThenStatement(std::unique_ptr<StatementNode> thenStatement) { thenStatement_ = std::move(thenStatement); }
   void setElseStatement(std::unique_ptr<StatementNode> elseStatement) { elseStatement_ = std::move(elseStatement); }
 
-  virtual void accept(AstVisitor& visitor) const override;
+  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream& out, int tab) const override;
 

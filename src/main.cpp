@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
 
   std::string inputFileName{argv[1]};
   std::string outputAstFileName{argv[2]};
-  std::string outputAsmFileName{argv[3]};
+  std::string outputAsmFileName{argv[4]};
 
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  if(!parsed) {
+  if (!parsed) {
     std::cerr << "Failed to parse!" << std::endl;
     return 1;
   }
@@ -36,7 +36,11 @@ int main(int argc, char* argv[]) {
   outputAstFile << *program;
 
   bblocks::BbCfgGenerator cfgGenerator;
-  bblocks::ControlFlowGraph cfg = cfgGenerator.generate(program);
+  std::map<std::string, bblocks::ControlFlowGraph> cfg;
+  cfgGenerator.generate(program);
+
+  std::ofstream outputBbFile(argv[3]);
+  outputBbFile << cfg;
 
   return 0;
 }

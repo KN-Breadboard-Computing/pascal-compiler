@@ -1,11 +1,11 @@
 #include "arguments_list_node.hpp"
 
 namespace ast {
-virtual void ArgumentsListNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void ArgumentsListNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> ArgumentsListNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> ArgumentsListNode::clone() const {
   std::vector<ExpressionNode*> arguments;
   for (const auto& argument : arguments_) {
     arguments.push_back(dynamic_cast<ExpressionNode*>(argument->clone().release()));
@@ -17,7 +17,7 @@ virtual void ArgumentsListNode::accept(AstVisitor& visitor) const override {
   return clone;
 }
 
-virtual void ArgumentsListNode::print(std::ostream& out, int tab) const override {
+void ArgumentsListNode::print(std::ostream& out, int tab) const {
   out << std::string(tab, ' ') << "ArgumentsListNode:\n";
   for (const auto& argument : arguments_) {
     argument->print(out, tab + 2);

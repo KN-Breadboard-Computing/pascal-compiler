@@ -1,11 +1,11 @@
 #include "compound_statement_node.hpp"
 
 namespace ast {
-virtual void CompoundStatementNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void CompoundStatementNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> CompoundStatementNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> CompoundStatementNode::clone() const {
   std::unique_ptr<std::vector<StatementNode*>> statements{};
   for (const auto& statement : *statements_) {
     statements->push_back(dynamic_cast<StatementNode*>(statement->clone().release()));
@@ -15,7 +15,7 @@ virtual void CompoundStatementNode::accept(AstVisitor& visitor) const override {
   return clone;
 }
 
-virtual void CompoundStatementNode::print(std::ostream& out, int tab) const override {
+void CompoundStatementNode::print(std::ostream& out, int tab) const {
   if (getLabel().has_value()) {
     out << std::string(tab, ' ') << "CompoundStatementNode with label: " << getLabel().value() << "\n";
   }

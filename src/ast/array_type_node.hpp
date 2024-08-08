@@ -24,7 +24,7 @@ class ArrayTypeNode : public TypeNode {
   [[nodiscard]] const std::unique_ptr<SimpleTypeNode>& getRange() const { return range_; }
   [[nodiscard]] const std::unique_ptr<TypeNode>& getElementType() const { return elementType_; }
 
-  virtual void accept(AstVisitor& visitor) const override;
+  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream& out, int tab) const override;
 

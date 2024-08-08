@@ -53,7 +53,7 @@ class AssignToVariableNode : public AssignNode {
   void setVariable(std::unique_ptr<IdentifierNode> variable) { variable_ = std::move(variable); }
   void setExpression(std::unique_ptr<ExpressionNode> expression) { expression_ = std::move(expression); }
 
-  virtual void accept(AstVisitor& visitor) const override;
+  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   void print(std::ostream& out, int tab) const override;
 
@@ -84,7 +84,7 @@ class AssignToArrayNode : public AssignNode {
   void setIndex(std::unique_ptr<ExpressionNode> index) { index_ = std::move(index); }
   void setExpression(std::unique_ptr<ExpressionNode> expression) { expression_ = std::move(expression); }
 
-  virtual void accept(AstVisitor& visitor) const override;
+  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   void print(std::ostream& out, int tab) const override;
 
@@ -116,7 +116,7 @@ class AssignToRecordFieldNode : public AssignNode {
   void setField(std::unique_ptr<IdentifierNode> field) { field_ = std::move(field); }
   void setExpression(std::unique_ptr<ExpressionNode> expression) { expression_ = std::move(expression); }
 
-  virtual void accept(AstVisitor& visitor) const override;
+  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   void print(std::ostream& out, int tab) const override;
 

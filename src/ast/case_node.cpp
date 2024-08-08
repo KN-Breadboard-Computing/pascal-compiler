@@ -1,11 +1,11 @@
 #include "case_node.hpp"
 
 namespace ast {
-virtual void CaseNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void CaseNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> CaseNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> CaseNode::clone() const {
   ExpressionNode* newExpression = dynamic_cast<ExpressionNode*>(expression_->clone().release());
   std::vector<std::pair<AstNode*, StatementNode*>*>* newStatements = new std::vector<std::pair<AstNode*, StatementNode*>*>{};
   for (auto& statement : *statements_) {
@@ -16,7 +16,7 @@ virtual void CaseNode::accept(AstVisitor& visitor) const override {
   return std::make_unique<CaseNode>(newExpression, newStatements);
 }
 
-virtual void CaseNode::print(std::ostream& out, int tab) const override {
+void CaseNode::print(std::ostream& out, int tab) const {
   if (getLabel().has_value()) {
     out << std::string(tab, ' ') << "CaseNode with label: " << getLabel().value() << std::endl;
   }

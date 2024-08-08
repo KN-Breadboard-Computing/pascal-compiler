@@ -1,15 +1,15 @@
 #include "identifier_node.hpp"
 
 namespace ast {
-virtual void IdentifierNode::accept(AstVisitor& visitor) const override {
-  visitor.visit(*this);
+void IdentifierNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
+  visitor->visit(*this);
 }
 
-[[nodiscard]] virtual std::unique_ptr<AstNode> IdentifierNode::clone() const override {
+[[nodiscard]] std::unique_ptr<AstNode> IdentifierNode::clone() const {
   return std::make_unique<IdentifierNode>(name_);
 }
 
-virtual void IdentifierNode::print(std::ostream& out, int tab) const override {
+void IdentifierNode::print(std::ostream& out, int tab) const {
   out << std::string(tab, ' ') << "IdentifierNode: " << name_ << '\n';
 }
 }  // namespace ast
