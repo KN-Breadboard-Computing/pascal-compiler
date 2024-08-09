@@ -33,10 +33,16 @@ std::string getTypeString(ast::TypeNode* type);
 std::string getTypeString(ast::ConstantNode::ConstantType type);
 std::string getConstantString(ast::ConstantNode* constant);
 
+bool isBasicType(const std::string& type);
 bool isIntegerCompatible(ast::ExpressionNode* expr);
 bool isCharCompatible(ast::ExpressionNode* expr);
 bool isBooleanCompatible(ast::ExpressionNode* expr);
-bool isVariableRecordFieldArrayElementCompatible(ast::ExpressionNode* expr);
+bool isStringCompatible(ast::ExpressionNode* expr);
+bool isArrayIndexCompatible(ast::ExpressionNode* array, ast::ExpressionNode* index);
+bool isArrayCompatible(ast::ExpressionNode* expr);
+bool isRecordCompatible(ast::ExpressionNode* expr);
+bool isRecordFieldCompatible(ast::ExpressionNode* record, ast::IdentifierNode* field);
+bool isLeftValueCompatible(ast::ExpressionNode* expr);
 %}
 
 %code requires
@@ -1213,14 +1219,18 @@ proc_stmt :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse read statement" << std::endl;
         #endif
-        if(isVariableRecordFieldArrayElementCompatible($3)) {
+        if(!isLeftValueCompatible($3)) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for read - assignable argument expected");
+            fatalError = true;
+        }
+        else if(!isIntegerCompatible($3) && !isCharCompatible($3) && !isBooleanCompatible($3)) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for read - integer, char or boolean expected");
+            fatalError = true;
+        }
+        else {
             ast::ArgumentsListNode* args = new ast::ArgumentsListNode();
             args->addArgument($3);
             $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::READ, args);
-        }
-        else {
-            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for read - variable, record field or array element expected");
-            fatalError = true;
         }
     }
 
@@ -1236,7 +1246,20 @@ proc_stmt :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse write statement" << std::endl;
         #endif
-        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITE, $3);
+        bool allOk = true;
+        for(auto arg : $3->getArguments()) {
+            if(!isIntegerCompatible(arg) && !isCharCompatible(arg) && !isBooleanCompatible(arg) && !isStringCompatible(arg)) {
+                allOk = false;
+                break;
+            }
+        }
+
+        if(!allOk) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for write - integer, char, boolean or string expected");
+        }
+        else {
+            $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITE, $3);
+        }
     }
 |
     WRITELN {
@@ -1250,7 +1273,20 @@ proc_stmt :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse writeln statement with args" << std::endl;
         #endif
-        $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITELN, $3);
+        bool allOk = true;
+        for(auto arg : $3->getArguments()) {
+            if(!isIntegerCompatible(arg) && !isCharCompatible(arg) && !isBooleanCompatible(arg) && !isStringCompatible(arg)) {
+                allOk = false;
+                break;
+            }
+        }
+
+        if(!allOk) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for writeln - integer, char, boolean or string expected");
+        }
+        else {
+            $$ = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITELN, $3);
+        }
     }
 |
     MEMORYREAD LP args_list RP {
@@ -1258,12 +1294,16 @@ proc_stmt :
             std::cout << "Yacc debug: Parse memory read statement" << std::endl;
         #endif
         if($3->getArguments().size() == 3) {
-            if(!isIntegerCompatibile($3->getArguments().at(0)) || !isIntegerCompatibile($3->getArguments().at(1)))) {
+            if(!isIntegerCompatible($3->getArguments().at(0)) || !isIntegerCompatible($3->getArguments().at(1))) {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory read - first two arguments should be integers");
                 fatalError = true;
             }
-            else if(!isIntegerCompatibile($3->getArguments().at(2)) && !isCharCompatibile($3->getArguments().at(2))) {
-                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory read - third argument should be integer or char");
+            else if(!isLeftValueCompatible($3->getArguments().at(2))) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory read - assignable argument expected");
+                fatalError = true;
+            }
+            else if(!isIntegerCompatible($3->getArguments().at(2)) && !isCharCompatible($3->getArguments().at(2)) && !isBooleanCompatible($3->getArguments().at(2))) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory read - integer, char or boolean expected");
                 fatalError = true;
             }
             else {
@@ -1280,12 +1320,12 @@ proc_stmt :
             std::cout << "Yacc debug: Parse memory write statement" << std::endl;
         #endif
         if($3->getArguments().size() == 3) {
-            if(!isIntegerCompatibile($3->getArguments().at(0)) || !isIntegerCompatibile($3->getArguments().at(1))) {
+            if(!isIntegerCompatible($3->getArguments().at(0)) || !isIntegerCompatible($3->getArguments().at(1))) {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory write - first two arguments should be integers");
                 fatalError = true;
             }
-            else if(!isIntegerCompatibile($3->getArguments().at(2)) && !isCharCompatibile($3->getArguments().at(2))) {
-                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory write - third argument should be integer or char");
+            else if(!isIntegerCompatible($3->getArguments().at(2)) && !isCharCompatible($3->getArguments().at(2)) && !isBooleanCompatible($3->getArguments().at(2))) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory write - third argument should be integer, char or boolean");
                 fatalError = true;
             }
             else {
@@ -1302,12 +1342,16 @@ proc_stmt :
             std::cout << "Yacc debug: Parse stack read statement" << std::endl;
         #endif
         if($3->getArguments().size() == 3) {
-            if(!isIntegerCompatibile($3->getArguments().at(0)) || !isIntegerCompatibile($3->getArguments().at(1))) {
+            if(!isIntegerCompatible($3->getArguments().at(0)) || !isIntegerCompatible($3->getArguments().at(1))) {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack read - first two arguments should be integers");
                 fatalError = true;
             }
-            else if(!isIntegerCompatibile($3->getArguments().at(2)) && !isCharCompatibile($3->getArguments().at(2))) {
-                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack read - third argument should be integer or char");
+            else if(!isLeftValueCompatible($3->getArguments().at(2))) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack read - assignable argument expected");
+                fatalError = true;
+            }
+            else if(!isIntegerCompatible($3->getArguments().at(2)) && !isCharCompatible($3->getArguments().at(2)) && !isBooleanCompatible($3->getArguments().at(2))) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack read - integer, char or boolean expected");
                 fatalError = true;
             }
             else {
@@ -1324,12 +1368,12 @@ proc_stmt :
             std::cout << "Yacc debug: Parse stack write statement" << std::endl;
         #endif
         if($3->getArguments().size() == 3) {
-            if(!isIntegerCompatibile($3->getArguments().at(0)) || !isIntegerCompatibile($3->getArguments().at(1))) {
+            if(!isIntegerCompatible($3->getArguments().at(0)) || !isIntegerCompatible($3->getArguments().at(1))) {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack write - first two arguments should be integers");
                 fatalError = true;
             }
-            else if(!isIntegerCompatibile($3->getArguments().at(2)) && !isCharCompatibile($3->getArguments().at(2))) {
-                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack write - third argument should be integer or char");
+            else if(!isIntegerCompatible($3->getArguments().at(2)) && !isCharCompatible($3->getArguments().at(2)) && !isBooleanCompatible($3->getArguments().at(2))) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack write - third argument should be integer, char or boolean");
                 fatalError = true;
             }
             else {
@@ -1365,7 +1409,7 @@ expression :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with greater or equal" << std::endl;
         #endif
-        if(isIntegerCompatibile($1) && isIntegerCompatibile($3) || isBooleanCompatibile($1) && isBooleanCompatibile($3) || isCharCompatibile($1) && isCharCompatibile($3)) {
+        if((isIntegerCompatible($1) && isIntegerCompatible($3)) || (isBooleanCompatible($1) && isBooleanCompatible($3)) || (isCharCompatible($1) && isCharCompatible($3))) {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::GREATER_EQUAL);
         }
         else {
@@ -1378,7 +1422,7 @@ expression :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with greater" << std::endl;
         #endif
-        if(isIntegerCompatibile($1) && isIntegerCompatibile($3) || isBooleanCompatibile($1) && isBooleanCompatibile($3) || isCharCompatibile($1) && isCharCompatibile($3)) {
+        if((isIntegerCompatible($1) && isIntegerCompatible($3)) || (isBooleanCompatible($1) && isBooleanCompatible($3)) || (isCharCompatible($1) && isCharCompatible($3))) {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::GREATER);
         }
         else {
@@ -1391,7 +1435,7 @@ expression :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with less or equal" << std::endl;
         #endif
-        if(isIntegerCompatibile($1) && isIntegerCompatibile($3) || isBooleanCompatibile($1) && isBooleanCompatibile($3) || isCharCompatibile($1) && isCharCompatibile($3)) {
+        if((isIntegerCompatible($1) && isIntegerCompatible($3)) || (isBooleanCompatible($1) && isBooleanCompatible($3)) || (isCharCompatible($1) && isCharCompatible($3))) {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::LESS_EQUAL);
         }
         else {
@@ -1404,7 +1448,7 @@ expression :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with less" << std::endl;
         #endif
-        if(isIntegerCompatibile($1) && isIntegerCompatibile($3) || isBooleanCompatibile($1) && isBooleanCompatibile($3) || isCharCompatibile($1) && isCharCompatibile($3)) {
+        if((isIntegerCompatible($1) && isIntegerCompatible($3)) || (isBooleanCompatible($1) && isBooleanCompatible($3)) || (isCharCompatible($1) && isCharCompatible($3))) {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::LESS);
         }
         else {
@@ -1417,7 +1461,7 @@ expression :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with equal" << std::endl;
         #endif
-        if(isIntegerCompatibile($1) && isIntegerCompatibile($3) || isBooleanCompatibile($1) && isBooleanCompatibile($3) || isCharCompatibile($1) && isCharCompatibile($3)) {
+        if((isIntegerCompatible($1) && isIntegerCompatible($3)) || (isBooleanCompatible($1) && isBooleanCompatible($3)) || (isCharCompatible($1) && isCharCompatible($3))) {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::EQUAL);
         }
         else {
@@ -1430,8 +1474,8 @@ expression :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with not equal" << std::endl;
         #endif
-        if(isIntegerCompatibile($1) && isIntegerCompatibile($3) || isBooleanCompatibile($1) && isBooleanCompatibile($3) || isCharCompatibile($1) && isCharCompatibile($3)) {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::UNEQUAL);
+        if((isIntegerCompatible($1) && isIntegerCompatible($3)) || (isBooleanCompatible($1) && isBooleanCompatible($3)) || (isCharCompatible($1) && isCharCompatible($3))) {
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::NOT_EQUAL);
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for not equal - matching types expected");
@@ -1453,7 +1497,7 @@ expr :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with addition" << std::endl;
         #endif
-        if(isIntegerCompatibile($1) && isIntegerCompatibile($3)) {
+        if(isIntegerCompatible($1) && isIntegerCompatible($3)) {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::ADDITION);
         }
         else {
@@ -1466,7 +1510,7 @@ expr :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with subtraction" << std::endl;
         #endif
-        if(isIntegerCompatibile($1) && isIntegerCompatibile($3)) {
+        if(isIntegerCompatible($1) && isIntegerCompatible($3)) {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::SUBTRACTION);
         }
         else {
@@ -1479,7 +1523,7 @@ expr :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with or" << std::endl;
         #endif
-        if(isBooleanCompatibile($1) && isBooleanCompatibile($3)) {
+        if(isBooleanCompatible($1) && isBooleanCompatible($3)) {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::OR);
         }
         else {
@@ -1501,7 +1545,7 @@ term :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with multiplication" << std::endl;
         #endif
-        if(isIntegerCompatibile($1) && isIntegerCompatibile($3)) {
+        if(isIntegerCompatible($1) && isIntegerCompatible($3)) {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::MULTIPLICATION);
         }
         else {
@@ -1514,7 +1558,7 @@ term :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with division" << std::endl;
         #endif
-        if(isIntegerCompatibile($1) && isIntegerCompatibile($3)) {
+        if(isIntegerCompatible($1) && isIntegerCompatible($3)) {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::DIVISION);
         }
         else {
@@ -1527,7 +1571,7 @@ term :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with modulus" << std::endl;
         #endif
-        if(isIntegerCompatibile($1) && isIntegerCompatibile($3)) {
+        if(isIntegerCompatible($1) && isIntegerCompatible($3)) {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::MODULUS);
         }
         else {
@@ -1540,7 +1584,7 @@ term :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with and" << std::endl;
         #endif
-        if(isBooleanCompatibile($1) && isBooleanCompatibile($3)) {
+        if(isBooleanCompatible($1) && isBooleanCompatible($3)) {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::AND);
         }
         else {
@@ -1590,7 +1634,7 @@ factor :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - not" << std::endl;
         #endif
-       if(isBooleanCompatibile($2)) {
+       if(isBooleanCompatible($2)) {
             $$ = new ast::ExpressionNode($2, ast::ExpressionNode::Operation::NEGATION);
         }
         else {
@@ -1603,7 +1647,7 @@ factor :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - negation" << std::endl;
         #endif
-        if(isIntegerCompatibile($2)) {
+        if(isIntegerCompatible($2)) {
             $$ = new ast::ExpressionNode($2, ast::ExpressionNode::Operation::NEGATION);
         }
         else {
@@ -1613,18 +1657,40 @@ factor :
 
     }
 |
-    identifier LB expression RB {
+//    identifier LB expression RB {
+    factor LB expression RB {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - array access" << std::endl;
         #endif
-        $$ = new ast::SpecialExpressionNode($1, $3, ast::SpecialExpressionNode::FunctionName::ARRAY_ACCESS);
+        if(!isArrayCompatible($1)) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for array access - array expected");
+            fatalError = true;
+        }
+        else if(!isArrayIndexCompatible($1, $3)) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for array index");
+            fatalError = true;
+        }
+        else {
+            $$ = new ast::SpecialExpressionNode($1, $3, ast::SpecialExpressionNode::FunctionName::ARRAY_ACCESS);
+        }
     }
 |
-    identifier DOT identifier {
+//    identifier DOT identifier {
+    factor DOT identifier {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - record access" << std::endl;
         #endif
-        $$ = new ast::SpecialExpressionNode($1, $3, ast::SpecialExpressionNode::FunctionName::RECORD_ACCESS);
+        if(!isRecordCompatible($1)) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for record access - record expected");
+            fatalError = true;
+        }
+        else if(!isRecordFieldCompatible($1, $3)) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for record field");
+            fatalError = true;
+        }
+        else {
+            $$ = new ast::SpecialExpressionNode($1, $3, ast::SpecialExpressionNode::FunctionName::RECORD_ACCESS);
+        }
     }
 |
     ABS LP args_list RP {
@@ -1636,8 +1702,8 @@ factor :
             fatalError = true;
         }
         else {
-            ExpressionNode* arg = $3->getArguments().front();
-            if(isIntegerCompatibile(arg)) {
+            ast::ExpressionNode* arg = $3->getArguments().front();
+            if(isIntegerCompatible(arg)) {
                 $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ABS);
             }
             else {
@@ -1656,8 +1722,8 @@ factor :
             fatalError = true;
         }
         else {
-            ExpressionNode* arg = $3->getArguments().front();
-            if(isIntegerCompatibile(arg)) {
+            ast::ExpressionNode* arg = $3->getArguments().front();
+            if(isIntegerCompatible(arg)) {
                 $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::CHR);
             }
             else {
@@ -1676,8 +1742,8 @@ factor :
             fatalError = true;
         }
         else {
-            ExpressionNode* arg = $3->getArguments().front();
-            if(isIntegerCompatibile(arg)) {
+            ast::ExpressionNode* arg = $3->getArguments().front();
+            if(isIntegerCompatible(arg)) {
                 $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ODD);
             }
             else {
@@ -1696,8 +1762,8 @@ factor :
             fatalError = true;
         }
         else {
-            ExpressionNode* arg = $3->getArguments().front();
-            if(isCharCompatibile(arg)) {
+            ast::ExpressionNode* arg = $3->getArguments().front();
+            if(isCharCompatible(arg)) {
                 $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ORD);
             }
             else {
@@ -1716,8 +1782,8 @@ factor :
             fatalError = true;
         }
         else {
-            ExpressionNode* arg = $3->getArguments().front();
-            if(isIntegerCompatibile(arg) || isCharCompatibile(arg)) {
+            ast::ExpressionNode* arg = $3->getArguments().front();
+            if(isIntegerCompatible(arg) || isCharCompatible(arg)) {
                 $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::PRED);
             }
             else {
@@ -1736,8 +1802,8 @@ factor :
             fatalError = true;
         }
         else {
-            ExpressionNode* arg = $3->getArguments().front();
-            if(isIntegerCompatibile(arg) || isCharCompatibile(arg)) {
+            ast::ExpressionNode* arg = $3->getArguments().front();
+            if(isIntegerCompatible(arg) || isCharCompatible(arg)) {
                 $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::SUCC);
             }
             else {
@@ -1942,6 +2008,10 @@ std::string getConstantString(ast::ConstantNode* constant) {
     }
 }
 
+bool isBasicType(const std::string& type) {
+    return type == "integer" || type == "unsigned" || type == "boolean" || type == "char";
+}
+
 bool isIntegerCompatible(ast::ExpressionNode* expr) {
     return true;
 }
@@ -1950,10 +2020,54 @@ bool isCharCompatible(ast::ExpressionNode* expr) {
     return true;
 }
 
+bool isStringCompatible(ast::ExpressionNode* expr) {
+    return true;
+}
+
 bool isBooleanCompatible(ast::ExpressionNode* expr) {
     return true;
 }
 
-bool bool isVariableRecordFieldArrayElementCompatible(ast::ExpressionNode* expr) {
+bool isArrayIndexCompatible(ast::ExpressionNode* array, ast::ExpressionNode* index) {
     return true;
+}
+
+bool isArrayCompatible(ast::ExpressionNode* expr) {
+    return true;
+}
+
+bool isRecordCompatible(ast::ExpressionNode* expr) {
+    return true;
+}
+
+bool isRecordFieldCompatible(ast::ExpressionNode* record, ast::IdentifierNode* field) {
+    return true;
+}
+
+bool isLeftValueCompatible(ast::ExpressionNode* expr) {
+    if(expr->getOperation() != ast::ExpressionNode::Operation::SPECIAL) {
+        return false;
+    }
+
+    auto* special = dynamic_cast<ast::SpecialExpressionNode*>(expr);
+
+    if(special->getFunctionName() == ast::SpecialExpressionNode::FunctionName::VARIABLE) {
+        auto* var = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
+        return ctx->getLookupTable().isVariableDefined(var->getName(), "");
+    }
+    else if(special->getFunctionName() == ast::SpecialExpressionNode::FunctionName::RECORD_ACCESS) {
+        //auto* record = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
+        //auto* field = dynamic_cast<ast::IdentifierNode*>(special->getArgument2().get());
+        //return ctx->getLookupTable().isTypeDefined(record->getName(), "");
+        return true;
+    }
+    else if(special->getFunctionName() == ast::SpecialExpressionNode::FunctionName::ARRAY_ACCESS) {
+        //auto* array = dynamic_cast<ast::ExpressionNode*>(special->getArgument1().get());
+        //auto* index = dynamic_cast<ast::ExpressionNode*>(special->getArgument2().get());
+        //return ctx->getLookupTable().isVariableDefined(array->getName(), "");
+        return true;
+    }
+    else {
+        return false;
+    }
 }

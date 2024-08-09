@@ -9,16 +9,22 @@ State 29 conflicts: 2 shift/reduce
 State 56 conflicts: 1 shift/reduce
 State 58 conflicts: 1 shift/reduce
 State 84 conflicts: 18 shift/reduce
-State 102 conflicts: 1 shift/reduce
 State 103 conflicts: 19 shift/reduce
+State 106 conflicts: 1 shift/reduce
 State 107 conflicts: 20 shift/reduce
-State 156 conflicts: 48 reduce/reduce
-State 157 conflicts: 48 reduce/reduce
-State 164 conflicts: 19 shift/reduce
-State 171 conflicts: 1 shift/reduce
+State 156 conflicts: 49 reduce/reduce
+State 157 conflicts: 49 reduce/reduce
+State 158 conflicts: 2 shift/reduce
+State 159 conflicts: 2 shift/reduce
+State 162 conflicts: 19 shift/reduce
+State 169 conflicts: 1 shift/reduce
 State 180 conflicts: 19 shift/reduce
-State 222 conflicts: 1 shift/reduce
-State 229 conflicts: 19 shift/reduce
+State 220 conflicts: 1 shift/reduce
+State 227 conflicts: 19 shift/reduce
+State 232 conflicts: 1 shift/reduce
+State 233 conflicts: 1 shift/reduce
+State 234 conflicts: 1 shift/reduce
+State 235 conflicts: 1 shift/reduce
 State 304 conflicts: 19 shift/reduce
 State 305 conflicts: 19 shift/reduce
 
@@ -222,8 +228,8 @@ Grammar
   144       | LP expression RP
   145       | NOT factor
   146       | MINUS factor
-  147       | identifier LB expression RB
-  148       | identifier DOT identifier
+  147       | factor LB expression RB
+  148       | factor DOT identifier
   149       | ABS LP args_list RP
   150       | CHR LP args_list RP
   151       | ODD LP args_list RP
@@ -405,7 +411,7 @@ Nonterminals, with rules where they appear
         on right: 26 27 32 33 60 61 64 71
     identifier <identifierNode> (109)
         on left: 73
-        on right: 38 39 52 53 63 66 71 72 93 94 95 108 110 111 112 113 141 142 147 148
+        on right: 38 39 52 53 63 66 71 72 93 94 95 108 110 111 112 113 141 142 148
     routine_body <routineBodyNode> (110)
         on left: 74
         on right: 5
@@ -468,7 +474,7 @@ Nonterminals, with rules where they appear
         on right: 132 133 134 135 136 137 138 139
     factor <expressionNode> (130)
         on left: 141 142 143 144 145 146 147 148 149 150 151 152 153 154
-        on right: 114 136 137 138 139 140 145 146
+        on right: 114 136 137 138 139 140 145 146 147 148
 
 
 State 0
@@ -1793,14 +1799,9 @@ State 102
 
   141 factor: identifier •
   142       | identifier • LP args_list RP
-  147       | identifier • LB expression RB
-  148       | identifier • DOT identifier
 
-    LB   shift, and go to state 161
-    LP   shift, and go to state 162
-    DOT  shift, and go to state 163
+    LP  shift, and go to state 161
 
-    DOT       [reduce using rule 141 (factor)]
     $default  reduce using rule 141 (factor)
 
 
@@ -1827,17 +1828,17 @@ State 103
     STACKREAD    shift, and go to state 46
     STACKWRITE   shift, and go to state 47
     IF           shift, and go to state 48
-    THEN         shift, and go to state 164
+    THEN         shift, and go to state 162
     REPEAT       shift, and go to state 49
     WHILE        shift, and go to state 50
     CASE         shift, and go to state 51
     FOR          shift, and go to state 52
-    EQUAL        shift, and go to state 165
-    UNEQUAL      shift, and go to state 166
-    GE           shift, and go to state 167
-    GT           shift, and go to state 168
-    LE           shift, and go to state 169
-    LT           shift, and go to state 170
+    EQUAL        shift, and go to state 163
+    UNEQUAL      shift, and go to state 164
+    GE           shift, and go to state 165
+    GT           shift, and go to state 166
+    LE           shift, and go to state 167
+    LT           shift, and go to state 168
     GOTO         shift, and go to state 53
     BREAK        shift, and go to state 54
     CONTINUE     shift, and go to state 55
@@ -1865,7 +1866,7 @@ State 103
 
     identifier     go to state 56
     compound_stmt  go to state 57
-    stmt           go to state 171
+    stmt           go to state 169
     no_label_stmt  go to state 59
     assign_stmt    go to state 60
     goto_stmt      go to state 61
@@ -1884,9 +1885,9 @@ State 104
   133     | expr • MINUS term
   134     | expr • OR term
 
-    PLUS   shift, and go to state 172
-    MINUS  shift, and go to state 173
-    OR     shift, and go to state 174
+    PLUS   shift, and go to state 170
+    MINUS  shift, and go to state 171
+    OR     shift, and go to state 172
 
     $default  reduce using rule 131 (expression)
 
@@ -1899,10 +1900,10 @@ State 105
   138     | term • MOD factor
   139     | term • AND factor
 
-    MUL  shift, and go to state 175
-    DIV  shift, and go to state 176
-    AND  shift, and go to state 177
-    MOD  shift, and go to state 178
+    MUL  shift, and go to state 173
+    DIV  shift, and go to state 174
+    AND  shift, and go to state 175
+    MOD  shift, and go to state 176
 
     $default  reduce using rule 135 (expr)
 
@@ -1910,7 +1911,13 @@ State 105
 State 106
 
   140 term: factor •
+  147 factor: factor • LB expression RB
+  148       | factor • DOT identifier
 
+    LB   shift, and go to state 177
+    DOT  shift, and go to state 178
+
+    DOT       [reduce using rule 140 (term)]
     $default  reduce using rule 140 (term)
 
 
@@ -1988,12 +1995,12 @@ State 108
   130           | expression • UNEQUAL expr
 
     DO       shift, and go to state 180
-    EQUAL    shift, and go to state 165
-    UNEQUAL  shift, and go to state 166
-    GE       shift, and go to state 167
-    GT       shift, and go to state 168
-    LE       shift, and go to state 169
-    LT       shift, and go to state 170
+    EQUAL    shift, and go to state 163
+    UNEQUAL  shift, and go to state 164
+    GE       shift, and go to state 165
+    GT       shift, and go to state 166
+    LE       shift, and go to state 167
+    LT       shift, and go to state 168
 
 
 State 109
@@ -2006,12 +2013,12 @@ State 109
   129           | expression • EQUAL expr
   130           | expression • UNEQUAL expr
 
-    EQUAL    shift, and go to state 165
-    UNEQUAL  shift, and go to state 166
-    GE       shift, and go to state 167
-    GT       shift, and go to state 168
-    LE       shift, and go to state 169
-    LT       shift, and go to state 170
+    EQUAL    shift, and go to state 163
+    UNEQUAL  shift, and go to state 164
+    GE       shift, and go to state 165
+    GT       shift, and go to state 166
+    LE       shift, and go to state 167
+    LT       shift, and go to state 168
     OF       shift, and go to state 181
 
 
@@ -2378,8 +2385,12 @@ State 141
 State 142
 
   114 proc_stmt: READ LP factor • RP
+  147 factor: factor • LB expression RB
+  148       | factor • DOT identifier
 
-    RP  shift, and go to state 204
+    LB   shift, and go to state 177
+    RP   shift, and go to state 204
+    DOT  shift, and go to state 178
 
 
 State 143
@@ -2401,12 +2412,12 @@ State 144
   129           | expression • EQUAL expr
   130           | expression • UNEQUAL expr
 
-    EQUAL    shift, and go to state 165
-    UNEQUAL  shift, and go to state 166
-    GE       shift, and go to state 167
-    GT       shift, and go to state 168
-    LE       shift, and go to state 169
-    LT       shift, and go to state 170
+    EQUAL    shift, and go to state 163
+    UNEQUAL  shift, and go to state 164
+    GE       shift, and go to state 165
+    GT       shift, and go to state 166
+    LE       shift, and go to state 167
+    LT       shift, and go to state 168
 
     $default  reduce using rule 124 (args_list)
 
@@ -2719,6 +2730,8 @@ State 156
     AND          [reduce using rule 41 (const_value)]
     MOD          reduce using rule 40 (const_value)
     MOD          [reduce using rule 41 (const_value)]
+    LB           reduce using rule 40 (const_value)
+    LB           [reduce using rule 41 (const_value)]
     RB           reduce using rule 40 (const_value)
     RB           [reduce using rule 41 (const_value)]
     RP           reduce using rule 40 (const_value)
@@ -2823,6 +2836,8 @@ State 157
     AND          [reduce using rule 47 (const_value)]
     MOD          reduce using rule 46 (const_value)
     MOD          [reduce using rule 47 (const_value)]
+    LB           reduce using rule 46 (const_value)
+    LB           [reduce using rule 47 (const_value)]
     RB           reduce using rule 46 (const_value)
     RB           [reduce using rule 47 (const_value)]
     RP           reduce using rule 46 (const_value)
@@ -2847,14 +2862,28 @@ State 157
 State 158
 
   146 factor: MINUS factor •
+  147       | factor • LB expression RB
+  148       | factor • DOT identifier
 
+    LB   shift, and go to state 177
+    DOT  shift, and go to state 178
+
+    LB        [reduce using rule 146 (factor)]
+    DOT       [reduce using rule 146 (factor)]
     $default  reduce using rule 146 (factor)
 
 
 State 159
 
   145 factor: NOT factor •
+  147       | factor • LB expression RB
+  148       | factor • DOT identifier
 
+    LB   shift, and go to state 177
+    DOT  shift, and go to state 178
+
+    LB        [reduce using rule 145 (factor)]
+    DOT       [reduce using rule 145 (factor)]
     $default  reduce using rule 145 (factor)
 
 
@@ -2868,45 +2897,16 @@ State 160
   130           | expression • UNEQUAL expr
   144 factor: LP expression • RP
 
-    EQUAL    shift, and go to state 165
-    UNEQUAL  shift, and go to state 166
-    GE       shift, and go to state 167
-    GT       shift, and go to state 168
-    LE       shift, and go to state 169
-    LT       shift, and go to state 170
+    EQUAL    shift, and go to state 163
+    UNEQUAL  shift, and go to state 164
+    GE       shift, and go to state 165
+    GT       shift, and go to state 166
+    LE       shift, and go to state 167
+    LT       shift, and go to state 168
     RP       shift, and go to state 218
 
 
 State 161
-
-  147 factor: identifier LB • expression RB
-
-    IDENT_NAME  shift, and go to state 10
-    INTEGER     shift, and go to state 30
-    CHAR        shift, and go to state 31
-    STRING      shift, and go to state 32
-    TRUE        shift, and go to state 33
-    FALSE       shift, and go to state 34
-    MAXINT      shift, and go to state 35
-    ABS         shift, and go to state 92
-    CHR         shift, and go to state 93
-    ODD         shift, and go to state 94
-    ORD         shift, and go to state 95
-    PRED        shift, and go to state 96
-    SUCC        shift, and go to state 97
-    MINUS       shift, and go to state 98
-    NOT         shift, and go to state 99
-    LP          shift, and go to state 100
-
-    const_value  go to state 101
-    identifier   go to state 102
-    expression   go to state 219
-    expr         go to state 104
-    term         go to state 105
-    factor       go to state 106
-
-
-State 162
 
   142 factor: identifier LP • args_list RP
 
@@ -2929,23 +2929,14 @@ State 162
 
     const_value  go to state 101
     identifier   go to state 102
-    args_list    go to state 220
+    args_list    go to state 219
     expression   go to state 144
     expr         go to state 104
     term         go to state 105
     factor       go to state 106
 
 
-State 163
-
-  148 factor: identifier DOT • identifier
-
-    IDENT_NAME  shift, and go to state 10
-
-    identifier  go to state 221
-
-
-State 164
+State 162
 
    97 if_stmt: IF expression THEN • stmt else_clause
 
@@ -2992,7 +2983,7 @@ State 164
 
     identifier     go to state 56
     compound_stmt  go to state 57
-    stmt           go to state 222
+    stmt           go to state 220
     no_label_stmt  go to state 59
     assign_stmt    go to state 60
     goto_stmt      go to state 61
@@ -3004,9 +2995,65 @@ State 164
     proc_stmt      go to state 67
 
 
-State 165
+State 163
 
   129 expression: expression EQUAL • expr
+
+    IDENT_NAME  shift, and go to state 10
+    INTEGER     shift, and go to state 30
+    CHAR        shift, and go to state 31
+    STRING      shift, and go to state 32
+    TRUE        shift, and go to state 33
+    FALSE       shift, and go to state 34
+    MAXINT      shift, and go to state 35
+    ABS         shift, and go to state 92
+    CHR         shift, and go to state 93
+    ODD         shift, and go to state 94
+    ORD         shift, and go to state 95
+    PRED        shift, and go to state 96
+    SUCC        shift, and go to state 97
+    MINUS       shift, and go to state 98
+    NOT         shift, and go to state 99
+    LP          shift, and go to state 100
+
+    const_value  go to state 101
+    identifier   go to state 102
+    expr         go to state 221
+    term         go to state 105
+    factor       go to state 106
+
+
+State 164
+
+  130 expression: expression UNEQUAL • expr
+
+    IDENT_NAME  shift, and go to state 10
+    INTEGER     shift, and go to state 30
+    CHAR        shift, and go to state 31
+    STRING      shift, and go to state 32
+    TRUE        shift, and go to state 33
+    FALSE       shift, and go to state 34
+    MAXINT      shift, and go to state 35
+    ABS         shift, and go to state 92
+    CHR         shift, and go to state 93
+    ODD         shift, and go to state 94
+    ORD         shift, and go to state 95
+    PRED        shift, and go to state 96
+    SUCC        shift, and go to state 97
+    MINUS       shift, and go to state 98
+    NOT         shift, and go to state 99
+    LP          shift, and go to state 100
+
+    const_value  go to state 101
+    identifier   go to state 102
+    expr         go to state 222
+    term         go to state 105
+    factor       go to state 106
+
+
+State 165
+
+  125 expression: expression GE • expr
 
     IDENT_NAME  shift, and go to state 10
     INTEGER     shift, and go to state 30
@@ -3034,7 +3081,7 @@ State 165
 
 State 166
 
-  130 expression: expression UNEQUAL • expr
+  126 expression: expression GT • expr
 
     IDENT_NAME  shift, and go to state 10
     INTEGER     shift, and go to state 30
@@ -3062,7 +3109,7 @@ State 166
 
 State 167
 
-  125 expression: expression GE • expr
+  127 expression: expression LE • expr
 
     IDENT_NAME  shift, and go to state 10
     INTEGER     shift, and go to state 30
@@ -3090,7 +3137,7 @@ State 167
 
 State 168
 
-  126 expression: expression GT • expr
+  128 expression: expression LT • expr
 
     IDENT_NAME  shift, and go to state 10
     INTEGER     shift, and go to state 30
@@ -3118,35 +3165,19 @@ State 168
 
 State 169
 
-  127 expression: expression LE • expr
+   98 if_stmt: IF expression stmt • else_clause
 
-    IDENT_NAME  shift, and go to state 10
-    INTEGER     shift, and go to state 30
-    CHAR        shift, and go to state 31
-    STRING      shift, and go to state 32
-    TRUE        shift, and go to state 33
-    FALSE       shift, and go to state 34
-    MAXINT      shift, and go to state 35
-    ABS         shift, and go to state 92
-    CHR         shift, and go to state 93
-    ODD         shift, and go to state 94
-    ORD         shift, and go to state 95
-    PRED        shift, and go to state 96
-    SUCC        shift, and go to state 97
-    MINUS       shift, and go to state 98
-    NOT         shift, and go to state 99
-    LP          shift, and go to state 100
+    ELSE  shift, and go to state 227
 
-    const_value  go to state 101
-    identifier   go to state 102
-    expr         go to state 227
-    term         go to state 105
-    factor       go to state 106
+    ELSE      [reduce using rule 99 (else_clause)]
+    $default  reduce using rule 99 (else_clause)
+
+    else_clause  go to state 228
 
 
 State 170
 
-  128 expression: expression LT • expr
+  132 expr: expr PLUS • term
 
     IDENT_NAME  shift, and go to state 10
     INTEGER     shift, and go to state 30
@@ -3167,26 +3198,40 @@ State 170
 
     const_value  go to state 101
     identifier   go to state 102
-    expr         go to state 228
-    term         go to state 105
+    term         go to state 229
     factor       go to state 106
 
 
 State 171
 
-   98 if_stmt: IF expression stmt • else_clause
+  133 expr: expr MINUS • term
 
-    ELSE  shift, and go to state 229
+    IDENT_NAME  shift, and go to state 10
+    INTEGER     shift, and go to state 30
+    CHAR        shift, and go to state 31
+    STRING      shift, and go to state 32
+    TRUE        shift, and go to state 33
+    FALSE       shift, and go to state 34
+    MAXINT      shift, and go to state 35
+    ABS         shift, and go to state 92
+    CHR         shift, and go to state 93
+    ODD         shift, and go to state 94
+    ORD         shift, and go to state 95
+    PRED        shift, and go to state 96
+    SUCC        shift, and go to state 97
+    MINUS       shift, and go to state 98
+    NOT         shift, and go to state 99
+    LP          shift, and go to state 100
 
-    ELSE      [reduce using rule 99 (else_clause)]
-    $default  reduce using rule 99 (else_clause)
-
-    else_clause  go to state 230
+    const_value  go to state 101
+    identifier   go to state 102
+    term         go to state 230
+    factor       go to state 106
 
 
 State 172
 
-  132 expr: expr PLUS • term
+  134 expr: expr OR • term
 
     IDENT_NAME  shift, and go to state 10
     INTEGER     shift, and go to state 30
@@ -3213,7 +3258,7 @@ State 172
 
 State 173
 
-  133 expr: expr MINUS • term
+  136 term: term MUL • factor
 
     IDENT_NAME  shift, and go to state 10
     INTEGER     shift, and go to state 30
@@ -3234,13 +3279,12 @@ State 173
 
     const_value  go to state 101
     identifier   go to state 102
-    term         go to state 232
-    factor       go to state 106
+    factor       go to state 232
 
 
 State 174
 
-  134 expr: expr OR • term
+  137 term: term DIV • factor
 
     IDENT_NAME  shift, and go to state 10
     INTEGER     shift, and go to state 30
@@ -3261,13 +3305,12 @@ State 174
 
     const_value  go to state 101
     identifier   go to state 102
-    term         go to state 233
-    factor       go to state 106
+    factor       go to state 233
 
 
 State 175
 
-  136 term: term MUL • factor
+  139 term: term AND • factor
 
     IDENT_NAME  shift, and go to state 10
     INTEGER     shift, and go to state 30
@@ -3293,7 +3336,7 @@ State 175
 
 State 176
 
-  137 term: term DIV • factor
+  138 term: term MOD • factor
 
     IDENT_NAME  shift, and go to state 10
     INTEGER     shift, and go to state 30
@@ -3319,7 +3362,7 @@ State 176
 
 State 177
 
-  139 term: term AND • factor
+  147 factor: factor LB • expression RB
 
     IDENT_NAME  shift, and go to state 10
     INTEGER     shift, and go to state 30
@@ -3340,33 +3383,19 @@ State 177
 
     const_value  go to state 101
     identifier   go to state 102
-    factor       go to state 236
+    expression   go to state 236
+    expr         go to state 104
+    term         go to state 105
+    factor       go to state 106
 
 
 State 178
 
-  138 term: term MOD • factor
+  148 factor: factor DOT • identifier
 
     IDENT_NAME  shift, and go to state 10
-    INTEGER     shift, and go to state 30
-    CHAR        shift, and go to state 31
-    STRING      shift, and go to state 32
-    TRUE        shift, and go to state 33
-    FALSE       shift, and go to state 34
-    MAXINT      shift, and go to state 35
-    ABS         shift, and go to state 92
-    CHR         shift, and go to state 93
-    ODD         shift, and go to state 94
-    ORD         shift, and go to state 95
-    PRED        shift, and go to state 96
-    SUCC        shift, and go to state 97
-    MINUS       shift, and go to state 98
-    NOT         shift, and go to state 99
-    LP          shift, and go to state 100
 
-    const_value  go to state 101
-    identifier   go to state 102
-    factor       go to state 237
+    identifier  go to state 237
 
 
 State 179
@@ -3517,12 +3546,12 @@ State 183
   129           | expression • EQUAL expr
   130           | expression • UNEQUAL expr
 
-    EQUAL    shift, and go to state 165
-    UNEQUAL  shift, and go to state 166
-    GE       shift, and go to state 167
-    GT       shift, and go to state 168
-    LE       shift, and go to state 169
-    LT       shift, and go to state 170
+    EQUAL    shift, and go to state 163
+    UNEQUAL  shift, and go to state 164
+    GE       shift, and go to state 165
+    GT       shift, and go to state 166
+    LE       shift, and go to state 167
+    LT       shift, and go to state 168
 
     $default  reduce using rule 93 (assign_stmt)
 
@@ -3537,12 +3566,12 @@ State 184
   129           | expression • EQUAL expr
   130           | expression • UNEQUAL expr
 
-    EQUAL    shift, and go to state 165
-    UNEQUAL  shift, and go to state 166
-    GE       shift, and go to state 167
-    GT       shift, and go to state 168
-    LE       shift, and go to state 169
-    LT       shift, and go to state 170
+    EQUAL    shift, and go to state 163
+    UNEQUAL  shift, and go to state 164
+    GE       shift, and go to state 165
+    GT       shift, and go to state 166
+    LE       shift, and go to state 167
+    LT       shift, and go to state 168
     RB       shift, and go to state 246
 
 
@@ -3874,136 +3903,110 @@ State 218
 
 State 219
 
-  125 expression: expression • GE expr
-  126           | expression • GT expr
-  127           | expression • LE expr
-  128           | expression • LT expr
-  129           | expression • EQUAL expr
-  130           | expression • UNEQUAL expr
-  147 factor: identifier LB expression • RB
+  123 args_list: args_list • COMMA expression
+  142 factor: identifier LP args_list • RP
 
-    EQUAL    shift, and go to state 165
-    UNEQUAL  shift, and go to state 166
-    GE       shift, and go to state 167
-    GT       shift, and go to state 168
-    LE       shift, and go to state 169
-    LT       shift, and go to state 170
-    RB       shift, and go to state 271
+    RP     shift, and go to state 271
+    COMMA  shift, and go to state 206
 
 
 State 220
 
-  123 args_list: args_list • COMMA expression
-  142 factor: identifier LP args_list • RP
-
-    RP     shift, and go to state 272
-    COMMA  shift, and go to state 206
-
-
-State 221
-
-  148 factor: identifier DOT identifier •
-
-    $default  reduce using rule 148 (factor)
-
-
-State 222
-
    97 if_stmt: IF expression THEN stmt • else_clause
 
-    ELSE  shift, and go to state 229
+    ELSE  shift, and go to state 227
 
     ELSE      [reduce using rule 99 (else_clause)]
     $default  reduce using rule 99 (else_clause)
 
-    else_clause  go to state 273
+    else_clause  go to state 272
 
 
-State 223
+State 221
 
   129 expression: expression EQUAL expr •
   132 expr: expr • PLUS term
   133     | expr • MINUS term
   134     | expr • OR term
 
-    PLUS   shift, and go to state 172
-    MINUS  shift, and go to state 173
-    OR     shift, and go to state 174
+    PLUS   shift, and go to state 170
+    MINUS  shift, and go to state 171
+    OR     shift, and go to state 172
 
     $default  reduce using rule 129 (expression)
 
 
-State 224
+State 222
 
   130 expression: expression UNEQUAL expr •
   132 expr: expr • PLUS term
   133     | expr • MINUS term
   134     | expr • OR term
 
-    PLUS   shift, and go to state 172
-    MINUS  shift, and go to state 173
-    OR     shift, and go to state 174
+    PLUS   shift, and go to state 170
+    MINUS  shift, and go to state 171
+    OR     shift, and go to state 172
 
     $default  reduce using rule 130 (expression)
 
 
-State 225
+State 223
 
   125 expression: expression GE expr •
   132 expr: expr • PLUS term
   133     | expr • MINUS term
   134     | expr • OR term
 
-    PLUS   shift, and go to state 172
-    MINUS  shift, and go to state 173
-    OR     shift, and go to state 174
+    PLUS   shift, and go to state 170
+    MINUS  shift, and go to state 171
+    OR     shift, and go to state 172
 
     $default  reduce using rule 125 (expression)
 
 
-State 226
+State 224
 
   126 expression: expression GT expr •
   132 expr: expr • PLUS term
   133     | expr • MINUS term
   134     | expr • OR term
 
-    PLUS   shift, and go to state 172
-    MINUS  shift, and go to state 173
-    OR     shift, and go to state 174
+    PLUS   shift, and go to state 170
+    MINUS  shift, and go to state 171
+    OR     shift, and go to state 172
 
     $default  reduce using rule 126 (expression)
 
 
-State 227
+State 225
 
   127 expression: expression LE expr •
   132 expr: expr • PLUS term
   133     | expr • MINUS term
   134     | expr • OR term
 
-    PLUS   shift, and go to state 172
-    MINUS  shift, and go to state 173
-    OR     shift, and go to state 174
+    PLUS   shift, and go to state 170
+    MINUS  shift, and go to state 171
+    OR     shift, and go to state 172
 
     $default  reduce using rule 127 (expression)
 
 
-State 228
+State 226
 
   128 expression: expression LT expr •
   132 expr: expr • PLUS term
   133     | expr • MINUS term
   134     | expr • OR term
 
-    PLUS   shift, and go to state 172
-    MINUS  shift, and go to state 173
-    OR     shift, and go to state 174
+    PLUS   shift, and go to state 170
+    MINUS  shift, and go to state 171
+    OR     shift, and go to state 172
 
     $default  reduce using rule 128 (expression)
 
 
-State 229
+State 227
 
   100 else_clause: ELSE • stmt
 
@@ -4050,7 +4053,7 @@ State 229
 
     identifier     go to state 56
     compound_stmt  go to state 57
-    stmt           go to state 274
+    stmt           go to state 273
     no_label_stmt  go to state 59
     assign_stmt    go to state 60
     goto_stmt      go to state 61
@@ -4062,14 +4065,14 @@ State 229
     proc_stmt      go to state 67
 
 
-State 230
+State 228
 
    98 if_stmt: IF expression stmt else_clause •
 
     $default  reduce using rule 98 (if_stmt)
 
 
-State 231
+State 229
 
   132 expr: expr PLUS term •
   136 term: term • MUL factor
@@ -4077,15 +4080,15 @@ State 231
   138     | term • MOD factor
   139     | term • AND factor
 
-    MUL  shift, and go to state 175
-    DIV  shift, and go to state 176
-    AND  shift, and go to state 177
-    MOD  shift, and go to state 178
+    MUL  shift, and go to state 173
+    DIV  shift, and go to state 174
+    AND  shift, and go to state 175
+    MOD  shift, and go to state 176
 
     $default  reduce using rule 132 (expr)
 
 
-State 232
+State 230
 
   133 expr: expr MINUS term •
   136 term: term • MUL factor
@@ -4093,15 +4096,15 @@ State 232
   138     | term • MOD factor
   139     | term • AND factor
 
-    MUL  shift, and go to state 175
-    DIV  shift, and go to state 176
-    AND  shift, and go to state 177
-    MOD  shift, and go to state 178
+    MUL  shift, and go to state 173
+    DIV  shift, and go to state 174
+    AND  shift, and go to state 175
+    MOD  shift, and go to state 176
 
     $default  reduce using rule 133 (expr)
 
 
-State 233
+State 231
 
   134 expr: expr OR term •
   136 term: term • MUL factor
@@ -4109,40 +4112,90 @@ State 233
   138     | term • MOD factor
   139     | term • AND factor
 
-    MUL  shift, and go to state 175
-    DIV  shift, and go to state 176
-    AND  shift, and go to state 177
-    MOD  shift, and go to state 178
+    MUL  shift, and go to state 173
+    DIV  shift, and go to state 174
+    AND  shift, and go to state 175
+    MOD  shift, and go to state 176
 
     $default  reduce using rule 134 (expr)
 
 
-State 234
+State 232
 
   136 term: term MUL factor •
+  147 factor: factor • LB expression RB
+  148       | factor • DOT identifier
 
+    LB   shift, and go to state 177
+    DOT  shift, and go to state 178
+
+    DOT       [reduce using rule 136 (term)]
     $default  reduce using rule 136 (term)
+
+
+State 233
+
+  137 term: term DIV factor •
+  147 factor: factor • LB expression RB
+  148       | factor • DOT identifier
+
+    LB   shift, and go to state 177
+    DOT  shift, and go to state 178
+
+    DOT       [reduce using rule 137 (term)]
+    $default  reduce using rule 137 (term)
+
+
+State 234
+
+  139 term: term AND factor •
+  147 factor: factor • LB expression RB
+  148       | factor • DOT identifier
+
+    LB   shift, and go to state 177
+    DOT  shift, and go to state 178
+
+    DOT       [reduce using rule 139 (term)]
+    $default  reduce using rule 139 (term)
 
 
 State 235
 
-  137 term: term DIV factor •
+  138 term: term MOD factor •
+  147 factor: factor • LB expression RB
+  148       | factor • DOT identifier
 
-    $default  reduce using rule 137 (term)
+    LB   shift, and go to state 177
+    DOT  shift, and go to state 178
+
+    DOT       [reduce using rule 138 (term)]
+    $default  reduce using rule 138 (term)
 
 
 State 236
 
-  139 term: term AND factor •
+  125 expression: expression • GE expr
+  126           | expression • GT expr
+  127           | expression • LE expr
+  128           | expression • LT expr
+  129           | expression • EQUAL expr
+  130           | expression • UNEQUAL expr
+  147 factor: factor LB expression • RB
 
-    $default  reduce using rule 139 (term)
+    EQUAL    shift, and go to state 163
+    UNEQUAL  shift, and go to state 164
+    GE       shift, and go to state 165
+    GT       shift, and go to state 166
+    LE       shift, and go to state 167
+    LT       shift, and go to state 168
+    RB       shift, and go to state 274
 
 
 State 237
 
-  138 term: term MOD factor •
+  148 factor: factor DOT identifier •
 
-    $default  reduce using rule 138 (term)
+    $default  reduce using rule 148 (factor)
 
 
 State 238
@@ -4155,12 +4208,12 @@ State 238
   129           | expression • EQUAL expr
   130           | expression • UNEQUAL expr
 
-    EQUAL    shift, and go to state 165
-    UNEQUAL  shift, and go to state 166
-    GE       shift, and go to state 167
-    GT       shift, and go to state 168
-    LE       shift, and go to state 169
-    LT       shift, and go to state 170
+    EQUAL    shift, and go to state 163
+    UNEQUAL  shift, and go to state 164
+    GE       shift, and go to state 165
+    GT       shift, and go to state 166
+    LE       shift, and go to state 167
+    LT       shift, and go to state 168
 
     $default  reduce using rule 101 (repeat_stmt)
 
@@ -4267,12 +4320,12 @@ State 245
 
     TO       shift, and go to state 280
     DOWNTO   shift, and go to state 281
-    EQUAL    shift, and go to state 165
-    UNEQUAL  shift, and go to state 166
-    GE       shift, and go to state 167
-    GT       shift, and go to state 168
-    LE       shift, and go to state 169
-    LT       shift, and go to state 170
+    EQUAL    shift, and go to state 163
+    UNEQUAL  shift, and go to state 164
+    GE       shift, and go to state 165
+    GT       shift, and go to state 166
+    LE       shift, and go to state 167
+    LT       shift, and go to state 168
 
 
 State 246
@@ -4478,12 +4531,12 @@ State 264
   129           | expression • EQUAL expr
   130           | expression • UNEQUAL expr
 
-    EQUAL    shift, and go to state 165
-    UNEQUAL  shift, and go to state 166
-    GE       shift, and go to state 167
-    GT       shift, and go to state 168
-    LE       shift, and go to state 169
-    LT       shift, and go to state 170
+    EQUAL    shift, and go to state 163
+    UNEQUAL  shift, and go to state 164
+    GE       shift, and go to state 165
+    GT       shift, and go to state 166
+    LE       shift, and go to state 167
+    LT       shift, and go to state 168
 
     $default  reduce using rule 123 (args_list)
 
@@ -4532,30 +4585,30 @@ State 270
 
 State 271
 
-  147 factor: identifier LB expression RB •
-
-    $default  reduce using rule 147 (factor)
-
-
-State 272
-
   142 factor: identifier LP args_list RP •
 
     $default  reduce using rule 142 (factor)
 
 
-State 273
+State 272
 
    97 if_stmt: IF expression THEN stmt else_clause •
 
     $default  reduce using rule 97 (if_stmt)
 
 
-State 274
+State 273
 
   100 else_clause: ELSE stmt •
 
     $default  reduce using rule 100 (else_clause)
+
+
+State 274
+
+  147 factor: factor LB expression RB •
+
+    $default  reduce using rule 147 (factor)
 
 
 State 275
@@ -4756,12 +4809,12 @@ State 283
   129           | expression • EQUAL expr
   130           | expression • UNEQUAL expr
 
-    EQUAL    shift, and go to state 165
-    UNEQUAL  shift, and go to state 166
-    GE       shift, and go to state 167
-    GT       shift, and go to state 168
-    LE       shift, and go to state 169
-    LT       shift, and go to state 170
+    EQUAL    shift, and go to state 163
+    UNEQUAL  shift, and go to state 164
+    GE       shift, and go to state 165
+    GT       shift, and go to state 166
+    LE       shift, and go to state 167
+    LT       shift, and go to state 168
 
     $default  reduce using rule 95 (assign_stmt)
 
@@ -4873,12 +4926,12 @@ State 294
   130           | expression • UNEQUAL expr
 
     DO       shift, and go to state 304
-    EQUAL    shift, and go to state 165
-    UNEQUAL  shift, and go to state 166
-    GE       shift, and go to state 167
-    GT       shift, and go to state 168
-    LE       shift, and go to state 169
-    LT       shift, and go to state 170
+    EQUAL    shift, and go to state 163
+    UNEQUAL  shift, and go to state 164
+    GE       shift, and go to state 165
+    GT       shift, and go to state 166
+    LE       shift, and go to state 167
+    LT       shift, and go to state 168
 
 
 State 295
@@ -4892,12 +4945,12 @@ State 295
   130           | expression • UNEQUAL expr
 
     DO       shift, and go to state 305
-    EQUAL    shift, and go to state 165
-    UNEQUAL  shift, and go to state 166
-    GE       shift, and go to state 167
-    GT       shift, and go to state 168
-    LE       shift, and go to state 169
-    LT       shift, and go to state 170
+    EQUAL    shift, and go to state 163
+    UNEQUAL  shift, and go to state 164
+    GE       shift, and go to state 165
+    GT       shift, and go to state 166
+    LE       shift, and go to state 167
+    LT       shift, and go to state 168
 
 
 State 296
@@ -4910,12 +4963,12 @@ State 296
   129           | expression • EQUAL expr
   130           | expression • UNEQUAL expr
 
-    EQUAL    shift, and go to state 165
-    UNEQUAL  shift, and go to state 166
-    GE       shift, and go to state 167
-    GT       shift, and go to state 168
-    LE       shift, and go to state 169
-    LT       shift, and go to state 170
+    EQUAL    shift, and go to state 163
+    UNEQUAL  shift, and go to state 164
+    GE       shift, and go to state 165
+    GT       shift, and go to state 166
+    LE       shift, and go to state 167
+    LT       shift, and go to state 168
 
     $default  reduce using rule 94 (assign_stmt)
 

@@ -1,68 +1,50 @@
 program Test;
 
-const
-  UpperToLower = 32;
-
 type
-  Str = array[1..20] of Char;
+  TArray = array[1..10] of Integer;
+  TMatrix = array[1..10] of array[1..10] of Integer;
+
+  TDay = (Mon, Tue, Wed, Thu, Fri, Sat, Sun);
 
   TPerson = record
-    Name, Surname: Str;
+    Name, Surname: Char;
     Age: Integer;
+    WorkHours: array[TDay] of Integer;
+  end;
+
+  TFamily = record
+    Father: TPerson;
+    Mother: TPerson;
+    Children: array[1..10] of TPerson;
   end;
 
 var
-  family: array[1..3] of TPerson;
+  IntVar: Integer;
+  UIntVar: Integer;
+  CharVar: Char;
+  BoolVar: Boolean;
 
-procedure ReadPerson(var p: TPerson);
-  procedure ToLower(var s: Str);
-    function Add(a, b: Integer): Integer;
-    begin
-      Result := a + b;
-    end;
-  begin
-    for i := 1 to 20 do
-      s[i] := Chr(Add(Ord(s[i]) + UpperToLower));
-  end;
-begin
-  writeln('Enter name: ');
-  read(p.Name);
-  ToLower(p.Name);
-  writeln('Enter surname: ');
-  read(p.Surname);
-  ToLower(p.Surname);
-  writeln('Enter age: ');
-  read(p.Age);
-end;
+  IndexVar: Integer;
 
-procedure UpdatePerson(var p: TPerson);
-  function Add(a, b: Integer): Integer;
-  begin
-    Result := a + b;
-  end;
-begin
-  p.Age := Add(p.Age, 1);
-end;
-
-function GetPersonName(var p: TPerson): Str;
-begin
-  Result := p.Name;
-end;
-
-procedure PrintPerson(p: TPerson);
-begin
-  writeln('Name: ', p.Name);
-  writeln('Surname: ', p.Surname);
-  writeln('Age: ', p.Age);
-end;
+  ArrayVar: TArray;
+  MatrixVar: TMatrix;
+  DayVar: TDay;
+  PersonVar: TPerson;
+  FamilyVar: TFamily;
 
 begin
-  for i := 1 to 3 do
-  begin
-    ReadPerson(family[i]);
-    UpdatePerson(family[i]);
-  end;
+  ReadLn;
 
-  for i := 1 to 3 do
-    PrintPerson(family[i]);
+  Read(IntVar);
+  Read(UIntVar);
+  Read(CharVar);
+  Read(BoolVar);
+  Read(UndefVar);
+
+  IndexVar := 5;
+
+  Read(ArrayVar[0]);
+  Read(ArrayVar[IndexVar]);
+  Read(MatrixVar[3][IndexVar]);
+  Read(MatrixVar[9-7][IndexVar + 1]);
 end.

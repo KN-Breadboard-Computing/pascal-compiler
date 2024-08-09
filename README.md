@@ -336,7 +336,7 @@ CharsArray = 'Hello';
     WorkHours: array[TDay] of Integer;
   end;
 
-  TFamiliy = record
+  TFamily = record
     Father: TPerson;
     Mother: TPerson;
     Children: array[1..10] of TPerson;
