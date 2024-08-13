@@ -24,7 +24,6 @@ class LookupTable {
     VariableCategory category{};
     std::string name{};
     std::string type{};
-    std::string value{};
     bool isInitialized{};
     bool alive;
   };
@@ -176,18 +175,17 @@ class LookupTable {
     std::cout << "Define variable: " << currentScope << " " << name << " " << static_cast<int>(category) << " " << type
               << std::endl;
 #endif
-    variables_[name][currentScope] = VariableInfo{category, name, type, "", false, true};
+    variables_[name][currentScope] = VariableInfo{category, name, type, false, true};
   }
 
-  void setVariableValue(const std::string& name, const std::string& value, const std::string& scope = "") {
+  void setVariableValue(const std::string& name, const std::string& scope = "") {
     std::string currentScope = scope.empty() ? getCurrentScope() : scope;
 #ifdef CONTEXT_DEBUG
-    std::cout << "Set variable value: " << currentScope << " " << name << " " << value << std::endl;
+    std::cout << "Set variable value: " << currentScope << " " << name << std::endl;
 #endif
     if (variables_.find(name) != variables_.end()) {
       for (auto& [scopeName, variableInfo] : variables_.at(name)) {
         if (currentScope.find(scopeName) == 0) {
-          variableInfo.value = value;
           variableInfo.isInitialized = true;
           return;
         }

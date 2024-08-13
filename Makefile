@@ -5,7 +5,7 @@ BFLAGS :=
 CXX := clang++
 CXXFLAGS := -Wall -Wextra -pedantic -std=c++20 -O3 -g
 
-SRCS := $(shell find src -name '*.cpp')
+SRCS := $(shell find src -name '*.cpp' | grep -v 'src/main.cpp')
 
 TEST_DIR = tests
 INPUT_DIR = $(TEST_DIR)/input
@@ -23,9 +23,9 @@ parser:
 	$(BB) $(BFLAGS) -o out/parser.cpp --defines=out/parser.hpp -v src/yacc.y
 
 compiler:
-	$(CXX) $(CXXFLAGS) out/*.cpp $(SRCS) -o compiler
+	$(CXX) $(CXXFLAGS) out/*.cpp $(SRCS) src/main.cpp -o compiler
 
-test:
+generate-examples:
 	@for input_file in $(INPUT_FILES); do \
 		ast_file=$(AST_DIR)/`basename $$input_file .pas`.ast; \
 		bblock_file=$(BB_DIR)/`basename $$input_file .pas`.bblock; \
@@ -35,6 +35,8 @@ test:
 		echo ""; \
 	done
 
+test-ast:
+	$(CXX) $(CXXFLAGS) out/*.cpp $(SRCS) tests/src/ast_test.cpp tests/src/main.cpp -lgtest -o ast-test
 
 clean:
 	rm -f compiler

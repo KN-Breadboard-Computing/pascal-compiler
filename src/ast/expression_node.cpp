@@ -10,7 +10,7 @@ void ExpressionNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
   ExpressionNode* newLeft = left_ == nullptr ? nullptr : dynamic_cast<ExpressionNode*>(left_->clone().release());
   ExpressionNode* newRight = right_ == nullptr ? nullptr : dynamic_cast<ExpressionNode*>(right_->clone().release());
 
-  return std::make_unique<ExpressionNode>(newLeft, newRight, operation_);
+  return std::make_unique<ExpressionNode>(newLeft, newRight, operation_, inferredType_);
 }
 
 void ExpressionNode::print(std::ostream& out, int tab) const {
@@ -84,7 +84,7 @@ void SpecialExpressionNode::accept(const std::unique_ptr<AstVisitor>& visitor) c
   SpecialExpressionNode* newArgument2 =
       argument2_ == nullptr ? nullptr : dynamic_cast<SpecialExpressionNode*>(argument2_->clone().release());
 
-  return std::make_unique<SpecialExpressionNode>(newArgument1, newArgument2, functionName_);
+  return std::make_unique<SpecialExpressionNode>(newArgument1, newArgument2, functionName_, getInferredType());
 }
 
 void SpecialExpressionNode::print(std::ostream& out, int tab) const {
@@ -107,6 +107,9 @@ void SpecialExpressionNode::print(std::ostream& out, int tab) const {
     case RECORD_ACCESS:
       out << std::string(tab, ' ') << "SpecialExpressionNode: RECORD_ACCESS\n";
       break;
+	case ENUM_ELEMENT:
+	  out << std::string(tab, ' ') << "SpecialExpressionNode: ENUM ELEMENT\n";
+	  break;
     case ABS:
       out << std::string(tab, ' ') << "SpecialExpressionNode: ABS\n";
       break;

@@ -1,4 +1,4 @@
-program Test;
+program LValuesTypes;
 
 type
     TArray = array[1..10] of integer;
@@ -25,11 +25,11 @@ var
     fam: TFamily;
 begin
     Read(x);
-    Read(arr[2]);
-    Read(mat[4][x]);
+    Read(arr[6]);
+    Read(mat[4][2]);
     Read(per.Age);
-    Read(per.WorkHours[Wed]);
-    Read(fam.Name.Ndame);
+    Read(per.WorkHours[3]);
+    Read(fam.Mother.Name);
     Read(fam.Children[0].Surname);
-    Read(fam.Children[0].WorkHours[Mon]);
+    Read(fam.Children[0].WorkHours[1]);
 end.
