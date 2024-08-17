@@ -1,0 +1,196 @@
+ProgramNode LValuesTypes:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+        Type 0:
+          IdentifierNode: TArray
+          ArrayTypeNode:
+            Range:
+              SimpleTypeNode BOOLEAN
+            Element type:
+              SimpleTypeNode INTEGER
+        Type 1:
+          IdentifierNode: TMatrix
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantInteger<1>
+                ConstantInteger<10>
+            Element type:
+              ArrayTypeNode:
+                Range:
+                  ConstRangeTypeNode:
+                    ConstantInteger<1>
+                    ConstantInteger<10>
+                Element type:
+                  SimpleTypeNode INTEGER
+        Type 2:
+          IdentifierNode: TDay
+          EnumerationTypeNode:
+            IdentifierNode: Mon
+            IdentifierNode: Tue
+            IdentifierNode: Wed
+            IdentifierNode: Thu
+            IdentifierNode: Fri
+            IdentifierNode: Sat
+            IdentifierNode: Sun
+        Type 3:
+          IdentifierNode: TWeekend
+          VarRangeTypeNode:
+            IdentifierNode: Sat
+            IdentifierNode: Sun
+        Type 4:
+          IdentifierNode: TPerson
+          RecordTypeNode:
+            Field:
+              IdentifierNode: Name
+              IdentifierNode: Surname
+              SimpleTypeNode CHAR
+            Field:
+              IdentifierNode: Age
+              SimpleTypeNode INTEGER
+            Field:
+              IdentifierNode: WorkHours
+              ArrayTypeNode:
+                Range:
+                  RenameTypeNode:
+                    IdentifierNode: TDay
+                Element type:
+                  SimpleTypeNode INTEGER
+            Field:
+              IdentifierNode: FamilyTime
+              ArrayTypeNode:
+                Range:
+                  RenameTypeNode:
+                    IdentifierNode: TWeekend
+                Element type:
+                  SimpleTypeNode INTEGER
+        Type 5:
+          IdentifierNode: TFamily
+          RecordTypeNode:
+            Field:
+              IdentifierNode: Father
+              RenameTypeNode:
+                IdentifierNode: TPerson
+            Field:
+              IdentifierNode: Mother
+              RenameTypeNode:
+                IdentifierNode: TPerson
+            Field:
+              IdentifierNode: Children
+              ArrayTypeNode:
+                Range:
+                  ConstRangeTypeNode:
+                    ConstantInteger<1>
+                    ConstantInteger<10>
+                Element type:
+                  RenameTypeNode:
+                    IdentifierNode: TPerson
+      Variables:
+        Group 0:
+          SimpleTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: x
+        Group 1:
+          RenameTypeNode:
+            IdentifierNode: TArray
+          Identifiers:
+            IdentifierNode: arr
+        Group 2:
+          RenameTypeNode:
+            IdentifierNode: TMatrix
+          Identifiers:
+            IdentifierNode: mat
+        Group 3:
+          RenameTypeNode:
+            IdentifierNode: TPerson
+          Identifiers:
+            IdentifierNode: per
+        Group 4:
+          RenameTypeNode:
+            IdentifierNode: TFamily
+          Identifiers:
+            IdentifierNode: fam
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: x
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: arr
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              SpecialExpressionNode: ARRAY_ACCESS
+                IdentifierNode: mat
+              SpecialExpressionNode: CONST
+                ConstantInteger<2>
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              SpecialExpressionNode: ARRAY_ACCESS
+                IdentifierNode: mat
+              SpecialExpressionNode: CONST
+                ConstantInteger<3>
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: RECORD_ACCESS
+              IdentifierNode: per
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              SpecialExpressionNode: RECORD_ACCESS
+                IdentifierNode: per
+              SpecialExpressionNode: ENUM ELEMENT
+                IdentifierNode: Sun
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: RECORD_ACCESS
+              SpecialExpressionNode: RECORD_ACCESS
+                IdentifierNode: fam
+              IdentifierNode: Name
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: RECORD_ACCESS
+              SpecialExpressionNode: ARRAY_ACCESS
+                SpecialExpressionNode: RECORD_ACCESS
+                  IdentifierNode: fam
+                SpecialExpressionNode: CONST
+                  ConstantInteger<0>
+              IdentifierNode: Surname
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              SpecialExpressionNode: RECORD_ACCESS
+                SpecialExpressionNode: ARRAY_ACCESS
+                  SpecialExpressionNode: RECORD_ACCESS
+                    IdentifierNode: fam
+                  SpecialExpressionNode: CONST
+                    ConstantInteger<0>
+                IdentifierNode: WorkHours
+              SpecialExpressionNode: ENUM ELEMENT
+                IdentifierNode: Mon
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              SpecialExpressionNode: ARRAY_ACCESS
+                IdentifierNode: mat
+              SpecialExpressionNode: CONST
+                ConstantInteger<1>
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              SpecialExpressionNode: RECORD_ACCESS
+                SpecialExpressionNode: ARRAY_ACCESS
+                  SpecialExpressionNode: RECORD_ACCESS
+                    IdentifierNode: fam
+                  SpecialExpressionNode: CONST
+                    ConstantInteger<0>
+                IdentifierNode: FamilyTime
+              SpecialExpressionNode: ENUM ELEMENT
+                IdentifierNode: Sat

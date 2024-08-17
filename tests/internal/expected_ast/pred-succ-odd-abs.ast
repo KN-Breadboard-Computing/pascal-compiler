@@ -1,0 +1,81 @@
+ProgramNode PredSuccOddAbs:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+      Variables:
+        Group 0:
+          SimpleTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: n
+            IdentifierNode: m
+        Group 1:
+          SimpleTypeNode BOOLEAN
+          Identifiers:
+            IdentifierNode: b
+        Group 2:
+          SimpleTypeNode CHAR
+          Identifiers:
+            IdentifierNode: c1
+            IdentifierNode: c2
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: n
+          SpecialExpressionNode: CONST
+            ConstantInteger<0>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: m
+          SpecialExpressionNode: SUCC
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: n
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: n
+          SpecialExpressionNode: PRED
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: m
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: b
+          SpecialExpressionNode: ODD
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: n
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: c1
+          SpecialExpressionNode: CONST
+            ConstantChar<k>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: c2
+          SpecialExpressionNode: SUCC
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: c1
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: c1
+          SpecialExpressionNode: PRED
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: c2
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: m
+          ExpressionNode: NEGATION
+            SpecialExpressionNode: CONST
+              ConstantInteger<5>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: n
+          SpecialExpressionNode: ABS
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: m

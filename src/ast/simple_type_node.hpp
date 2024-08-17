@@ -8,7 +8,7 @@
 namespace ast {
 class SimpleTypeNode : public TypeNode {
  public:
-  enum Representation { UNSPECIFIED, INTEGER, UNSIGNED, BOOLEAN, CHAR, STRING, RENAMING, ENUMERATION, CONST_RANGE, VAR_RANGE };
+  enum Representation { UNSPECIFIED, INTEGER, BOOLEAN, CHAR, STRING, RENAMING, ENUMERATION, CONST_RANGE, VAR_RANGE };
 
   SimpleTypeNode() : TypeNode{TypeType::SIMPLE}, representation_{UNSPECIFIED} {}
   explicit SimpleTypeNode(Representation representation) : TypeNode{TypeType::SIMPLE}, representation_{representation} {}

@@ -1,0 +1,82 @@
+ProgramNode Recursion:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+      Variables:
+      Routines:
+        RoutineDeclarationNode:
+          Name: F
+          ParamsNode:
+            ParamsGroupNode:
+              PassType: PASS_BY_VALUE
+              ParamsType:
+                SimpleTypeNode INTEGER
+              Params:
+                IdentifierNode: n
+          SimpleTypeNode INTEGER
+          RoutineNode of type UNSPECIFIED:
+            RoutineHeadNode:
+              Constants:
+              Types:
+              Variables:
+              Routines:
+            RoutineBodyNode:
+              CompoundStatementNode:
+                AssignNode
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: F
+                  ExpressionNode: MULTIPLICATION
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: n
+                    SpecialExpressionNode: CALL
+                      IdentifierNode: F
+                      ArgumentsListNode:
+                        ExpressionNode: SUBTRACTION
+                          SpecialExpressionNode: VARIABLE
+                            IdentifierNode: n
+                          SpecialExpressionNode: CONST
+                            ConstantInteger<1>
+        RoutineDeclarationNode:
+          Name: G
+          ParamsNode:
+            ParamsGroupNode:
+              PassType: PASS_BY_VALUE
+              ParamsType:
+                SimpleTypeNode INTEGER
+              Params:
+                IdentifierNode: n
+          RoutineNode of type UNSPECIFIED:
+            RoutineHeadNode:
+              Constants:
+              Types:
+              Variables:
+              Routines:
+            RoutineBodyNode:
+              CompoundStatementNode:
+                BuiltinCallNode: WRITELN
+                  ArgumentsListNode:
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: n
+                UserDefineCallNode
+                  IdentifierNode: G
+                  ArgumentsListNode:
+                    ExpressionNode: SUBTRACTION
+                      SpecialExpressionNode: VARIABLE
+                        IdentifierNode: n
+                      SpecialExpressionNode: CONST
+                        ConstantInteger<1>
+    RoutineBodyNode:
+      CompoundStatementNode:
+        BuiltinCallNode: WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: CALL
+              IdentifierNode: F
+              ArgumentsListNode:
+                SpecialExpressionNode: CONST
+                  ConstantInteger<5>
+        UserDefineCallNode
+          IdentifierNode: G
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantInteger<5>

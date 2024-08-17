@@ -18,7 +18,7 @@ procedure ReadPerson(var p: TPerson);
   procedure ToLower(var s: Str);
     function Add(a, b: Integer): Integer;
     begin
-      Result := a + b;
+      Add := a + b;
     end;
   begin
     for i := 1 to 20 do

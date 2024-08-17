@@ -59,7 +59,7 @@ var
   x,y,z: integer;
   a: boolean;
   c,d: char;
-  b: unsigned;
+  b: integer;
   y,c8: integer;
   family: TFamiliy;
 

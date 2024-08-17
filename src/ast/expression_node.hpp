@@ -67,7 +67,7 @@ class ExpressionNode : public AstNode {
 
 class SpecialExpressionNode : public ExpressionNode {
  public:
-  enum FunctionName { VARIABLE, CALL, ARRAY_ACCESS, CONST, PARENTHESIS, RECORD_ACCESS, ENUM_ELEMENT, ABS, CHR, ORD, ODD, PRED, SUCC };
+  enum FunctionName { VARIABLE, CALL, ARRAY_ACCESS, CONST, PARENTHESIS, RECORD_ACCESS, ENUM_ELEMENT, ABS, CHR, ORD, ODD, PRED, SUCC, TOINT, TOCHAR, TOBOOL };
 
   SpecialExpressionNode() : ExpressionNode{Operation::SPECIAL, ""} {}
   SpecialExpressionNode(AstNode *argument1, FunctionName functionName, const std::string &inferredType)

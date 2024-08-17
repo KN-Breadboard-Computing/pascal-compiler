@@ -1,0 +1,279 @@
+ProgramNode Expressions:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+        Type 0:
+          IdentifierNode: TArrInt
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantInteger<1>
+                ConstantInteger<10>
+            Element type:
+              SimpleTypeNode INTEGER
+        Type 1:
+          IdentifierNode: TArrChar
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantInteger<1>
+                ConstantInteger<10>
+            Element type:
+              SimpleTypeNode CHAR
+        Type 2:
+          IdentifierNode: TArrBool
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantInteger<1>
+                ConstantInteger<10>
+            Element type:
+              SimpleTypeNode BOOLEAN
+        Type 3:
+          IdentifierNode: TRecord
+          RecordTypeNode:
+            Field:
+              IdentifierNode: i
+              SimpleTypeNode INTEGER
+            Field:
+              IdentifierNode: c
+              SimpleTypeNode CHAR
+            Field:
+              IdentifierNode: b
+              SimpleTypeNode BOOLEAN
+      Variables:
+        Group 0:
+          SimpleTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: i1
+            IdentifierNode: i2
+            IdentifierNode: i3
+        Group 1:
+          SimpleTypeNode BOOLEAN
+          Identifiers:
+            IdentifierNode: b1
+            IdentifierNode: b2
+            IdentifierNode: b3
+        Group 2:
+          RenameTypeNode:
+            IdentifierNode: TArrInt
+          Identifiers:
+            IdentifierNode: a1
+        Group 3:
+          RenameTypeNode:
+            IdentifierNode: TArrBool
+          Identifiers:
+            IdentifierNode: a2
+        Group 4:
+          RenameTypeNode:
+            IdentifierNode: TRecord
+          Identifiers:
+            IdentifierNode: r
+        Group 5:
+          SimpleTypeNode BOOLEAN
+          Identifiers:
+            IdentifierNode: c1
+            IdentifierNode: c2
+            IdentifierNode: c3
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: i1
+          SpecialExpressionNode: CONST
+            ConstantInteger<11>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: i2
+          SpecialExpressionNode: CONST
+            ConstantInteger<29>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: i3
+          ExpressionNode: ADDITION
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: i1
+            ExpressionNode: MULTIPLICATION
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: i2
+              ExpressionNode: NEGATION
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: i2
+        AssignNode
+          SpecialExpressionNode: RECORD_ACCESS
+            IdentifierNode: r
+          ExpressionNode: DIVISION
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: i2
+            SpecialExpressionNode: PARENTHESIS
+              ExpressionNode: MODULUS
+                SpecialExpressionNode: PARENTHESIS
+                  ExpressionNode: ADDITION
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: i1
+                    SpecialExpressionNode: ARRAY_ACCESS
+                      IdentifierNode: a1
+                SpecialExpressionNode: CONST
+                  ConstantInteger<3>
+        AssignNode
+          SpecialExpressionNode: ARRAY_ACCESS
+            IdentifierNode: a1
+          ExpressionNode: SUBTRACTION
+            ExpressionNode: MODULUS
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: i1
+              SpecialExpressionNode: PARENTHESIS
+                SpecialExpressionNode: RECORD_ACCESS
+                  IdentifierNode: r
+            SpecialExpressionNode: CONST
+              ConstantInteger<8>
+        AssignNode
+          SpecialExpressionNode: RECORD_ACCESS
+            IdentifierNode: r
+          SpecialExpressionNode: CHR
+            ArgumentsListNode:
+              ExpressionNode: ADDITION
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: i1
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: i2
+        AssignNode
+          SpecialExpressionNode: RECORD_ACCESS
+            IdentifierNode: r
+          ExpressionNode: ADDITION
+            SpecialExpressionNode: ORD
+              ArgumentsListNode:
+                SpecialExpressionNode: RECORD_ACCESS
+                  IdentifierNode: r
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: b1
+          SpecialExpressionNode: CONST
+            ConstantBoolean<1>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: b2
+          SpecialExpressionNode: CONST
+            ConstantBoolean<0>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: b3
+          ExpressionNode: OR
+            ExpressionNode: AND
+              ExpressionNode: NEGATION
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: b1
+              SpecialExpressionNode: RECORD_ACCESS
+                IdentifierNode: r
+            ExpressionNode: AND
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: b1
+              SpecialExpressionNode: CONST
+                ConstantBoolean<1>
+        AssignNode
+          SpecialExpressionNode: RECORD_ACCESS
+            IdentifierNode: r
+          ExpressionNode: OR
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: b1
+            ExpressionNode: AND
+              SpecialExpressionNode: ARRAY_ACCESS
+                IdentifierNode: a2
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: b3
+        AssignNode
+          SpecialExpressionNode: ARRAY_ACCESS
+            IdentifierNode: a2
+          ExpressionNode: OR
+            ExpressionNode: AND
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: b1
+              SpecialExpressionNode: PARENTHESIS
+                ExpressionNode: OR
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: b2
+                  SpecialExpressionNode: CONST
+                    ConstantBoolean<0>
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: b3
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: c1
+          ExpressionNode: OR
+            ExpressionNode: AND
+              ExpressionNode: AND
+                SpecialExpressionNode: PARENTHESIS
+                  ExpressionNode: GREATER
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: i1
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: i2
+                SpecialExpressionNode: PARENTHESIS
+                  ExpressionNode: LESS
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: i1
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: i3
+              SpecialExpressionNode: PARENTHESIS
+                ExpressionNode: NOT_EQUAL
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: i2
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: i3
+            SpecialExpressionNode: PARENTHESIS
+              ExpressionNode: EQUAL
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: i1
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: i2
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: c2
+          ExpressionNode: OR
+            ExpressionNode: AND
+              SpecialExpressionNode: PARENTHESIS
+                ExpressionNode: GREATER_EQUAL
+                  SpecialExpressionNode: RECORD_ACCESS
+                    IdentifierNode: r
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: i1
+              SpecialExpressionNode: PARENTHESIS
+                ExpressionNode: LESS_EQUAL
+                  SpecialExpressionNode: RECORD_ACCESS
+                    IdentifierNode: r
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: i2
+            SpecialExpressionNode: PARENTHESIS
+              ExpressionNode: LESS
+                SpecialExpressionNode: RECORD_ACCESS
+                  IdentifierNode: r
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: i3
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: c3
+          ExpressionNode: AND
+            SpecialExpressionNode: PARENTHESIS
+              ExpressionNode: LESS_EQUAL
+                SpecialExpressionNode: RECORD_ACCESS
+                  IdentifierNode: r
+                SpecialExpressionNode: CONST
+                  ConstantChar<a>
+            SpecialExpressionNode: PARENTHESIS
+              ExpressionNode: GREATER_EQUAL
+                SpecialExpressionNode: RECORD_ACCESS
+                  IdentifierNode: r
+                SpecialExpressionNode: CONST
+                  ConstantChar<z>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: c1
+          ExpressionNode: LESS_EQUAL
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: b1
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: b2

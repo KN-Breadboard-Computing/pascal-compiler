@@ -1,0 +1,201 @@
+ProgramNode ArrayDeclaration:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+        Type 0:
+          IdentifierNode: TDays
+          EnumerationTypeNode:
+            IdentifierNode: Mon
+            IdentifierNode: Tue
+            IdentifierNode: Wed
+            IdentifierNode: Thu
+            IdentifierNode: Fri
+            IdentifierNode: Sat
+            IdentifierNode: Sun
+        Type 1:
+          IdentifierNode: TArr1
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantInteger<-1>
+                ConstantInteger<10>
+            Element type:
+              SimpleTypeNode CHAR
+        Type 2:
+          IdentifierNode: TArr2
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantChar<A>
+                ConstantChar<z>
+            Element type:
+              SimpleTypeNode INTEGER
+        Type 3:
+          IdentifierNode: TArr3
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantBoolean<0>
+                ConstantBoolean<1>
+            Element type:
+              SimpleTypeNode INTEGER
+        Type 4:
+          IdentifierNode: TArr4
+          ArrayTypeNode:
+            Range:
+              EnumerationTypeNode:
+                IdentifierNode: Mon
+                IdentifierNode: Tue
+                IdentifierNode: Wed
+                IdentifierNode: Thu
+                IdentifierNode: Fri
+                IdentifierNode: Sat
+                IdentifierNode: Sun
+            Element type:
+              SimpleTypeNode INTEGER
+        Type 5:
+          IdentifierNode: TArr5
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantInteger<-255>
+                ConstantInteger<255>
+            Element type:
+              SimpleTypeNode CHAR
+        Type 6:
+          IdentifierNode: TArr6
+          ArrayTypeNode:
+            Range:
+              SimpleTypeNode INTEGER
+            Element type:
+              SimpleTypeNode INTEGER
+        Type 7:
+          IdentifierNode: TArr8
+          ArrayTypeNode:
+            Range:
+              SimpleTypeNode CHAR
+            Element type:
+              SimpleTypeNode CHAR
+        Type 8:
+          IdentifierNode: TArr9
+          ArrayTypeNode:
+            Range:
+              SimpleTypeNode BOOLEAN
+            Element type:
+              SimpleTypeNode BOOLEAN
+        Type 9:
+          IdentifierNode: TArr10
+          ArrayTypeNode:
+            Range:
+              VarRangeTypeNode:
+                IdentifierNode: Mon
+                IdentifierNode: Fri
+            Element type:
+              SimpleTypeNode CHAR
+        Type 10:
+          IdentifierNode: TArr11
+          ArrayTypeNode:
+            Range:
+              RenameTypeNode:
+                IdentifierNode: TDays
+            Element type:
+              SimpleTypeNode INTEGER
+      Variables:
+        Group 0:
+          RenameTypeNode:
+            IdentifierNode: TArr1
+          Identifiers:
+            IdentifierNode: arr1
+        Group 1:
+          RenameTypeNode:
+            IdentifierNode: TArr2
+          Identifiers:
+            IdentifierNode: arr2
+        Group 2:
+          RenameTypeNode:
+            IdentifierNode: TArr3
+          Identifiers:
+            IdentifierNode: arr3
+        Group 3:
+          RenameTypeNode:
+            IdentifierNode: TArr4
+          Identifiers:
+            IdentifierNode: arr4
+        Group 4:
+          RenameTypeNode:
+            IdentifierNode: TArr5
+          Identifiers:
+            IdentifierNode: arr5
+        Group 5:
+          RenameTypeNode:
+            IdentifierNode: TArr6
+          Identifiers:
+            IdentifierNode: arr6
+        Group 6:
+          RenameTypeNode:
+            IdentifierNode: TArr8
+          Identifiers:
+            IdentifierNode: arr8
+        Group 7:
+          RenameTypeNode:
+            IdentifierNode: TArr9
+          Identifiers:
+            IdentifierNode: arr9
+        Group 8:
+          RenameTypeNode:
+            IdentifierNode: TArr10
+          Identifiers:
+            IdentifierNode: arr10
+        Group 9:
+          RenameTypeNode:
+            IdentifierNode: TArr11
+          Identifiers:
+            IdentifierNode: arr11
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: arr1
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: arr2
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: arr3
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: arr4
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: arr5
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: arr6
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: arr6
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: arr8
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: arr9
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: arr10
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: arr11

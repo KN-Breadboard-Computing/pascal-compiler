@@ -1,0 +1,242 @@
+ProgramNode Io:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+        Type 0:
+          IdentifierNode: TDay
+          EnumerationTypeNode:
+            IdentifierNode: Mon
+            IdentifierNode: Tue
+            IdentifierNode: Wed
+            IdentifierNode: Thu
+            IdentifierNode: Fri
+            IdentifierNode: Sat
+            IdentifierNode: Sun
+      Variables:
+        Group 0:
+          SimpleTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: IntVar
+        Group 1:
+          SimpleTypeNode CHAR
+          Identifiers:
+            IdentifierNode: CharVar
+        Group 2:
+          SimpleTypeNode BOOLEAN
+          Identifiers:
+            IdentifierNode: BoolVar
+        Group 3:
+          ArrayTypeNode:
+            Range:
+              ConstRangeTypeNode:
+                ConstantInteger<1>
+                ConstantInteger<10>
+            Element type:
+              SimpleTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: ArrayVar
+        Group 4:
+          ArrayTypeNode:
+            Range:
+              RenameTypeNode:
+                IdentifierNode: TDay
+            Element type:
+              SimpleTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: ArrayVar2
+        Group 5:
+          RecordTypeNode:
+            Field:
+              IdentifierNode: IntField
+              SimpleTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: RecordVar
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        BuiltinCallNode: READLN
+          Arguments: nullptr
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: IntVar
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: CharVar
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: BoolVar
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: ArrayVar
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: ArrayVar2
+        BuiltinCallNode: READ
+          ArgumentsListNode:
+            SpecialExpressionNode: RECORD_ACCESS
+              IdentifierNode: RecordVar
+        BuiltinCallNode: WRITELN
+          Arguments: nullptr
+        BuiltinCallNode: WRITE
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: IntVar
+        BuiltinCallNode: WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: CharVar
+        BuiltinCallNode: WRITE
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: BoolVar
+        BuiltinCallNode: WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: ArrayVar
+        BuiltinCallNode: WRITE
+          ArgumentsListNode:
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: ArrayVar2
+        BuiltinCallNode: WRITELN
+          ArgumentsListNode:
+            SpecialExpressionNode: RECORD_ACCESS
+              IdentifierNode: RecordVar
+        BuiltinCallNode: WRITE
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantString<Hello,>
+            SpecialExpressionNode: CONST
+              ConstantChar< >
+            SpecialExpressionNode: CONST
+              ConstantString<world!>
+            SpecialExpressionNode: CONST
+              ConstantChar< >
+            SpecialExpressionNode: CONST
+              ConstantInteger<43>
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: IntVar
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: CharVar
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: BoolVar
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: ArrayVar
+            SpecialExpressionNode: ARRAY_ACCESS
+              IdentifierNode: ArrayVar2
+            SpecialExpressionNode: RECORD_ACCESS
+              IdentifierNode: RecordVar
+        BuiltinCallNode: WRITELN
+          ArgumentsListNode:
+            ExpressionNode: MULTIPLICATION
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: IntVar
+              SpecialExpressionNode: CONST
+                ConstantInteger<8>
+            SpecialExpressionNode: ORD
+              ArgumentsListNode:
+                SpecialExpressionNode: CONST
+                  ConstantChar<A>
+            SpecialExpressionNode: CONST
+              ConstantInteger<255>
+        BuiltinCallNode: MEMORY_READ
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantInteger<0>
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: IntVar
+        BuiltinCallNode: MEMORY_READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: IntVar
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: CharVar
+        BuiltinCallNode: MEMORY_READ
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantInteger<2>
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: BoolVar
+        BuiltinCallNode: MEMORY_WRITE
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantInteger<0>
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: IntVar
+        BuiltinCallNode: MEMORY_WRITE
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: IntVar
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: CharVar
+        BuiltinCallNode: MEMORY_WRITE
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantInteger<2>
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: BoolVar
+        BuiltinCallNode: STACK_READ
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantInteger<0>
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: IntVar
+        BuiltinCallNode: STACK_READ
+          ArgumentsListNode:
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: IntVar
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: CharVar
+        BuiltinCallNode: STACK_READ
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantInteger<2>
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: BoolVar
+        BuiltinCallNode: STACK_WRITE
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantInteger<0>
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: IntVar
+        BuiltinCallNode: STACK_WRITE
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: IntVar
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: CharVar
+        BuiltinCallNode: STACK_WRITE
+          ArgumentsListNode:
+            SpecialExpressionNode: CONST
+              ConstantInteger<2>
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: BoolVar

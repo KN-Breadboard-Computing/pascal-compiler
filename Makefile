@@ -40,3 +40,6 @@ test-ast:
 
 clean:
 	rm -f compiler
+
+clean-test:
+	rm -f ast-test

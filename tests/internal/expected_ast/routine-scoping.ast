@@ -1,0 +1,117 @@
+ProgramNode RoutineScoping:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+      Variables:
+      Routines:
+        RoutineDeclarationNode:
+          Name: Test
+          ParamsNode:
+          RoutineNode of type UNSPECIFIED:
+            RoutineHeadNode:
+              Constants:
+              Types:
+              Variables:
+                Group 0:
+                  SimpleTypeNode INTEGER
+                  Identifiers:
+                    IdentifierNode: a
+                    IdentifierNode: b
+              Routines:
+                RoutineDeclarationNode:
+                  Name: SubTest
+                  ParamsNode:
+                    ParamsGroupNode:
+                      PassType: PASS_BY_VALUE
+                      ParamsType:
+                        SimpleTypeNode INTEGER
+                      Params:
+                        IdentifierNode: d
+                  RoutineNode of type UNSPECIFIED:
+                    RoutineHeadNode:
+                      Constants:
+                      Types:
+                      Variables:
+                        Group 0:
+                          SimpleTypeNode INTEGER
+                          Identifiers:
+                            IdentifierNode: c
+                      Routines:
+                    RoutineBodyNode:
+                      CompoundStatementNode:
+                        AssignNode
+                          SpecialExpressionNode: VARIABLE
+                            IdentifierNode: c
+                          ExpressionNode: ADDITION
+                            SpecialExpressionNode: VARIABLE
+                              IdentifierNode: d
+                            SpecialExpressionNode: CONST
+                              ConstantInteger<3>
+                        BuiltinCallNode: WRITELN
+                          ArgumentsListNode:
+                            SpecialExpressionNode: VARIABLE
+                              IdentifierNode: c
+                RoutineDeclarationNode:
+                  Name: SubTest2
+                  ParamsNode:
+                  SimpleTypeNode INTEGER
+                  RoutineNode of type UNSPECIFIED:
+                    RoutineHeadNode:
+                      Constants:
+                      Types:
+                      Variables:
+                        Group 0:
+                          SimpleTypeNode INTEGER
+                          Identifiers:
+                            IdentifierNode: d
+                      Routines:
+                    RoutineBodyNode:
+                      CompoundStatementNode:
+                        AssignNode
+                          SpecialExpressionNode: VARIABLE
+                            IdentifierNode: d
+                          SpecialExpressionNode: CONST
+                            ConstantInteger<4>
+                        BuiltinCallNode: WRITELN
+                          ArgumentsListNode:
+                            SpecialExpressionNode: VARIABLE
+                              IdentifierNode: d
+                        UserDefineCallNode
+                          IdentifierNode: SubTest
+                          ArgumentsListNode:
+                            SpecialExpressionNode: VARIABLE
+                              IdentifierNode: d
+                        AssignNode
+                          SpecialExpressionNode: VARIABLE
+                            IdentifierNode: SubTest2
+                          SpecialExpressionNode: VARIABLE
+                            IdentifierNode: d
+            RoutineBodyNode:
+              CompoundStatementNode:
+                AssignNode
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: a
+                  SpecialExpressionNode: CONST
+                    ConstantInteger<1>
+                AssignNode
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: b
+                  SpecialExpressionNode: CONST
+                    ConstantInteger<2>
+                BuiltinCallNode: WRITELN
+                  ArgumentsListNode:
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: a
+                BuiltinCallNode: WRITELN
+                  ArgumentsListNode:
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: b
+                UserDefineCallNode
+                  IdentifierNode: SubTest2
+                  Arguments: nullptr
+    RoutineBodyNode:
+      CompoundStatementNode:
+        UserDefineCallNode
+          IdentifierNode: Test
+          Arguments: nullptr

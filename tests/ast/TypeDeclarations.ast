@@ -8,7 +8,7 @@ ProgramNode TypeDeclarations:
           SimpleTypeNode INTEGER
         Type 1:
           IdentifierNode: TMyUInt
-          SimpleTypeNode UNSIGNED
+          SimpleTypeNode INTEGER
         Type 2:
           IdentifierNode: TMyChar
           SimpleTypeNode CHAR

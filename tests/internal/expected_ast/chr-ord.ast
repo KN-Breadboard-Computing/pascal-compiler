@@ -1,0 +1,36 @@
+ProgramNode ChrOrd:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+      Variables:
+        Group 0:
+          SimpleTypeNode CHAR
+          Identifiers:
+            IdentifierNode: c
+        Group 1:
+          SimpleTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: k
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: c
+          SpecialExpressionNode: CONST
+            ConstantChar<A>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: k
+          SpecialExpressionNode: ORD
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: c
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: c
+          SpecialExpressionNode: CHR
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: k

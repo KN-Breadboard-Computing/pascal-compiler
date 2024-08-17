@@ -45,11 +45,12 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 51 "src/yacc.y"
+#line 60 "src/yacc.y"
 
     #include <iostream>
     #include <stdlib.h>
     #include <string>
+    #include <algorithm>
 
     #include "../src/ast/arguments_list_node.hpp"
     #include "../src/ast/array_type_node.hpp"
@@ -81,7 +82,7 @@ extern int yydebug;
         std::string* stringValue;
     } Token;
 
-#line 85 "out/parser.hpp"
+#line 86 "out/parser.hpp"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -122,53 +123,55 @@ extern int yydebug;
     ORD = 285,                     /* ORD  */
     PRED = 286,                    /* PRED  */
     SUCC = 287,                    /* SUCC  */
-    IF = 288,                      /* IF  */
-    THEN = 289,                    /* THEN  */
-    ELSE = 290,                    /* ELSE  */
-    REPEAT = 291,                  /* REPEAT  */
-    UNTIL = 292,                   /* UNTIL  */
-    WHILE = 293,                   /* WHILE  */
-    DO = 294,                      /* DO  */
-    CASE = 295,                    /* CASE  */
-    TO = 296,                      /* TO  */
-    DOWNTO = 297,                  /* DOWNTO  */
-    FOR = 298,                     /* FOR  */
-    EQUAL = 299,                   /* EQUAL  */
-    UNEQUAL = 300,                 /* UNEQUAL  */
-    GE = 301,                      /* GE  */
-    GT = 302,                      /* GT  */
-    LE = 303,                      /* LE  */
-    LT = 304,                      /* LT  */
-    ASSIGN = 305,                  /* ASSIGN  */
-    PLUS = 306,                    /* PLUS  */
-    MINUS = 307,                   /* MINUS  */
-    MUL = 308,                     /* MUL  */
-    DIV = 309,                     /* DIV  */
-    OR = 310,                      /* OR  */
-    AND = 311,                     /* AND  */
-    NOT = 312,                     /* NOT  */
-    MOD = 313,                     /* MOD  */
-    LB = 314,                      /* LB  */
-    RB = 315,                      /* RB  */
-    LP = 316,                      /* LP  */
-    RP = 317,                      /* RP  */
-    SEMICOLON = 318,               /* SEMICOLON  */
-    DOT = 319,                     /* DOT  */
-    DOUBLEDOT = 320,               /* DOUBLEDOT  */
-    COMMA = 321,                   /* COMMA  */
-    COLON = 322,                   /* COLON  */
-    INT_TYPE = 323,                /* INT_TYPE  */
-    UNSIGNED_TYPE = 324,           /* UNSIGNED_TYPE  */
-    BOOL_TYPE = 325,               /* BOOL_TYPE  */
-    CHAR_TYPE = 326,               /* CHAR_TYPE  */
-    ARRAY = 327,                   /* ARRAY  */
-    OF = 328,                      /* OF  */
-    RECORD = 329,                  /* RECORD  */
-    GOTO = 330,                    /* GOTO  */
-    BREAK = 331,                   /* BREAK  */
-    CONTINUE = 332,                /* CONTINUE  */
-    OTHERWISE = 333,               /* OTHERWISE  */
-    ERROR = 334                    /* ERROR  */
+    TOINT = 288,                   /* TOINT  */
+    TOCHAR = 289,                  /* TOCHAR  */
+    TOBOOL = 290,                  /* TOBOOL  */
+    IF = 291,                      /* IF  */
+    THEN = 292,                    /* THEN  */
+    ELSE = 293,                    /* ELSE  */
+    REPEAT = 294,                  /* REPEAT  */
+    UNTIL = 295,                   /* UNTIL  */
+    WHILE = 296,                   /* WHILE  */
+    DO = 297,                      /* DO  */
+    CASE = 298,                    /* CASE  */
+    TO = 299,                      /* TO  */
+    DOWNTO = 300,                  /* DOWNTO  */
+    FOR = 301,                     /* FOR  */
+    EQUAL = 302,                   /* EQUAL  */
+    UNEQUAL = 303,                 /* UNEQUAL  */
+    GE = 304,                      /* GE  */
+    GT = 305,                      /* GT  */
+    LE = 306,                      /* LE  */
+    LT = 307,                      /* LT  */
+    ASSIGN = 308,                  /* ASSIGN  */
+    PLUS = 309,                    /* PLUS  */
+    MINUS = 310,                   /* MINUS  */
+    MUL = 311,                     /* MUL  */
+    DIV = 312,                     /* DIV  */
+    OR = 313,                      /* OR  */
+    AND = 314,                     /* AND  */
+    NOT = 315,                     /* NOT  */
+    MOD = 316,                     /* MOD  */
+    LB = 317,                      /* LB  */
+    RB = 318,                      /* RB  */
+    LP = 319,                      /* LP  */
+    RP = 320,                      /* RP  */
+    SEMICOLON = 321,               /* SEMICOLON  */
+    DOT = 322,                     /* DOT  */
+    DOUBLEDOT = 323,               /* DOUBLEDOT  */
+    COMMA = 324,                   /* COMMA  */
+    COLON = 325,                   /* COLON  */
+    INT_TYPE = 326,                /* INT_TYPE  */
+    BOOL_TYPE = 327,               /* BOOL_TYPE  */
+    CHAR_TYPE = 328,               /* CHAR_TYPE  */
+    ARRAY = 329,                   /* ARRAY  */
+    OF = 330,                      /* OF  */
+    RECORD = 331,                  /* RECORD  */
+    GOTO = 332,                    /* GOTO  */
+    BREAK = 333,                   /* BREAK  */
+    CONTINUE = 334,                /* CONTINUE  */
+    OTHERWISE = 335,               /* OTHERWISE  */
+    ERROR = 336                    /* ERROR  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -177,7 +180,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 88 "src/yacc.y"
+#line 98 "src/yacc.y"
 
     Token token;
     ast::ProgramNode* programNode;
@@ -222,7 +225,7 @@ union YYSTYPE
     std::pair<ast::AstNode*, ast::StatementNode*>* caseExpr;
     ast::ArgumentsListNode* argsList;
 
-#line 226 "out/parser.hpp"
+#line 229 "out/parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

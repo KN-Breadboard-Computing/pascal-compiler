@@ -2,30 +2,31 @@ program RoutineScoping;
 
 procedure Test;
 var
-  a, b, c: integer;
+  a, b: integer;
 
-  procedure SubTest;
+  procedure SubTest(d: Integer);
   var
     c: integer;
   begin
-    c := 3;
+    c := d + 3;
     writeln(c);
   end;
 
-  function SubTest: integer;
+  function SubTest2: integer;
   var
     d: integer;
   begin
     d := 4;
     writeln(d);
-    SubTest := d;
+    SubTest(d);
+    SubTest2 := d;
   end;
 begin
   a := 1;
   b := 2;
   writeln(a);
   writeln(b);
-  SubTest;
+  SubTest2;
 end;
 
 begin

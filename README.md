@@ -25,7 +25,6 @@ The `tests/input` directory contains examples showing the syntax described below
 + NOT - logical negation
 + AND - logical conjunction
 + OR - logical alternation
-+ XOR - exclusive alternation
 + < -	less than
 + \>	- greater than
 + =	- equal to
@@ -69,6 +68,12 @@ MemoryWrite(AddressHigh, AddressLow, SourceVariable);
 
 StackRead(AddressHigh, AddressLow, DestinationVariable);
 StackWrite(AddressHigh, AddressLow, SourceVariable);
+```
+
+```
+IntValue = ToInt(BasicTypeValue);
+CharValue = ToChar(BasicTypeValue);
+BooleanValue = ToBool(BasicTypeValue);
 ```
 
 ## Program Structure
@@ -260,8 +265,7 @@ Each of these comments is multiline.
 ### Basic Data Types
 + Bool $\in$ {TRUE, FALSE}
 + Char $\in$ [0, 255] (represent ASCII codes)
-+ Integer $\in$ [-128, 127]
-+ Unsigned $\in$ [0, 255]
++ Integer $\in$ [-128, 127] / [0, 255] (2's complement)
 
 ### Constants
 ```

@@ -105,6 +105,10 @@ NQUOTE [^']
 {P}{R}{E}{D}                                            {   return createToken(PRED);                           }
 {S}{U}{C}{C}                                            {   return createToken(SUCC);                           }
 
+{T}{O}{I}{N}{T}                                         {   return createToken(TOINT);                          }
+{T}{O}{C}{H}{A}{R}                                      {   return createToken(TOCHAR);                         }
+{T}{O}{B}{O}{O}{L}                                      {   return createToken(TOBOOL);                         }
+
 {R}{E}{A}{D}                                            {   return createToken(READ);                           }
 {R}{E}{A}{D}{L}{N}                                      {   return createToken(READLN);                         }
 {W}{R}{I}{T}{E}                                         {   return createToken(WRITE);                          }
@@ -115,7 +119,6 @@ NQUOTE [^']
 {S}{T}{A}{C}{K}{W}{R}{I}{T}{E}                          {   return createToken(STACKWRITE);                     }
 
 {I}{N}{T}{E}{G}{E}{R}                                   {   return createToken(INT_TYPE);                       }
-{U}{N}{S}{I}{G}{N}{E}{D}                                {   return createToken(UNSIGNED_TYPE);                  }
 {C}{H}{A}{R}                                            {   return createToken(CHAR_TYPE);                      }
 {B}{O}{O}{L}{E}{A}{N}                                   {   return createToken(BOOL_TYPE);                      }
 

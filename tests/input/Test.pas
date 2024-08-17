@@ -5,11 +5,13 @@ type
     TMatrix = array[1..10] of array[1..10] of integer;
 
     TDay = (Mon, Tue, Wed, Thu, Fri, Sat, Sun);
+    TWeekend = Sat..Sun;
 
     TPerson = record
         Name, Surname: Char;
         Age: Integer;
         WorkHours: array[TDay] of Integer;
+        FamilyTime: array[TWeekend] of Integer;
       end;
 
       TFamily = record
@@ -32,4 +34,5 @@ begin
     Read(fam.Name.Ndame);
     Read(fam.Children[0].Surname);
     Read(fam.Children[0].WorkHours[Mon]);
+    Read(fam.Children[0].FamilyTime[Sun]);
 end.

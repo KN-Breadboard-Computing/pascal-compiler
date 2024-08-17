@@ -16,9 +16,6 @@ void SimpleTypeNode::print(std::ostream& out, int tab) const {
     case INTEGER:
       out << "INTEGER";
       break;
-    case UNSIGNED:
-      out << "UNSIGNED";
-      break;
     case BOOLEAN:
       out << "BOOLEAN";
       break;

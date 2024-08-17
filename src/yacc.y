@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 #include <utility>
+#include <algorithm>
 
 #include "../src/ast/program_node.hpp"
 #include "../src/context.hpp"
@@ -24,11 +25,15 @@ int yylex(void);
 extern FILE* yyin;
 extern uint64_t linesCounter;
 
+bool isChar(const std::string& expr);
+bool isInteger(const std::string& expr);
+bool isBoolean(const std::string& expr);
+
 bool nameAlreadyUsed(std::string name);
 void saveType(ast::IdentifierNode* typeName, ast::TypeNode* typeDef);
 void saveConstant(ast::IdentifierNode* constName, ast::ConstantNode* constDef);
 void saveVariables(std::vector<ast::IdentifierNode*>* varNames, ast::TypeNode* typeDef);
-void saveRoutine(ast::RoutineDeclarationNode* routineDef);
+void saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward);
 
 std::string getTypeString(ast::TypeNode* type);
 std::string getTypeString(ast::ConstantNode::ConstantType type);
@@ -36,12 +41,16 @@ std::string getTypeString(ast::ConstantNode::ConstantType type);
 std::string getConstantString(ast::ConstantNode* constant);
 
 bool isBasicType(const std::string& type);
+bool isEnumType(const std::string& type, const std::string& enumType);
 bool isEnumType(const std::string& type);
+bool isEnumSubRangeType(const std::string& type, const std::string& enumType,
+         const std::string& begin, const std::string& end);
 bool isLeftValueCompatible(ast::ExpressionNode* expr);
 
 bool isArrayIndexCompatible(const std::string& arrayType, ast::ExpressionNode* index);
 bool isRecordFieldCompatible(const std::string& recordType, ast::IdentifierNode* field);
 bool isFunctionArgumentsCompatible(const std::vector<std::pair<std::string, std::string>>& expectedArgs, const std::vector<ast::ExpressionNode*>& givenArgs);
+bool hasReturnValue(ast::RoutineNode* function, const std::string& functionName);
 
 std::string getArrayElementType(const std::string& arrayType);
 std::string getRecordFieldType(const std::string& recordType, const std::string& field);
@@ -52,6 +61,7 @@ std::string getRecordFieldType(const std::string& recordType, const std::string&
     #include <iostream>
     #include <stdlib.h>
     #include <string>
+    #include <algorithm>
 
     #include "../src/ast/arguments_list_node.hpp"
     #include "../src/ast/array_type_node.hpp"
@@ -135,22 +145,22 @@ std::string getRecordFieldType(const std::string& recordType, const std::string&
 %token PROGRAM FUNCTION PROCEDURE CONST TYPE VAR BBEGIN END
 %token IDENT_NAME INTEGER BOOLEAN CHAR STRING
 %token TRUE FALSE MAXINT
-%token READ READLN WRITE WRITELN MEMORYREAD MEMORYWRITE STACKREAD STACKWRITE ABS CHR ODD ORD PRED SUCC
+%token READ READLN WRITE WRITELN MEMORYREAD MEMORYWRITE STACKREAD STACKWRITE ABS CHR ODD ORD PRED SUCC TOINT TOCHAR TOBOOL
 %token IF THEN ELSE REPEAT UNTIL WHILE DO CASE TO DOWNTO FOR
 %token EQUAL UNEQUAL GE GT LE LT ASSIGN PLUS MINUS MUL DIV OR AND NOT MOD
 %token LB RB LP RP SEMICOLON DOT DOUBLEDOT COMMA COLON
-%token INT_TYPE UNSIGNED_TYPE BOOL_TYPE CHAR_TYPE
+%token INT_TYPE BOOL_TYPE CHAR_TYPE
 %token ARRAY OF RECORD GOTO BREAK CONTINUE OTHERWISE
 %token ERROR
 
 %type <token> PROGRAM FUNCTION PROCEDURE CONST TYPE VAR BBEGIN END
 %type <token> IDENT_NAME INTEGER BOOLEAN CHAR STRING
 %type <token> TRUE FALSE MAXINT
-%type <token> READ READLN WRITE WRITELN MEMORYREAD MEMORYWRITE STACKREAD STACKWRITE ABS CHR ODD ORD PRED SUCC
+%type <token> READ READLN WRITE WRITELN MEMORYREAD MEMORYWRITE STACKREAD STACKWRITE ABS CHR ODD ORD PRED SUCC TOINT TOCHAR TOBOOL
 %type <token> IF THEN ELSE REPEAT UNTIL WHILE DO CASE TO DOWNTO FOR
 %type <token> EQUAL UNEQUAL GE GT LE LT ASSIGN PLUS MINUS MUL DIV OR AND NOT MOD
 %type <token> LB RB LP RP SEMICOLON DOT DOUBLEDOT COMMA COLON
-%type <token> INT_TYPE UNSIGNED_TYPE BOOL_TYPE CHAR_TYPE
+%type <token> INT_TYPE BOOL_TYPE CHAR_TYPE
 %type <token> ARRAY OF RECORD GOTO BREAK CONTINUE
 %type <token> ERROR
 
@@ -278,7 +288,7 @@ routine_part :
             std::cout << "Yacc debug: Parse routine part with fun decl 1 " << $2->getName() << std::endl;
         #endif
 
-        saveRoutine($2);
+        saveRoutine($2, true);
 
         $$ = $1;
         $$->push_back($2);
@@ -289,7 +299,7 @@ routine_part :
            std::cout << "Yacc debug: Parse routine part with proc decl 1 " << $2->getName() << std::endl;
        #endif
 
-       saveRoutine($2);
+       saveRoutine($2, true);
 
        $$ = $1;
        $$->push_back($2);
@@ -300,7 +310,7 @@ routine_part :
             std::cout << "Yacc debug: Parse routine part with fun decl 2 " << $1->getName() << std::endl;
         #endif
 
-        saveRoutine($1);
+        saveRoutine($1, true);
 
         $$ = new std::vector<ast::RoutineDeclarationNode*>();
         $$->push_back($1);
@@ -311,7 +321,7 @@ routine_part :
             std::cout << "Yacc debug: Parse routine part with proc decl 2 " << $1->getName() << std::endl;
         #endif
 
-        saveRoutine($1);
+        saveRoutine($1, true);
 
         $$ = new std::vector<ast::RoutineDeclarationNode*>();
         $$->push_back($1);
@@ -324,6 +334,12 @@ fun_decl :
             std::cout << "Yacc debug: Parse fun decl 1" << std::endl;
         #endif
 
+        if(!hasReturnValue($3, $1->getName())) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", function should have one return value");
+            fatalError = true;
+            YYERROR;
+        }
+
         ctx->getLookupTable().popScope();
 
         $$ = $1;
@@ -335,6 +351,12 @@ fun_decl :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun decl 2" << std::endl;
         #endif
+
+        if(!hasReturnValue($3, $1->getName())) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", function should have one return value");
+            fatalError = true;
+            YYERROR;
+        }
 
         ctx->getLookupTable().popScope();
 
@@ -349,6 +371,12 @@ fun_decl :
             std::cout << "Yacc debug: Parse fun decl 3" << std::endl;
         #endif
 
+        if(!hasReturnValue($2, $1->getName())) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", function should have one return value");
+            fatalError = true;
+            YYERROR;
+        }
+
         ctx->getLookupTable().popScope();
 
         $$ = $1;
@@ -361,6 +389,12 @@ fun_decl :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun decl 4" << std::endl;
         #endif
+
+        if(!hasReturnValue($2, $1->getName())) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", function should have one return value");
+            fatalError = true;
+            YYERROR;
+        }
 
         ctx->getLookupTable().popScope();
 
@@ -379,10 +413,17 @@ fun_head :
 
         ctx->getLookupTable().pushScope(*$2.stringValue);
 
+        std::vector<ast::IdentifierNode*> funNameVector{new ast::IdentifierNode(*$2.stringValue)};
+        saveVariables(&funNameVector, $5);
+
+        for(const auto& param : *$3->getParams()) {
+            saveVariables(param->getParams().get(), param->getParamsType().get());
+        }
+
         std::string name{*$2.stringValue};
         $$ = new ast::RoutineDeclarationNode(ast::RoutineDeclarationNode::RoutineType::FUNCTION, std::move(name), $3, $5, nullptr);
 
-
+        saveRoutine($$, false);
     }
 ;
 
@@ -447,8 +488,14 @@ proc_head :
 
         ctx->getLookupTable().pushScope(*$2.stringValue);
 
+        for(const auto& param : *$3->getParams()) {
+            saveVariables(param->getParams().get(), param->getParamsType().get());
+        }
+
         std::string name{*$2.stringValue};
         $$ = new ast::RoutineDeclarationNode(ast::RoutineDeclarationNode::RoutineType::PROCEDURE, std::move(name), $3, nullptr, nullptr);
+
+        saveRoutine($$, false);
     }
 ;
 
@@ -854,6 +901,22 @@ array_type_decl :
             std::cout << "Yacc debug: Parse array type" << std::endl;
         #endif
 
+        if($3->getRepresentation() == ast::SimpleTypeNode::Representation::CONST_RANGE) {
+            ast::ConstRangeTypeNode* range = dynamic_cast<ast::ConstRangeTypeNode*>($3);
+            ast::ConstantNode::ConstantType leftType = range->getLowerBound()->getConstantType();
+            ast::ConstantNode::ConstantType rightType = range->getUpperBound()->getConstantType();
+            if(leftType != rightType) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", array range bounds must have the same type");
+                fatalError = true;
+                YYERROR;
+            }
+            else if(leftType == ast::ConstantNode::STRING || rightType == ast::ConstantNode::STRING) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", array range bounds cannot be string");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+
         $$ = new ast::ArrayTypeNode($3, $6);
     }
 ;
@@ -897,14 +960,6 @@ simple_type :
         #endif
 
         $$ = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::INTEGER);
-    }
-|
-    UNSIGNED_TYPE {
-        #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse simple type - unsigned" << std::endl;
-        #endif
-
-        $$ = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::UNSIGNED);
     }
 |
     BOOL_TYPE {
@@ -1469,12 +1524,12 @@ proc_stmt :
         #endif
 
         if($3->getArguments().size() == 3) {
-            if($3->getArguments().at(0)->getInferredType() != "integer" && $3->getArguments().at(0)->getInferredType() != "unsigned") {
+            if($3->getArguments().at(0)->getInferredType() != "integer") {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory read - first argument should be integer");
                 fatalError = true;
                 YYERROR;
             }
-            else if($3->getArguments().at(1)->getInferredType() != "integer" && $3->getArguments().at(1)->getInferredType() != "unsigned") {
+            else if($3->getArguments().at(1)->getInferredType() != "integer") {
                  parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory read - second argument should be integer");
                  fatalError = true;
                  YYERROR;
@@ -1506,12 +1561,12 @@ proc_stmt :
         #endif
 
         if($3->getArguments().size() == 3) {
-            if($3->getArguments().at(0)->getInferredType() != "integer" && $3->getArguments().at(0)->getInferredType() != "unsigned") {
+            if($3->getArguments().at(0)->getInferredType() != "integer") {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory write - first argument should be integer");
                 fatalError = true;
                 YYERROR;
             }
-            else if($3->getArguments().at(1)->getInferredType() != "integer" && $3->getArguments().at(1)->getInferredType() != "unsigned") {
+            else if($3->getArguments().at(1)->getInferredType() != "integer") {
                  parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for memory write - second argument should be integer");
                  fatalError = true;
                  YYERROR;
@@ -1538,12 +1593,12 @@ proc_stmt :
         #endif
 
         if($3->getArguments().size() == 3) {
-            if($3->getArguments().at(0)->getInferredType() != "integer" && $3->getArguments().at(0)->getInferredType() != "unsigned") {
+            if($3->getArguments().at(0)->getInferredType() != "integer") {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack read - first argument should be integer");
                 fatalError = true;
                 YYERROR;
             }
-            else if($3->getArguments().at(1)->getInferredType() != "integer" && $3->getArguments().at(1)->getInferredType() != "unsigned") {
+            else if($3->getArguments().at(1)->getInferredType() != "integer") {
                  parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack read - second argument should be integer");
                  fatalError = true;
                  YYERROR;
@@ -1575,12 +1630,12 @@ proc_stmt :
         #endif
 
         if($3->getArguments().size() == 3) {
-            if($3->getArguments().at(0)->getInferredType() != "integer" && $3->getArguments().at(0)->getInferredType() != "unsigned") {
+            if($3->getArguments().at(0)->getInferredType() != "integer") {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack write - first argument should be integer");
                 fatalError = true;
                 YYERROR;
             }
-            else if($3->getArguments().at(1)->getInferredType() != "integer" && $3->getArguments().at(1)->getInferredType() != "unsigned") {
+            else if($3->getArguments().at(1)->getInferredType() != "integer") {
                  parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for stack write - second argument should be integer");
                  fatalError = true;
                  YYERROR;
@@ -1629,7 +1684,7 @@ expression :
         #endif
 
         if($1->getInferredType() == $3->getInferredType() && isBasicType($1->getInferredType())) {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::GREATER_EQUAL, $1->getInferredType());
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::GREATER_EQUAL, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for greater or equal - matching types(integer, char, boolean) expected");
@@ -1644,7 +1699,7 @@ expression :
         #endif
 
         if($1->getInferredType() == $3->getInferredType() && isBasicType($1->getInferredType())) {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::GREATER, $1->getInferredType());
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::GREATER, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for greater - matching types(integer, char, boolean) expected");
@@ -1659,7 +1714,7 @@ expression :
         #endif
 
         if($1->getInferredType() == $3->getInferredType() && isBasicType($1->getInferredType())) {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::LESS_EQUAL, $1->getInferredType());
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::LESS_EQUAL, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for less or equal - matching types(integer, char, boolean) expected");
@@ -1674,7 +1729,7 @@ expression :
         #endif
 
         if($1->getInferredType() == $3->getInferredType() && isBasicType($1->getInferredType())) {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::LESS, $1->getInferredType());
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::LESS, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for less - matching types(integer, char, boolean) expected");
@@ -1689,7 +1744,7 @@ expression :
         #endif
 
         if($1->getInferredType() == $3->getInferredType() && isBasicType($1->getInferredType())) {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::EQUAL, $1->getInferredType());
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::EQUAL, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for equal - matching types(integer, char, boolean) expected");
@@ -1704,7 +1759,7 @@ expression :
         #endif
 
         if($1->getInferredType() == $3->getInferredType() && isBasicType($1->getInferredType())) {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::NOT_EQUAL, $1->getInferredType());
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::NOT_EQUAL, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for not equal - matching types(integer, char, boolean) expected");
@@ -1728,7 +1783,7 @@ expr :
             std::cout << "Yacc debug: Parse expression with addition" << std::endl;
         #endif
 
-        if(($1->getInferredType() == "integer" || $1->getInferredType() == "unsigned") && ($3->getInferredType() == "integer" || $3->getInferredType() == "unsigned")) {
+        if($1->getInferredType() == "integer" && $3->getInferredType() == "integer") {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::ADDITION, $1->getInferredType());
         }
         else {
@@ -1743,7 +1798,7 @@ expr :
             std::cout << "Yacc debug: Parse expression with subtraction" << std::endl;
         #endif
 
-        if(($1->getInferredType() == "integer" || $1->getInferredType() == "unsigned") && ($3->getInferredType() == "integer" || $3->getInferredType() == "unsigned")) {
+        if($1->getInferredType() == "integer" && $3->getInferredType() == "integer") {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::SUBTRACTION, $1->getInferredType());
         }
         else {
@@ -1759,7 +1814,7 @@ expr :
         #endif
 
         if($1->getInferredType() == "boolean" && $3->getInferredType() == "boolean") {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::OR, $1->getInferredType());
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::OR, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for or - boolean expected");
@@ -1783,7 +1838,7 @@ term :
             std::cout << "Yacc debug: Parse term with multiplication" << std::endl;
         #endif
 
-        if(($1->getInferredType() == "integer" || $1->getInferredType() == "unsigned") && ($3->getInferredType() == "integer" || $3->getInferredType() == "unsigned")) {
+        if($1->getInferredType() == "integer" && $3->getInferredType() == "integer") {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::MULTIPLICATION, $1->getInferredType());
         }
         else {
@@ -1798,7 +1853,7 @@ term :
             std::cout << "Yacc debug: Parse term with division" << std::endl;
         #endif
 
-        if(($1->getInferredType() == "integer" || $1->getInferredType() == "unsigned") && ($3->getInferredType() == "integer" || $3->getInferredType() == "unsigned")) {
+        if($1->getInferredType() == "integer" && $3->getInferredType() == "integer") {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::DIVISION, $1->getInferredType());
         }
         else {
@@ -1813,7 +1868,7 @@ term :
             std::cout << "Yacc debug: Parse term with modulus" << std::endl;
         #endif
 
-        if(($1->getInferredType() == "integer" || $1->getInferredType() == "unsigned") && ($3->getInferredType() == "integer" || $3->getInferredType() == "unsigned")) {
+        if($1->getInferredType() == "integer" && $3->getInferredType() == "integer") {
             $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::MODULUS, $1->getInferredType());
         }
         else {
@@ -1829,7 +1884,7 @@ term :
         #endif
 
         if($1->getInferredType() == "boolean" && $3->getInferredType() == "boolean") {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::AND, $1->getInferredType());
+            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::AND, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for and - boolean expected");
@@ -1909,7 +1964,7 @@ factor :
             std::cout << "Yacc debug: Parse factor - negation" << std::endl;
         #endif
 
-        if($2->getInferredType() == "integer" || $2->getInferredType() == "unsigned") {
+        if($2->getInferredType() == "integer") {
             $$ = new ast::ExpressionNode($2, ast::ExpressionNode::Operation::NEGATION, $2->getInferredType());
         }
         else {
@@ -1931,8 +1986,8 @@ factor :
         }
         else {
             ast::ExpressionNode* arg = $3->getArguments().front();
-            if(arg->getInferredType() == "integer" || arg->getInferredType() == "unsigned") {
-                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ABS, "unsigned");
+            if(arg->getInferredType() == "integer") {
+                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ABS, "integer");
             }
             else {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for abs - integer expected");
@@ -1954,7 +2009,7 @@ factor :
         }
         else {
             ast::ExpressionNode* arg = $3->getArguments().front();
-            if(arg->getInferredType() == "integer" || arg->getInferredType() == "unsigned") {
+            if(arg->getInferredType() == "integer") {
                 $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::CHR, "char");
             }
             else {
@@ -1977,7 +2032,7 @@ factor :
         }
         else {
             ast::ExpressionNode* arg = $3->getArguments().front();
-            if(arg->getInferredType() == "integer" || arg->getInferredType() == "unsigned") {
+            if(arg->getInferredType() == "integer") {
                 $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ODD, "boolean");
             }
             else {
@@ -2001,7 +2056,7 @@ factor :
         else {
             ast::ExpressionNode* arg = $3->getArguments().front();
             if(arg->getInferredType() == "char") {
-                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ORD, "unsigned");
+                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::ORD, "integer");
             }
             else {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for ord - char expected");
@@ -2023,7 +2078,7 @@ factor :
         }
         else {
             ast::ExpressionNode* arg = $3->getArguments().front();
-            if(arg->getInferredType() == "integer" || arg->getInferredType() == "unsigned" || arg->getInferredType() == "char") {
+            if(arg->getInferredType() == "integer" || arg->getInferredType() == "char") {
                 $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::PRED, arg->getInferredType());
             }
             else {
@@ -2046,11 +2101,80 @@ factor :
         }
         else {
             ast::ExpressionNode* arg = $3->getArguments().front();
-            if(arg->getInferredType() == "integer" || arg->getInferredType() == "unsigned" || arg->getInferredType() == "char") {
+            if(arg->getInferredType() == "integer" || arg->getInferredType() == "char") {
                 $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::SUCC, arg->getInferredType());
             }
             else {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for succ - integer or char expected");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+    }
+|
+    TOINT LP args_list RP {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse factor - toint" << std::endl;
+        #endif
+
+        if($3->getArguments().size() != 1) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong number of arguments for toint");
+            fatalError = true;
+            YYERROR;
+        }
+        else {
+            ast::ExpressionNode* arg = $3->getArguments().front();
+            if(isBasicType(arg->getInferredType())) {
+                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::TOINT, "integer");
+            }
+            else {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for toint - basic type expected");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+    }
+|
+    TOCHAR LP args_list RP {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse factor - tochar" << std::endl;
+        #endif
+
+        if($3->getArguments().size() != 1) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong number of arguments for tochar");
+            fatalError = true;
+            YYERROR;
+        }
+        else {
+            ast::ExpressionNode* arg = $3->getArguments().front();
+            if(isBasicType(arg->getInferredType())) {
+                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::TOCHAR, "char");
+            }
+            else {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for tochar - basic type expected");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+    }
+|
+    TOBOOL LP args_list RP {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse factor - tobool" << std::endl;
+        #endif
+
+        if($3->getArguments().size() != 1) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong number of arguments for tobool");
+            fatalError = true;
+            YYERROR;
+        }
+        else {
+            ast::ExpressionNode* arg = $3->getArguments().front();
+            if(isBasicType(arg->getInferredType())) {
+                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::TOBOOL, "boolean");
+            }
+            else {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for tobool - basic type expected");
                 fatalError = true;
                 YYERROR;
             }
@@ -2153,7 +2277,7 @@ lvalue :
 %%
 
 void yyerror(const char *s) {
-    std::cerr << "Error: " << s << " at line " << linesCounter << std::endl;
+    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + s);
     fatalError = true;
 }
 
@@ -2161,7 +2285,7 @@ bool parse(const std::string& inputFileName, std::vector<std::string>& errors, s
     yyin = fopen(inputFileName.c_str(), "r");
 
     if(yyin == nullptr) {
-        errors.push_back("Cannot open file " + inputFileName);
+        errors.push_back("Cannot open file `" + inputFileName + "`");
         return false;
     }
 
@@ -2173,6 +2297,19 @@ bool parse(const std::string& inputFileName, std::vector<std::string>& errors, s
     return !fatalError;
 }
 
+bool isChar(const std::string& expr) {
+    return expr.size() == 1;
+}
+
+bool isInteger(const std::string& expr) {
+    return std::all_of(expr.begin(), expr.end(), ::isdigit) ||
+        (expr.size() > 1 && expr[0] == '-' && std::all_of(expr.begin() + 1, expr.end(), ::isdigit));
+}
+
+bool isBoolean(const std::string& expr) {
+    return expr == "true" || expr == "false";
+}
+
 bool nameAlreadyUsed(std::string name) {
     return ctx->getLookupTable().isVariableDefined(name, "") || ctx->getLookupTable().isRoutineDefined(name, "") || ctx->getLookupTable().isTypeDefined(name, "");
 }
@@ -2180,6 +2317,7 @@ bool nameAlreadyUsed(std::string name) {
 void saveType(ast::IdentifierNode* typeName, ast::TypeNode* typeDef) {
     if(nameAlreadyUsed(typeName->getName())) {
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + typeName->getName() + "` already used");
+        fatalError = true;
     } else {
         ctx->getLookupTable().defineType(LookupTable::TypeCategory::SIMPLE, typeName->getName(), getTypeString(typeDef));
     }
@@ -2188,6 +2326,7 @@ void saveType(ast::IdentifierNode* typeName, ast::TypeNode* typeDef) {
 void saveConstant(ast::IdentifierNode* constName, ast::ConstantNode* constDef) {
     if(nameAlreadyUsed(constName->getName())) {
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + constName->getName() + "` already used");
+        fatalError = true;
     } else {
         ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::CONSTANT, constName->getName(), getTypeString(constDef->getConstantType()));
         ctx->getLookupTable().setVariableValue(constName->getName(), getConstantString(constDef));
@@ -2198,32 +2337,45 @@ void saveVariables(std::vector<ast::IdentifierNode*>* varNames, ast::TypeNode* t
     for(auto& varName : *varNames) {
         if(nameAlreadyUsed(varName->getName())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + varName->getName() + "` already used");
+            fatalError = true;
         } else {
             ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::VARIABLE, varName->getName(), getTypeString(typeDef));
         }
     }
 }
 
-void saveRoutine(ast::RoutineDeclarationNode* routineDef) {
-    if(nameAlreadyUsed(routineDef->getName())) {
-        parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + routineDef->getName() + "` already used");
-    } else {
-        std::vector<std::pair<std::string, std::string>> arguments;
-        for(const auto& paramGroup : *routineDef->getParams()->getParams()) {
-            std::string typeString = getTypeString(paramGroup->getParamsType().get());
-            for(const auto& param : *paramGroup->getParams()) {
-                arguments.emplace_back(param->getName(), typeString);
-            }
-        }
+void saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward) {
+    if(isForward) {
+      if(nameAlreadyUsed(routineDef->getName())) {
+          parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + routineDef->getName() + "` already used");
+          fatalError = true;
+      }
 
-        if(routineDef->getRoutineType() == ast::RoutineDeclarationNode::RoutineType::PROCEDURE) {
-            ctx->getLookupTable().defineRoutine(LookupTable::RoutineCategory::PROCEDURE, routineDef->getName(),
-                arguments, "void", "");
+      for(const auto& paramGroup : *routineDef->getParams()->getParams()) {
+          for(const auto& param : *paramGroup->getParams()) {
+              if(nameAlreadyUsed(param->getName())) {
+                  parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + param->getName() + "` already used");
+                  fatalError = true;
+              }
+          }
+      }
+    }
+
+    std::vector<std::pair<std::string, std::string>> arguments;
+    for(const auto& paramGroup : *routineDef->getParams()->getParams()) {
+        std::string typeString = getTypeString(paramGroup->getParamsType().get());
+        for(const auto& param : *paramGroup->getParams()) {
+            arguments.emplace_back(param->getName(), typeString);
         }
-        else {
-            ctx->getLookupTable().defineRoutine(LookupTable::RoutineCategory::FUNCTION, routineDef->getName(),
-                arguments, getTypeString(routineDef->getReturnType().get()), "");
-        }
+    }
+
+    if(routineDef->getRoutineType() == ast::RoutineDeclarationNode::RoutineType::PROCEDURE) {
+        ctx->getLookupTable().defineRoutine(LookupTable::RoutineCategory::PROCEDURE, routineDef->getName(),
+            arguments, "void", "");
+    }
+    else {
+        ctx->getLookupTable().defineRoutine(LookupTable::RoutineCategory::FUNCTION, routineDef->getName(),
+            arguments, getTypeString(routineDef->getReturnType().get()), "");
     }
 }
 
@@ -2233,8 +2385,6 @@ std::string getTypeString(ast::TypeNode* type) {
         switch(simpleType->getRepresentation()) {
             case ast::SimpleTypeNode::Representation::INTEGER:
                 return "integer";
-            case ast::SimpleTypeNode::Representation::UNSIGNED:
-                return "unsigned";
             case ast::SimpleTypeNode::Representation::BOOLEAN:
                 return "boolean";
             case ast::SimpleTypeNode::Representation::CHAR:
@@ -2274,10 +2424,12 @@ std::string getTypeString(ast::TypeNode* type) {
 
                 if(properEnums.empty()) {
                     parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + lb + " and " + ub + " are not in any enum");
+                    fatalError = true;
                     return "unspecified";
                 }
                 else if(properEnums.size() > 1) {
                     parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + lb + " and " + ub + " are in more than one enum");
+                    fatalError = true;
                     return "unspecified";
                 }
 
@@ -2348,7 +2500,11 @@ std::string getConstantString(ast::ConstantNode* constant) {
 }
 
 bool isBasicType(const std::string& type) {
-    return type == "integer" || type == "unsigned" || type == "boolean" || type == "char";
+    return type == "integer" || type == "boolean" || type == "char";
+}
+
+bool isEnumType(const std::string& type, const std::string& enumType) {
+    return enumType.find(type) != std::string::npos;
 }
 
 bool isEnumType(const std::string& type) {
@@ -2358,6 +2514,16 @@ bool isEnumType(const std::string& type) {
     });
 
     return !types.empty();
+}
+
+bool isEnumSubRangeType(const std::string& type, const std::string& enumType,
+    const std::string& begin, const std::string& end) {
+    size_t beginPos = enumType.find("%" + begin + "%");
+    size_t endPos = enumType.find("%" + end + "%");
+    size_t typePos = enumType.find("%" + type + "%");
+
+    return beginPos != std::string::npos && endPos != std::string::npos && typePos != std::string::npos &&
+        beginPos <= typePos && typePos <= endPos;
 }
 
 bool isLeftValueCompatible(ast::ExpressionNode* expr) {
@@ -2383,8 +2549,8 @@ bool isArrayIndexCompatible(const std::string& arrayType, ast::ExpressionNode* i
         it++;
     }
 
-    if(arrayElementType == "integer" || arrayElementType == "unsigned") {
-        if(index->getInferredType() == "integer" || index->getInferredType() == "unsigned") {
+    if(arrayElementType == "integer") {
+        if(index->getInferredType() == "integer") {
             return true;
         }
         return false;
@@ -2404,37 +2570,67 @@ bool isArrayIndexCompatible(const std::string& arrayType, ast::ExpressionNode* i
     else if(arrayElementType.substr(0, 10) == "constrange") {
         std::string begin{};
         std::string end{};
-        size_t index;
-        for(index = 11; index < arrayElementType.size(); index++) {
-            if(arrayElementType[index] == '.') {
+        size_t pos;
+        for(pos = 11; pos < arrayElementType.size(); pos++) {
+            if(arrayElementType[pos] == '.') {
                 break;
             }
-            begin += arrayElementType[index];
+            begin += arrayElementType[pos];
         }
 
-        for(index+=2; index < arrayElementType.size(); index++) {
-            end += arrayElementType[index];
+        for(pos += 2; pos < arrayElementType.size(); pos++) {
+            end += arrayElementType[pos];
         }
 
-        std::cout << "Begin: " << begin << std::endl;
-        std::cout << "End: " << end << std::endl;
+        if(isInteger(begin) && isInteger(end)) {
+            if(index->getInferredType() == "integer") {
+                return true;
+            }
+        }
+        else if(isChar(begin) && isChar(end)) {
+            if(index->getInferredType() == "char") {
+                return true;
+            }
+        }
+        else if(isBoolean(begin) && isBoolean(end)) {
+            if(index->getInferredType() == "boolean") {
+                return true;
+            }
+        }
+
         return false;
     }
     else if(arrayElementType.substr(0, 9) == "enumrange") {
-        std::string enumName;
-        size_t index;
-        for(index = 10; index < arrayElementType.size(); index++) {
-            if(arrayElementType[index] == '%') {
+        std::string enumName, beginEnum, endEnum;
+        size_t pos{10};
+        for(; pos < arrayElementType.size(); pos++) {
+            if(arrayElementType[pos] == '%') {
                 break;
             }
-            enumName += arrayElementType[index];
+            enumName += arrayElementType[pos];
         }
 
-        std::cout << "Enum: " << enumName << std::endl;
+        pos++;
+        while(arrayElementType[pos] != '.') {
+            beginEnum += arrayElementType[pos];
+            pos++;
+        }
 
-        return false;
+        pos += 2;
+        for(; pos < arrayElementType.size(); pos++) {
+            endEnum += arrayElementType[pos];
+        }
+
+        return isEnumSubRangeType(index->getInferredType(), ctx->getLookupTable().getType(enumName, "").type, beginEnum, endEnum);
     }
     else if(arrayElementType.substr(0, 4) == "enum") {
+        if(index->getOperation() == ast::ExpressionNode::Operation::SPECIAL) {
+            ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(index);
+            if(special->getFunctionName() == ast::SpecialExpressionNode::ENUM_ELEMENT) {
+                ast::IdentifierNode* enumElement = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
+                return isEnumType(enumElement->getName(), arrayElementType);
+            }
+        }
         return false;
     }
     else {
@@ -2443,7 +2639,7 @@ bool isArrayIndexCompatible(const std::string& arrayType, ast::ExpressionNode* i
 }
 
 bool isRecordFieldCompatible(const std::string& recordType, ast::IdentifierNode* field) {
-    const std::string& fieldName = field->getName();
+    const std::string& fieldName = "$" + field->getName() + "#";
     size_t parenthesisCounter{};
     for(size_t i = 0; i < recordType.size(); i++) {
         if(recordType[i] == '(') {
@@ -2475,6 +2671,44 @@ bool isFunctionArgumentsCompatible(const std::vector<std::pair<std::string, std:
     return true;
 }
 
+bool hasReturnValue(ast::RoutineNode* function, const std::string& functionName) {
+    std::vector<ast::StatementNode*>* statements = function->getBody()->getStatements()->getStatements().get();
+    if(statements->empty()) {
+        std::cout << "Empty function body\n";
+        return false;
+    }
+
+    size_t returnCounter{0};
+    size_t lastStatementIndex{0};
+    for(size_t i = 0; i < statements->size(); i++) {
+        if(statements->at(i)->getType() != ast::AstNode::Type::ASSIGN) {
+            continue;
+        }
+
+        ast::ExpressionNode* lhs = dynamic_cast<ast::AssignNode*>(statements->at(i))->getLhs().get();
+        if(lhs->getOperation() != ast::ExpressionNode::Operation::SPECIAL) {
+            continue;
+        }
+
+        ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(lhs);
+        if(special->getFunctionName() != ast::SpecialExpressionNode::VARIABLE) {
+            continue;
+        }
+
+        ast::IdentifierNode* variable = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
+        if(variable->getName() == functionName) {
+            returnCounter++;
+            lastStatementIndex = i;
+        }
+    }
+
+    if(returnCounter != 1) {
+        return false;
+    }
+
+    return lastStatementIndex == statements->size() - 1;
+}
+
 std::string getArrayElementType(const std::string& arrayType) {
     std::string elementType{};
     size_t counter{0};
@@ -2490,7 +2724,7 @@ std::string getArrayElementType(const std::string& arrayType) {
 }
 
 std::string getRecordFieldType(const std::string& recordType, const std::string& field) {
-    std::size_t it = recordType.find(field) + field.size() + 2;
+    std::size_t it = recordType.find("$" + field + "#") + field.size() + 3;
     std::string fieldType{};
     size_t parenthesisCounter{1};
     while(parenthesisCounter != 0) {

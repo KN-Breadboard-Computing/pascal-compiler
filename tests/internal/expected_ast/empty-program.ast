@@ -1,0 +1,9 @@
+ProgramNode EmptyProgram:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+      Variables:
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
