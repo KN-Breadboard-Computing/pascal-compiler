@@ -29,10 +29,15 @@ class LookupTable {
   };
 
   enum class RoutineCategory { FUNCTION, PROCEDURE };
+  struct ArgumentInfo {
+	std::string name{};
+	std::string type{};
+	bool isReference{};
+  };
   struct RoutineInfo {
 	RoutineCategory category{};
 	std::string name{};
-	std::vector<std::pair<std::string, std::string>> args{};
+	std::vector<ArgumentInfo> args{};
 	std::string type{};
 	bool alive{};
   };
@@ -245,7 +250,7 @@ class LookupTable {
   }
 
   void defineRoutine(RoutineCategory category, const std::string &name,
-					 const std::vector<std::pair<std::string, std::string>> &args, std::string type,
+					 const std::vector<ArgumentInfo> &args, std::string type,
 					 const std::string &scope = "") {
 	const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
 #ifdef CONTEXT_DEBUG

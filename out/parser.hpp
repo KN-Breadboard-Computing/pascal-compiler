@@ -45,7 +45,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 60 "src/yacc.y"
+#line 62 "src/yacc.y"
 
     #include <iostream>
     #include <stdlib.h>
@@ -56,10 +56,12 @@ extern int yydebug;
     #include "../src/ast/array_type_node.hpp"
     #include "../src/ast/assign_node.hpp"
     #include "../src/ast/ast_node.hpp"
+    #include "../src/ast/break_node.hpp"
     #include "../src/ast/call_node.hpp"
     #include "../src/ast/case_node.hpp"
     #include "../src/ast/compound_statement_node.hpp"
     #include "../src/ast/constant_node.hpp"
+    #include "../src/ast/continue_node.hpp"
     #include "../src/ast/expression_node.hpp"
     #include "../src/ast/for_node.hpp"
     #include "../src/ast/goto_node.hpp"
@@ -82,7 +84,7 @@ extern int yydebug;
         std::string* stringValue;
     } Token;
 
-#line 86 "out/parser.hpp"
+#line 88 "out/parser.hpp"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -180,7 +182,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 98 "src/yacc.y"
+#line 102 "src/yacc.y"
 
     Token token;
     ast::ProgramNode* programNode;
@@ -225,7 +227,7 @@ union YYSTYPE
     std::pair<ast::AstNode*, ast::StatementNode*>* caseExpr;
     ast::ArgumentsListNode* argsList;
 
-#line 229 "out/parser.hpp"
+#line 231 "out/parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

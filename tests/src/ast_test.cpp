@@ -49,17 +49,50 @@ TEST(toAstConversion, constTypeVarDefs) {
 
   const auto result = parse("tests/internal/input/const-type-var-defs.pas", errors, program);
 
-  ASSERT_FALSE(result);
+  ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
-  ASSERT_EQ(errors, (std::vector<std::string>{
-	  "Error at line 12, name `c3` already used",
-	  "Error at line 27, Mon and Fri are in more than one enum",
-	  "Error at line 28, Sat and Sum are not in any enum",
-	  "Error at line 57, name `TDay` already used",
-	  "Error at line 63, name `y` already used",
-	  "Error at line 63, name `c8` already used"
-  }));
+  ASSERT_EQ(errors.size(), 0);
   validateAst(program, "tests/internal/expected_ast/const-type-var-defs.ast");
+}
+
+
+TEST(toAstConversion, constTypeVarDefs1) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/const-type-var-defs1.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, (std::vector<std::string>{
+	  "Error at line 12, name `c3` already used"
+  }));
+}
+
+TEST(toAstConversion, constTypeVarDefs2) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/const-type-var-defs2.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, (std::vector<std::string>{
+	  "Error at line 26, Mon and Fri are in more than one enum"
+  }));
+}
+
+TEST(toAstConversion, constTypeVarDefs3) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/const-type-var-defs3.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, (std::vector<std::string>{
+	  "Error at line 26, Sat and Sum are not in any enum"
+  }));
 }
 
 TEST(toAstConversion, lValuesCorrect) {
@@ -310,4 +343,119 @@ TEST(toAstConversion, funNoReturnType) {
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
   ASSERT_EQ(errors, std::vector<std::string>{"Error at line 2, syntax error"});
+}
+
+TEST(toAstConversion, typeCast) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/type-cast.pas", errors, program);
+
+  ASSERT_TRUE(result);
+  ASSERT_NE(program.get(), nullptr);
+  ASSERT_EQ(errors.size(), 0);
+  validateAst(program, "tests/internal/expected_ast/type-cast.ast");
+}
+
+TEST(toAstConversion, ifs) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/ifs.pas", errors, program);
+
+  ASSERT_TRUE(result);
+  ASSERT_NE(program.get(), nullptr);
+  ASSERT_EQ(errors.size(), 0);
+  validateAst(program, "tests/internal/expected_ast/ifs.ast");
+}
+
+TEST(toAstConversion, repeats) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/repeats.pas", errors, program);
+
+  ASSERT_TRUE(result);
+  ASSERT_NE(program.get(), nullptr);
+  ASSERT_EQ(errors.size(), 0);
+  validateAst(program, "tests/internal/expected_ast/repeats.ast");
+}
+
+TEST(toAstConversion, whiles) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/whiles.pas", errors, program);
+
+  ASSERT_TRUE(result);
+  ASSERT_NE(program.get(), nullptr);
+  ASSERT_EQ(errors.size(), 0);
+  validateAst(program, "tests/internal/expected_ast/whiles.ast");
+}
+
+TEST(toAstConversion, fors) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/fors.pas", errors, program);
+
+  ASSERT_TRUE(result);
+  ASSERT_NE(program.get(), nullptr);
+  ASSERT_EQ(errors.size(), 0);
+  validateAst(program, "tests/internal/expected_ast/fors.ast");
+}
+
+TEST(toAstConversion, forIteratorRedeclaration) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/for-iterator-redeclaration.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 6, name `i` already used"});
+}
+
+TEST(toAstConversion, forIndexReassignment1) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/for-index-reassignment1.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 14, loop variable `i` cannot be reassigned"});
+}
+
+TEST(toAstConversion, forIndexReassignment2) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/for-index-reassignment2.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 23, loop variable `i` cannot be reassigned"});
+}
+
+TEST(toAstConversion, forIndexReassignment3) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/for-index-reassignment3.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 14, loop variable `i` cannot be reassigned"});
+}
+
+TEST(toAstConversion, passConstantAsReferenceArgument) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/pass-constant-as-reference-argument.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 20, passed incompatible arguments"});
 }

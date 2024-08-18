@@ -1,7 +1,6 @@
 #include "for_node.hpp"
 
 namespace ast {
-// ForNode
 void ForNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
   visitor->visit(*this);
 }
@@ -28,43 +27,5 @@ void ForNode::print(std::ostream& out, int tab) const {
   start_->print(out, tab + 2);
   end_->print(out, tab + 2);
   statements_->print(out, tab + 2);
-}
-
-// BreakNode
-void BreakNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
-}
-
-[[nodiscard]] std::unique_ptr<AstNode> BreakNode::clone() const {
-  auto clone = std::make_unique<BreakNode>();
-  return clone;
-}
-
-void BreakNode::print(std::ostream& out, int tab) const {
-  if (getLabel().has_value()) {
-    out << std::string(tab, ' ') << "BreakNode with label: " << getLabel().value() << std::endl;
-  }
-  else {
-    out << std::string(tab, ' ') << "BreakNode\n";
-  }
-}
-
-// ContinueNode
-void ContinueNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
-}
-
-[[nodiscard]] std::unique_ptr<AstNode> ContinueNode::clone() const {
-  auto clone = std::make_unique<ContinueNode>();
-  return clone;
-}
-
-void ContinueNode::print(std::ostream& out, int tab) const {
-  if (getLabel().has_value()) {
-    out << std::string(tab, ' ') << "ContinueNode with label: " << getLabel().value() << std::endl;
-  }
-  else {
-    out << std::string(tab, ' ') << "ContinueNode\n";
-  }
 }
 }  // namespace ast

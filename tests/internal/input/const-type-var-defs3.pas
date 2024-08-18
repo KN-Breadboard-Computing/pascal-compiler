@@ -23,7 +23,7 @@ type
 
   TDay = (Mon, Tue, Wed, Thu, Fri, Sat, Sun);
   TDay2 = (Mon, Tue, Wed, Thu, Fri);
-  TWorkDay = Mon..Sat;
+  TWeekend = Sat..Sum;
 
   TArray = array[1..10] of integer;
   TMatrix = array[1..10] of array[1..10] of integer;
@@ -32,7 +32,7 @@ type
   TArrayIntIndex = array[integer] of integer;
   TArrayLetterIndex = array['a'..'z'] of integer;
   TArrayBoolIndex = array[TBools] of integer;
-  TArrayDayIndex = array[TWorkDay] of integer;
+  TArrayDayIndex = array[TWeekend] of integer;
 
   TRenamedArray = TArray;
 
@@ -49,11 +49,16 @@ type
   end;
 
   TFamilyRenamed = TFamiliy;
+
+  TDay = record
+    x: integer;
+  end;
 var
   x,y,z: integer;
   a: boolean;
   c,d: char;
   b: integer;
+  y,c8: integer;
   family: TFamiliy;
 
 begin

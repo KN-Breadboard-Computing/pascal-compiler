@@ -14,32 +14,18 @@ class AstNode {
   enum Type {
     DEFAULT,
     ARGUMENTS_LIST,
-    ARRAY,
-    ASSIGN,
-    BREAK,
-    CONTINUE,
-    CALL,
-    CASE,
-    COMPOUND_STATEMENT,
     CONSTANT,
     EXPRESSION,
-    FOR,
-    GO_TO,
     IDENTIFIER,
-    IF,
     PARAMS_GROUP,
     PARAMS,
     PROGRAM,
-    RECORD,
-    REPEAT,
     ROUTINE_BODY,
     ROUTINE_DECLARATION,
     ROUTINE_HEAD,
     ROUTINE,
-    SIMPLE_TYPE,
     STATEMENT,
-    TYPE,
-    WHILE
+    TYPE
   };
 
   AstNode() : type_{Type::DEFAULT} {}

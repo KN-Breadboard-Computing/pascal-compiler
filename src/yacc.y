@@ -30,10 +30,10 @@ bool isInteger(const std::string& expr);
 bool isBoolean(const std::string& expr);
 
 bool nameAlreadyUsed(std::string name);
-void saveType(ast::IdentifierNode* typeName, ast::TypeNode* typeDef);
-void saveConstant(ast::IdentifierNode* constName, ast::ConstantNode* constDef);
-void saveVariables(std::vector<ast::IdentifierNode*>* varNames, ast::TypeNode* typeDef);
-void saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward);
+bool saveType(ast::IdentifierNode* typeName, const std::string& typeDef);
+bool saveConstant(ast::IdentifierNode* constName, const std::string& constValue, const std::string& typeDef);
+bool saveVariables(std::vector<ast::IdentifierNode*>* varNames, const std::string& typeDef);
+bool saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward);
 
 std::string getTypeString(ast::TypeNode* type);
 std::string getTypeString(ast::ConstantNode::ConstantType type);
@@ -49,8 +49,10 @@ bool isLeftValueCompatible(ast::ExpressionNode* expr);
 
 bool isArrayIndexCompatible(const std::string& arrayType, ast::ExpressionNode* index);
 bool isRecordFieldCompatible(const std::string& recordType, ast::IdentifierNode* field);
-bool isFunctionArgumentsCompatible(const std::vector<std::pair<std::string, std::string>>& expectedArgs, const std::vector<ast::ExpressionNode*>& givenArgs);
+bool isFunctionArgumentsCompatible(const std::vector<LookupTable::ArgumentInfo>& expectedArgs, const std::vector<ast::ExpressionNode*>& givenArgs);
 bool hasReturnValue(ast::RoutineNode* function, const std::string& functionName);
+bool variableIsReassignedS(const std::string& varName, ast::StatementNode* stmt);
+bool variableIsReassignedE(const std::string& varName, ast::ExpressionNode* expr);
 
 std::string getArrayElementType(const std::string& arrayType);
 std::string getRecordFieldType(const std::string& recordType, const std::string& field);
@@ -67,10 +69,12 @@ std::string getRecordFieldType(const std::string& recordType, const std::string&
     #include "../src/ast/array_type_node.hpp"
     #include "../src/ast/assign_node.hpp"
     #include "../src/ast/ast_node.hpp"
+    #include "../src/ast/break_node.hpp"
     #include "../src/ast/call_node.hpp"
     #include "../src/ast/case_node.hpp"
     #include "../src/ast/compound_statement_node.hpp"
     #include "../src/ast/constant_node.hpp"
+    #include "../src/ast/continue_node.hpp"
     #include "../src/ast/expression_node.hpp"
     #include "../src/ast/for_node.hpp"
     #include "../src/ast/goto_node.hpp"
@@ -194,7 +198,7 @@ std::string getRecordFieldType(const std::string& recordType, const std::string&
 %type <assignNode> assign_stmt
 %type <gotoNode> goto_stmt
 %type <caseNode> case_stmt
-%type <forNode> for_stmt
+%type <forNode> for_head for_stmt
 %type <whileNode> while_stmt
 %type <repeatNode> repeat_stmt
 %type <ifNode> if_stmt else_clause
@@ -288,7 +292,9 @@ routine_part :
             std::cout << "Yacc debug: Parse routine part with fun decl 1 " << $2->getName() << std::endl;
         #endif
 
-        saveRoutine($2, true);
+        if(!saveRoutine($2, true)) {
+            YYERROR;
+        }
 
         $$ = $1;
         $$->push_back($2);
@@ -299,7 +305,9 @@ routine_part :
            std::cout << "Yacc debug: Parse routine part with proc decl 1 " << $2->getName() << std::endl;
        #endif
 
-       saveRoutine($2, true);
+       if(!saveRoutine($2, true)) {
+           YYERROR;
+       }
 
        $$ = $1;
        $$->push_back($2);
@@ -310,7 +318,9 @@ routine_part :
             std::cout << "Yacc debug: Parse routine part with fun decl 2 " << $1->getName() << std::endl;
         #endif
 
-        saveRoutine($1, true);
+        if(!saveRoutine($1, true)) {
+            YYERROR;
+        }
 
         $$ = new std::vector<ast::RoutineDeclarationNode*>();
         $$->push_back($1);
@@ -321,7 +331,9 @@ routine_part :
             std::cout << "Yacc debug: Parse routine part with proc decl 2 " << $1->getName() << std::endl;
         #endif
 
-        saveRoutine($1, true);
+        if(!saveRoutine($1, true)) {
+            YYERROR;
+        }
 
         $$ = new std::vector<ast::RoutineDeclarationNode*>();
         $$->push_back($1);
@@ -413,17 +425,33 @@ fun_head :
 
         ctx->getLookupTable().pushScope(*$2.stringValue);
 
+        std::string funType = getTypeString($5);
+        if(funType == "unspecified") {
+            YYERROR;
+        }
+
         std::vector<ast::IdentifierNode*> funNameVector{new ast::IdentifierNode(*$2.stringValue)};
-        saveVariables(&funNameVector, $5);
+        if(!saveVariables(&funNameVector, funType)) {
+            YYERROR;
+        }
 
         for(const auto& param : *$3->getParams()) {
-            saveVariables(param->getParams().get(), param->getParamsType().get());
+            std::string paramType = getTypeString(param->getParamsType().get());
+            if(paramType == "unspecified") {
+                YYERROR;
+            }
+
+            if(!saveVariables(param->getParams().get(), paramType)) {
+                YYERROR;
+            }
         }
 
         std::string name{*$2.stringValue};
         $$ = new ast::RoutineDeclarationNode(ast::RoutineDeclarationNode::RoutineType::FUNCTION, std::move(name), $3, $5, nullptr);
 
-        saveRoutine($$, false);
+        if(!saveRoutine($$, false)) {
+            YYERROR;
+        }
     }
 ;
 
@@ -489,13 +517,22 @@ proc_head :
         ctx->getLookupTable().pushScope(*$2.stringValue);
 
         for(const auto& param : *$3->getParams()) {
-            saveVariables(param->getParams().get(), param->getParamsType().get());
+            std::string paramType = getTypeString(param->getParamsType().get());
+            if(paramType == "unspecified") {
+                YYERROR;
+            }
+
+            if(!saveVariables(param->getParams().get(), paramType)) {
+                YYERROR;
+            }
         }
 
         std::string name{*$2.stringValue};
         $$ = new ast::RoutineDeclarationNode(ast::RoutineDeclarationNode::RoutineType::PROCEDURE, std::move(name), $3, nullptr, nullptr);
 
-        saveRoutine($$, false);
+        if(!saveRoutine($$, false)) {
+            YYERROR;
+        }
     }
 ;
 
@@ -600,7 +637,14 @@ var_decl :
             std::cout << "Yacc debug: Parse var decl 1" << std::endl;
         #endif
 
-        saveVariables($1, $3);
+        std::string varType = getTypeString($3);
+        if(varType == "unspecified") {
+            YYERROR;
+        }
+
+        if(!saveVariables($1, varType)) {
+            YYERROR;
+        }
 
         $$ = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>($1, $3);
     }
@@ -610,7 +654,14 @@ var_decl :
             std::cout << "Yacc debug: Parse var decl 2" << std::endl;
         #endif
 
-        saveVariables($1, $3);
+        std::string varType = getTypeString($3);
+        if(varType == "unspecified") {
+            YYERROR;
+        }
+
+        if(!saveVariables($1, varType)) {
+            YYERROR;
+        }
 
         $$ = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>($1, $3);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
@@ -661,7 +712,14 @@ const_expr :
             std::cout << "Yacc debug: Parse const expr 1" << std::endl;
         #endif
 
-        saveConstant($1, $3);
+        std::string constType = getTypeString($3->getConstantType());
+        if(constType == "unspecified") {
+            YYERROR;
+        }
+
+        if(!saveConstant($1, getConstantString($3), constType)) {
+            YYERROR;
+        }
 
         $$ = new std::pair<ast::IdentifierNode*, ast::ConstantNode*>($1, $3);
     }
@@ -671,7 +729,14 @@ const_expr :
             std::cout << "Yacc debug: Parse const expr 2" << std::endl;
         #endif
 
-        saveConstant($1, $3);
+        std::string constType = getTypeString($3->getConstantType());
+        if(constType == "unspecified") {
+            YYERROR;
+        }
+
+        if(!saveConstant($1, getConstantString($3), constType)) {
+            YYERROR;
+        }
 
         $$ = new std::pair<ast::IdentifierNode*, ast::ConstantNode*>($1, $3);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
@@ -792,7 +857,14 @@ type_def :
             std::cout << "Yacc debug: Parse type def 1" << std::endl;
         #endif
 
-        saveType($1, $3);
+        std::string typeType = getTypeString($3);
+        if(typeType == "unspecified") {
+            YYERROR;
+        }
+
+        if(!saveType($1, typeType)) {
+            YYERROR;
+        }
 
         $$ = new std::pair<ast::IdentifierNode*, ast::TypeNode*>($1, $3);
     }
@@ -802,7 +874,14 @@ type_def :
             std::cout << "Yacc debug: Parse type def 2" << std::endl;
         #endif
 
-        saveType($1, $3);
+        std::string typeType = getTypeString($3);
+        if(typeType == "unspecified") {
+            YYERROR;
+        }
+
+        if(!saveType($1, typeType)) {
+            YYERROR;
+        }
 
         $$ = new std::pair<ast::IdentifierNode*, ast::TypeNode*>($1, $3);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
@@ -1352,9 +1431,28 @@ case_expr :
 ;
 
 for_stmt :
-    FOR identifier ASSIGN expression TO expression DO stmt {
+    for_head stmt {
         #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse for statement 1" << std::endl;
+            std::cout << "Yacc debug: Parse for statement" << std::endl;
+        #endif
+
+        if(variableIsReassignedS($1->getIterator()->getName(), $2)) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", loop variable `" + $1->getIterator()->getName() + "` cannot be reassigned");
+            fatalError = true;
+            YYERROR;
+        }
+
+        $$ = $1;
+        $$->setStatements(std::unique_ptr<ast::StatementNode>($2));
+
+        ctx->getLookupTable().unDefineVariable($1->getIterator()->getName());
+    }
+;
+
+for_head :
+    FOR identifier ASSIGN expression TO expression DO {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse for head 1" << std::endl;
         #endif
 
         if($4->getInferredType() != $6->getInferredType()) {
@@ -1368,13 +1466,16 @@ for_stmt :
             YYERROR;
         }
         else {
-            $$ = new ast::ForNode($2, $4, $6, $8, ast::ForNode::Direction::INCREMENT);
+            if(!saveVariables(new std::vector<ast::IdentifierNode*>{$2}, $4->getInferredType())) {
+                YYERROR;
+            }
+            $$ = new ast::ForNode($2, $4, $6, nullptr, ast::ForNode::Direction::INCREMENT);
         }
     }
 |
-    FOR identifier ASSIGN expression DOWNTO expression DO stmt {
+    FOR identifier ASSIGN expression DOWNTO expression DO {
         #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse for statement 2" << std::endl;
+            std::cout << "Yacc debug: Parse for head 2" << std::endl;
         #endif
 
         if($4->getInferredType() != $6->getInferredType()) {
@@ -1388,7 +1489,10 @@ for_stmt :
             YYERROR;
         }
         else {
-            $$ = new ast::ForNode($2, $4, $6, $8, ast::ForNode::Direction::DECREMENT);
+            if(!saveVariables(new std::vector<ast::IdentifierNode*>{$2}, $4->getInferredType())) {
+                YYERROR;
+            }
+            $$ = new ast::ForNode($2, $4, $6, nullptr, ast::ForNode::Direction::DECREMENT);
         }
     }
 ;
@@ -1933,7 +2037,13 @@ factor :
         #endif
 
         ast::ConstantNode* constant = dynamic_cast<ast::ConstantNode*>($1);
-        $$ = new ast::SpecialExpressionNode($1, ast::SpecialExpressionNode::FunctionName::CONST, getTypeString(constant->getConstantType()));
+
+        std::string constantType = getTypeString(constant->getConstantType());
+        if(constantType == "undefined") {
+            YYERROR;
+        }
+
+        $$ = new ast::SpecialExpressionNode($1, ast::SpecialExpressionNode::FunctionName::CONST, constantType);
     }
 |
     LP expression RP {
@@ -2314,41 +2424,49 @@ bool nameAlreadyUsed(std::string name) {
     return ctx->getLookupTable().isVariableDefined(name, "") || ctx->getLookupTable().isRoutineDefined(name, "") || ctx->getLookupTable().isTypeDefined(name, "");
 }
 
-void saveType(ast::IdentifierNode* typeName, ast::TypeNode* typeDef) {
+bool saveType(ast::IdentifierNode* typeName, const std::string& typeDef) {
     if(nameAlreadyUsed(typeName->getName())) {
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + typeName->getName() + "` already used");
         fatalError = true;
+        return false;
     } else {
-        ctx->getLookupTable().defineType(LookupTable::TypeCategory::SIMPLE, typeName->getName(), getTypeString(typeDef));
+        ctx->getLookupTable().defineType(LookupTable::TypeCategory::SIMPLE, typeName->getName(), typeDef);
+        return true;
     }
 }
 
-void saveConstant(ast::IdentifierNode* constName, ast::ConstantNode* constDef) {
+bool saveConstant(ast::IdentifierNode* constName, const std::string& constValue, const std::string& typeDef) {
     if(nameAlreadyUsed(constName->getName())) {
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + constName->getName() + "` already used");
         fatalError = true;
+        return false;
     } else {
-        ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::CONSTANT, constName->getName(), getTypeString(constDef->getConstantType()));
-        ctx->getLookupTable().setVariableValue(constName->getName(), getConstantString(constDef));
+        ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::CONSTANT, constName->getName(), typeDef);
+        ctx->getLookupTable().setVariableValue(constName->getName(), constValue);
+        return true;
     }
 }
 
-void saveVariables(std::vector<ast::IdentifierNode*>* varNames, ast::TypeNode* typeDef) {
+bool saveVariables(std::vector<ast::IdentifierNode*>* varNames, const std::string& typeDef) {
     for(auto& varName : *varNames) {
         if(nameAlreadyUsed(varName->getName())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + varName->getName() + "` already used");
             fatalError = true;
+            return false;
         } else {
-            ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::VARIABLE, varName->getName(), getTypeString(typeDef));
+            ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::VARIABLE, varName->getName(), typeDef);
         }
     }
+
+    return true;
 }
 
-void saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward) {
+bool saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward) {
     if(isForward) {
       if(nameAlreadyUsed(routineDef->getName())) {
           parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + routineDef->getName() + "` already used");
           fatalError = true;
+          return false;
       }
 
       for(const auto& paramGroup : *routineDef->getParams()->getParams()) {
@@ -2356,16 +2474,21 @@ void saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward) {
               if(nameAlreadyUsed(param->getName())) {
                   parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", name `" + param->getName() + "` already used");
                   fatalError = true;
+                  return false;
               }
           }
       }
     }
 
-    std::vector<std::pair<std::string, std::string>> arguments;
+    std::vector<LookupTable::ArgumentInfo> arguments;
     for(const auto& paramGroup : *routineDef->getParams()->getParams()) {
         std::string typeString = getTypeString(paramGroup->getParamsType().get());
+        if(typeString == "unspecified") {
+            return false;
+        }
+
         for(const auto& param : *paramGroup->getParams()) {
-            arguments.emplace_back(param->getName(), typeString);
+            arguments.emplace_back(param->getName(), typeString, paramGroup->getPassType() == ast::ParamsGroupNode::PassType::PASS_BY_REFERENCE ? true : false);
         }
     }
 
@@ -2374,9 +2497,16 @@ void saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward) {
             arguments, "void", "");
     }
     else {
+        std::string returnType = getTypeString(routineDef->getReturnType().get());
+        if(returnType == "unspecified") {
+            return false;
+        }
+
         ctx->getLookupTable().defineRoutine(LookupTable::RoutineCategory::FUNCTION, routineDef->getName(),
-            arguments, getTypeString(routineDef->getReturnType().get()), "");
+            arguments, returnType, "");
     }
+
+    return true;
 }
 
 std::string getTypeString(ast::TypeNode* type) {
@@ -2445,6 +2575,10 @@ std::string getTypeString(ast::TypeNode* type) {
         std::string elementTypeName = getTypeString(arrayType->getElementType().get());
         std::string rangeTypeName = getTypeString(arrayType->getRange().get());
 
+        if(elementTypeName == "unspecified" || rangeTypeName == "unspecified") {
+            return "unspecified";
+        }
+
         return "array@@" + rangeTypeName + "@" + elementTypeName + "@@";
     }
     else if(type->getTypeType() == ast::TypeNode::TypeType::RECORD) {
@@ -2453,6 +2587,10 @@ std::string getTypeString(ast::TypeNode* type) {
         std::string mergedRecord = "record"  "$$";
         for(auto& field : *recordType->getFields()) {
             for(auto& identifier : *field->first) {
+                if(getTypeString(field->second) == "unspecified") {
+                    return "unspecified";
+                }
+
                 mergedRecord += identifier->getName() + "#(" + getTypeString(field->second) + ")$";
             }
         }
@@ -2657,13 +2795,16 @@ bool isRecordFieldCompatible(const std::string& recordType, ast::IdentifierNode*
     return false;
 }
 
-bool isFunctionArgumentsCompatible(const std::vector<std::pair<std::string, std::string>>& expectedArgs, const std::vector<ast::ExpressionNode*>& givenArgs) {
+bool isFunctionArgumentsCompatible(const std::vector<LookupTable::ArgumentInfo>& expectedArgs, const std::vector<ast::ExpressionNode*>& givenArgs) {
     if(expectedArgs.size() != givenArgs.size()) {
         return false;
     }
 
     for(size_t i = 0; i < expectedArgs.size(); i++) {
-        if(expectedArgs[i].second != givenArgs[i]->getInferredType()) {
+        if(expectedArgs[i].type != givenArgs[i]->getInferredType()) {
+            return false;
+        }
+        if(expectedArgs[i].isReference && !isLeftValueCompatible(givenArgs[i])) {
             return false;
         }
     }
@@ -2681,7 +2822,7 @@ bool hasReturnValue(ast::RoutineNode* function, const std::string& functionName)
     size_t returnCounter{0};
     size_t lastStatementIndex{0};
     for(size_t i = 0; i < statements->size(); i++) {
-        if(statements->at(i)->getType() != ast::AstNode::Type::ASSIGN) {
+        if(statements->at(i)->getCategory() != ast::StatementNode::Category::ASSIGN) {
             continue;
         }
 
@@ -2707,6 +2848,215 @@ bool hasReturnValue(ast::RoutineNode* function, const std::string& functionName)
     }
 
     return lastStatementIndex == statements->size() - 1;
+}
+
+bool variableIsReassignedS(const std::string& varName, ast::StatementNode* stmt) {
+    switch(stmt->getCategory()) {
+        case ast::StatementNode::Category::BREAK:
+        case ast::StatementNode::Category::CONTINUE:
+        case ast::StatementNode::Category::GOTO:
+            return false;
+        case ast::StatementNode::Category::ASSIGN: {
+            ast::ExpressionNode* rhs = dynamic_cast<ast::AssignNode*>(stmt)->getRhs().get();
+            if(variableIsReassignedE(varName, rhs)) {
+                return true;
+            }
+
+            ast::ExpressionNode* lhs = dynamic_cast<ast::AssignNode*>(stmt)->getLhs().get();
+            if(lhs->getOperation() != ast::ExpressionNode::Operation::SPECIAL) {
+                return false;
+            }
+
+            ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(lhs);
+            if(special->getFunctionName() != ast::SpecialExpressionNode::VARIABLE) {
+                return false;
+            }
+
+            ast::IdentifierNode* variable = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
+            return variable->getName() == varName;
+        }
+        case ast::StatementNode::Category::CALL: {
+            ast::CallNode* call = dynamic_cast<ast::CallNode*>(stmt);
+
+            if(call->getCallObjectType() == ast::CallNode::CallObjectType::USER_DEFINED) {
+                ast::UserDefineCallNode* userCall = dynamic_cast<ast::UserDefineCallNode*>(call);
+                const std::vector<LookupTable::ArgumentInfo>& callArgs = ctx->getLookupTable().getRoutine(userCall->getName()->getName(), "").args;
+                std::vector<bool> passByReference;
+                for(size_t i = 0; i < callArgs.size(); i++) {
+                    passByReference.push_back(callArgs[i].isReference);
+                }
+
+                size_t index{0};
+                for(auto arg : userCall->getArguments()->getArguments()) {
+                    if(arg->getOperation() == ast::ExpressionNode::Operation::SPECIAL) {
+                        ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(arg);
+                        if(special->getFunctionName() == ast::SpecialExpressionNode::VARIABLE) {
+                            ast::IdentifierNode* variable = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
+                            if(variable->getName() == varName && passByReference[index]) {
+                                return true;
+                            }
+                        }
+                        else if(variableIsReassignedE(varName, arg)) {
+                            return true;
+                        }
+                    }
+                    else if(variableIsReassignedE(varName, arg)) {
+                        return true;
+                    }
+                    index++;
+                }
+                return false;
+            }
+            else {
+                ast::BuiltinCallNode* builtinCall = dynamic_cast<ast::BuiltinCallNode*>(call);
+                auto args = builtinCall->getArguments()->getArguments();
+
+                if(builtinCall->getName() == ast::BuiltinCallNode::FunctionName::READ) {
+                    if(args.front()->getOperation() == ast::ExpressionNode::Operation::SPECIAL) {
+                        ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(args.front());
+                        if(special->getFunctionName() == ast::SpecialExpressionNode::VARIABLE) {
+                            ast::IdentifierNode* variable = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
+                            return variable->getName() == varName;
+                        }
+                    }
+                }
+                if(builtinCall->getName() == ast::BuiltinCallNode::FunctionName::MEMORY_READ) {
+                    if(args.back()->getOperation() == ast::ExpressionNode::Operation::SPECIAL) {
+                        ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(args.back());
+                        if(special->getFunctionName() == ast::SpecialExpressionNode::VARIABLE) {
+                            ast::IdentifierNode* variable = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
+                            return variable->getName() == varName;
+                        }
+                    }
+                }
+                if(builtinCall->getName() == ast::BuiltinCallNode::FunctionName::STACK_READ) {
+                    if(args.back()->getOperation() == ast::ExpressionNode::Operation::SPECIAL) {
+                        ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(args.back());
+                        if(special->getFunctionName() == ast::SpecialExpressionNode::VARIABLE) {
+                            ast::IdentifierNode* variable = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
+                            return variable->getName() == varName;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
+        case ast::StatementNode::Category::CASE: {
+            for(auto caseStatement: *dynamic_cast<ast::CaseNode*>(stmt)->getStatements()) {
+                if(caseStatement->first->getType() == ast::AstNode::Type::EXPRESSION) {
+                    if(variableIsReassignedE(varName, dynamic_cast<ast::ExpressionNode*>(caseStatement->first))) {
+                        return true;
+                    }
+                }
+
+                if(variableIsReassignedS(varName, caseStatement->second)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        case ast::StatementNode::Category::COMPOUND: {
+            for(auto& statement : *dynamic_cast<ast::CompoundStatementNode*>(stmt)->getStatements()) {
+                if(variableIsReassignedS(varName, statement)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        case ast::StatementNode::Category::FOR: {
+            if(variableIsReassignedE(varName, dynamic_cast<ast::ForNode*>(stmt)->getStart().get())) {
+                return true;
+            }
+            if(variableIsReassignedE(varName, dynamic_cast<ast::ForNode*>(stmt)->getEnd().get())) {
+                return true;
+            }
+            if(variableIsReassignedS(varName, dynamic_cast<ast::ForNode*>(stmt)->getStatements().get())) {
+                return true;
+            }
+
+            return false;
+        }
+        case ast::StatementNode::Category::IF: {
+            if(variableIsReassignedE(varName, dynamic_cast<ast::IfNode*>(stmt)->getCondition().get())) {
+                return true;
+            }
+            if(variableIsReassignedS(varName, dynamic_cast<ast::IfNode*>(stmt)->getThenStatement().get())) {
+                return true;
+            }
+            if(variableIsReassignedS(varName, dynamic_cast<ast::IfNode*>(stmt)->getElseStatement().get())) {
+                return true;
+            }
+
+            return false;
+        }
+        case ast::StatementNode::Category::REPEAT: {
+            if(variableIsReassignedE(varName, dynamic_cast<ast::RepeatNode*>(stmt)->getCondition().get())) {
+                return true;
+            }
+
+            for(auto& statement : *dynamic_cast<ast::RepeatNode*>(stmt)->getStatements()) {
+                if(variableIsReassignedS(varName, statement)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        case ast::StatementNode::Category::WHILE: {
+            if(variableIsReassignedE(varName, dynamic_cast<ast::WhileNode*>(stmt)->getCondition().get())) {
+                return true;
+            }
+
+            if(variableIsReassignedS(varName, dynamic_cast<ast::WhileNode*>(stmt)->getStatements().get())) {
+                return true;
+            }
+
+            return false;
+        }
+        default:
+            return false;
+    }
+}
+
+bool variableIsReassignedE(const std::string& varName, ast::ExpressionNode* expr) {
+    if(expr->getOperation() != ast::ExpressionNode::Operation::SPECIAL) {
+        return false;
+    }
+
+    ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(expr);
+    if(special->getFunctionName() == ast::SpecialExpressionNode::CALL) {
+        auto routineName = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get())->getName();
+        auto args = dynamic_cast<ast::ArgumentsListNode*>(special->getArgument2().get())->getArguments();
+
+        const std::vector<LookupTable::ArgumentInfo>& callArgs = ctx->getLookupTable().getRoutine(routineName, "").args;
+        std::vector<bool> passByReference;
+        for(size_t i = 0; i < callArgs.size(); i++) {
+            passByReference.push_back(callArgs[i].isReference);
+        }
+
+        size_t index{0};
+        for(auto arg : args) {
+            if(arg->getOperation() == ast::ExpressionNode::Operation::SPECIAL) {
+                ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(arg);
+                if(special->getFunctionName() == ast::SpecialExpressionNode::VARIABLE) {
+                    ast::IdentifierNode* variable = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
+                    if(variable->getName() == varName && passByReference[index]) {
+                        return true;
+                    }
+                }
+                else if(variableIsReassignedE(varName, arg)) {
+                    return true;
+                }
+            }
+            else if(variableIsReassignedE(varName, arg)) {
+                return true;
+            }
+            index++;
+        }
+    }
+
+    return false;
 }
 
 std::string getArrayElementType(const std::string& arrayType) {

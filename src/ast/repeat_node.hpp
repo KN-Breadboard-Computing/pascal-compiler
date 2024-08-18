@@ -10,9 +10,9 @@
 namespace ast {
 class RepeatNode : public StatementNode {
  public:
-  RepeatNode() : StatementNode{} { type_ = Type::REPEAT; }
+  RepeatNode() : StatementNode{Category::REPEAT} { }
   RepeatNode(ExpressionNode* condition, std::vector<StatementNode*>* statements)
-      : StatementNode{}, condition_{condition}, statements_{statements} {}
+      : StatementNode{Category::REPEAT}, condition_{condition}, statements_{statements} {}
 
   RepeatNode(const RepeatNode&) = delete;
   RepeatNode(RepeatNode&&) = default;

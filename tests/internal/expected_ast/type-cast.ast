@@ -1,0 +1,99 @@
+ProgramNode TypeCast:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+      Variables:
+        Group 0:
+          SimpleTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: i
+        Group 1:
+          SimpleTypeNode CHAR
+          Identifiers:
+            IdentifierNode: c
+        Group 2:
+          SimpleTypeNode BOOLEAN
+          Identifiers:
+            IdentifierNode: b
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: i
+          SpecialExpressionNode: CONST
+            ConstantInteger<65>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: c
+          SpecialExpressionNode: CONST
+            ConstantChar<A>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: b
+          SpecialExpressionNode: CONST
+            ConstantBoolean<1>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: i
+          SpecialExpressionNode: TOINT
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: i
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: i
+          SpecialExpressionNode: TOINT
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: c
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: i
+          SpecialExpressionNode: TOINT
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: b
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: c
+          SpecialExpressionNode: TOCHAR
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: i
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: c
+          SpecialExpressionNode: TOCHAR
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: c
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: c
+          SpecialExpressionNode: TOCHAR
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: b
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: b
+          SpecialExpressionNode: TOBOOL
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: i
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: b
+          SpecialExpressionNode: TOBOOL
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: c
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: b
+          SpecialExpressionNode: TOBOOL
+            ArgumentsListNode:
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: b

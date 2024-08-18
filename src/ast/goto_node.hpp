@@ -6,14 +6,14 @@
 namespace ast {
 class GotoNode : public StatementNode {
  public:
-  GotoNode() : StatementNode{}, line_{0} { type_ = Type::GO_TO; }
-  explicit GotoNode(uint64_t line) : StatementNode{}, line_{line} { type_ = Type::GO_TO; }
+  GotoNode() : StatementNode{Category::GOTO}, line_{0} {}
+  explicit GotoNode(uint64_t line) : StatementNode{Category::GOTO}, line_{line} {}
 
-  GotoNode(const GotoNode&) = delete;
-  GotoNode(GotoNode&&) = default;
+  GotoNode(const GotoNode &) = delete;
+  GotoNode(GotoNode &&) = default;
 
-  GotoNode& operator=(const GotoNode&) = delete;
-  GotoNode& operator=(GotoNode&&) = default;
+  GotoNode &operator=(const GotoNode &) = delete;
+  GotoNode &operator=(GotoNode &&) = default;
 
   ~GotoNode() override = default;
 
@@ -21,9 +21,9 @@ class GotoNode : public StatementNode {
 
   void setLine(uint64_t line) { line_ = line; }
 
-  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
+  virtual void accept(const std::unique_ptr<AstVisitor> &visitor) const override;
   [[nodiscard]] std::unique_ptr<AstNode> clone() const override;
-  void print(std::ostream& out, int tab) const override;
+  void print(std::ostream &out, int tab) const override;
 
  private:
   uint64_t line_;

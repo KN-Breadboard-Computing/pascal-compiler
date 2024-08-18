@@ -9,13 +9,13 @@
 namespace ast {
 class IfNode : public StatementNode {
  public:
-  IfNode() : StatementNode{} { type_ = Type::IF; }
+  IfNode() : StatementNode{Category::IF} { }
   IfNode(ExpressionNode* condition, StatementNode* thenStatement)
-      : StatementNode{}, condition_{condition}, thenStatement_{thenStatement}, elseStatement_{nullptr} {}
+      : StatementNode{Category::IF}, condition_{condition}, thenStatement_{thenStatement}, elseStatement_{nullptr} {}
   IfNode(ExpressionNode* condition, StatementNode* thenStatement, StatementNode* elseStatement)
-      : StatementNode{}, condition_{condition}, thenStatement_{thenStatement}, elseStatement_{elseStatement} {}
+      : StatementNode{Category::IF}, condition_{condition}, thenStatement_{thenStatement}, elseStatement_{elseStatement} {}
   IfNode(ExpressionNode* condition, StatementNode* thenStatement, IfNode* elsePart)
-      : StatementNode{},
+      : StatementNode{Category::IF},
         condition_{condition},
         thenStatement_{thenStatement},
         elseStatement_{std::move(elsePart->elseStatement_)} {}

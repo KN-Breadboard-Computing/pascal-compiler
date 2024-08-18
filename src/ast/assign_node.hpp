@@ -10,10 +10,10 @@
 namespace ast {
 class AssignNode : public StatementNode {
  public:
-  AssignNode() { type_ = Type::ASSIGN; }
-  explicit AssignNode(ExpressionNode *lhs, ExpressionNode *rhs) : lhs_{lhs}, rhs_{rhs} {
-	type_ = Type::ASSIGN;
-  }
+  AssignNode() : StatementNode{Category::ASSIGN} {}
+  explicit AssignNode(ExpressionNode *lhs, ExpressionNode *rhs) : StatementNode{Category::ASSIGN},
+																  lhs_{lhs},
+																  rhs_{rhs} {}
 
   AssignNode(const AssignNode &) = delete;
   AssignNode(AssignNode &&) = default;

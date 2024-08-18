@@ -26,9 +26,6 @@ ProgramNode ConstTypeVarDefs:
         Constant 7:
           IdentifierNode: c8
           ConstantString<Hello>
-        Constant 8:
-          IdentifierNode: c3
-          ConstantInteger<5>
       Types:
         Type 0:
           IdentifierNode: IntRenamed
@@ -88,13 +85,8 @@ ProgramNode ConstTypeVarDefs:
           IdentifierNode: TWorkDay
           VarRangeTypeNode:
             IdentifierNode: Mon
-            IdentifierNode: Fri
-        Type 11:
-          IdentifierNode: TWeekend
-          VarRangeTypeNode:
             IdentifierNode: Sat
-            IdentifierNode: Sum
-        Type 12:
+        Type 11:
           IdentifierNode: TArray
           ArrayTypeNode:
             Range:
@@ -103,7 +95,7 @@ ProgramNode ConstTypeVarDefs:
                 ConstantInteger<10>
             Element type:
               SimpleTypeNode INTEGER
-        Type 13:
+        Type 12:
           IdentifierNode: TMatrix
           ArrayTypeNode:
             Range:
@@ -118,7 +110,7 @@ ProgramNode ConstTypeVarDefs:
                     ConstantInteger<10>
                 Element type:
                   SimpleTypeNode INTEGER
-        Type 14:
+        Type 13:
           IdentifierNode: TMatrix2
           ArrayTypeNode:
             Range:
@@ -128,14 +120,14 @@ ProgramNode ConstTypeVarDefs:
             Element type:
               RenameTypeNode:
                 IdentifierNode: TArray
-        Type 15:
+        Type 14:
           IdentifierNode: TArrayIntIndex
           ArrayTypeNode:
             Range:
               SimpleTypeNode INTEGER
             Element type:
               SimpleTypeNode INTEGER
-        Type 16:
+        Type 15:
           IdentifierNode: TArrayLetterIndex
           ArrayTypeNode:
             Range:
@@ -144,7 +136,7 @@ ProgramNode ConstTypeVarDefs:
                 ConstantChar<z>
             Element type:
               SimpleTypeNode INTEGER
-        Type 17:
+        Type 16:
           IdentifierNode: TArrayBoolIndex
           ArrayTypeNode:
             Range:
@@ -152,19 +144,19 @@ ProgramNode ConstTypeVarDefs:
                 IdentifierNode: TBools
             Element type:
               SimpleTypeNode INTEGER
-        Type 18:
+        Type 17:
           IdentifierNode: TArrayDayIndex
           ArrayTypeNode:
             Range:
               RenameTypeNode:
-                IdentifierNode: TWeekend
+                IdentifierNode: TWorkDay
             Element type:
               SimpleTypeNode INTEGER
-        Type 19:
+        Type 18:
           IdentifierNode: TRenamedArray
           RenameTypeNode:
             IdentifierNode: TArray
-        Type 20:
+        Type 19:
           IdentifierNode: TPerson
           RecordTypeNode:
             Field:
@@ -182,7 +174,7 @@ ProgramNode ConstTypeVarDefs:
                     IdentifierNode: TDay
                 Element type:
                   SimpleTypeNode INTEGER
-        Type 21:
+        Type 20:
           IdentifierNode: TFamiliy
           RecordTypeNode:
             Field:
@@ -203,16 +195,10 @@ ProgramNode ConstTypeVarDefs:
                 Element type:
                   RenameTypeNode:
                     IdentifierNode: TPerson
-        Type 22:
+        Type 21:
           IdentifierNode: TFamilyRenamed
           RenameTypeNode:
             IdentifierNode: TFamiliy
-        Type 23:
-          IdentifierNode: TDay
-          RecordTypeNode:
-            Field:
-              IdentifierNode: x
-              SimpleTypeNode INTEGER
       Variables:
         Group 0:
           SimpleTypeNode INTEGER
@@ -234,11 +220,6 @@ ProgramNode ConstTypeVarDefs:
           Identifiers:
             IdentifierNode: b
         Group 4:
-          SimpleTypeNode INTEGER
-          Identifiers:
-            IdentifierNode: y
-            IdentifierNode: c8
-        Group 5:
           RenameTypeNode:
             IdentifierNode: TFamiliy
           Identifiers:
