@@ -13,8 +13,10 @@ int main() {
   ::testing::InitGoogleTest();
 
   const ::testing::UnitTest& unitTest = *::testing::UnitTest::GetInstance();
-  const size_t numTestCases = unitTest.total_test_case_count();
 
+  std::cout << "Total test cases: " << unitTest.total_test_count() << std::endl;
+
+  const size_t numTestCases = unitTest.total_test_case_count();
   for (size_t i = 0; i < numTestCases; ++i) {
 	const ::testing::TestCase* testCase = unitTest.GetTestCase(i);
 	const size_t numTests = testCase->total_test_count();

@@ -1,8 +1,8 @@
 #include "array_type_node.hpp"
 
 namespace ast {
-void ArrayTypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void ArrayTypeNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> ArrayTypeNode::clone() const {

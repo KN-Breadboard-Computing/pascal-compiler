@@ -29,7 +29,7 @@ class AssignNode : public StatementNode {
   void setLhs(std::unique_ptr<ExpressionNode> lhs) { lhs_ = std::move(lhs); }
   void setRhs(std::unique_ptr<ExpressionNode> rhs) { rhs_ = std::move(rhs); }
 
-  virtual void accept(const std::unique_ptr<AstVisitor> &visitor) const override;
+  virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   void print(std::ostream &out, int tab) const override;
 
@@ -58,7 +58,7 @@ class AssignNode : public StatementNode {
 //  void setVariable(std::unique_ptr<IdentifierNode> variable) { variable_ = std::move(variable); }
 //  void setExpression(std::unique_ptr<ExpressionNode> expression) { expression_ = std::move(expression); }
 //
-//  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
+//  virtual void accept(AstVisitor* visitor) const override;
 //  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
 //  void print(std::ostream& out, int tab) const override;
 //
@@ -89,7 +89,7 @@ class AssignNode : public StatementNode {
 //  void setIndex(std::unique_ptr<ExpressionNode> index) { index_ = std::move(index); }
 //  void setExpression(std::unique_ptr<ExpressionNode> expression) { expression_ = std::move(expression); }
 //
-//  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
+//  virtual void accept(AstVisitor* visitor) const override;
 //  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
 //  void print(std::ostream& out, int tab) const override;
 //
@@ -121,7 +121,7 @@ class AssignNode : public StatementNode {
 //  void setField(std::unique_ptr<IdentifierNode> field) { field_ = std::move(field); }
 //  void setExpression(std::unique_ptr<ExpressionNode> expression) { expression_ = std::move(expression); }
 //
-//  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
+//  virtual void accept(AstVisitor* visitor) const override;
 //  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
 //  void print(std::ostream& out, int tab) const override;
 //

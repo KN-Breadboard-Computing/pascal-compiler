@@ -2,8 +2,8 @@
 
 namespace ast {
 // ExpressionNode
-void ExpressionNode::accept(const std::unique_ptr<AstVisitor> &visitor) const {
-  visitor->visit(*this);
+void ExpressionNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> ExpressionNode::clone() const {
@@ -58,8 +58,8 @@ void ExpressionNode::print(std::ostream &out, int tab) const {
 }
 
 // SpecialExpressionNode
-void SpecialExpressionNode::accept(const std::unique_ptr<AstVisitor> &visitor) const {
-  visitor->visit(*this);
+void SpecialExpressionNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> SpecialExpressionNode::clone() const {

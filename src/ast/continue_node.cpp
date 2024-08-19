@@ -1,8 +1,8 @@
 #include "continue_node.hpp"
 
 namespace ast {
-void ContinueNode::accept(const std::unique_ptr<AstVisitor> &visitor) const {
-  visitor->visit(*this);
+void ContinueNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> ContinueNode::clone() const {

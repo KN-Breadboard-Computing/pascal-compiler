@@ -2,8 +2,8 @@
 
 namespace ast {
 // SimpleTypeNode
-void SimpleTypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void SimpleTypeNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> SimpleTypeNode::clone() const {
@@ -45,8 +45,8 @@ void SimpleTypeNode::print(std::ostream& out, int tab) const {
 }
 
 // RenameTypeNode
-void RenameTypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void RenameTypeNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> RenameTypeNode::clone() const {
@@ -60,8 +60,8 @@ void RenameTypeNode::print(std::ostream& out, int tab) const {
 }
 
 // EnumerationTypeNode
-void EnumerationTypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void EnumerationTypeNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> EnumerationTypeNode::clone() const {
@@ -80,8 +80,8 @@ void EnumerationTypeNode::print(std::ostream& out, int tab) const {
 }
 
 // ConstRangeTypeNode
-void ConstRangeTypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void ConstRangeTypeNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> ConstRangeTypeNode::clone() const {
@@ -97,8 +97,8 @@ void ConstRangeTypeNode::print(std::ostream& out, int tab) const {
 }
 
 // VarRangeTypeNode
-void VarRangeTypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void VarRangeTypeNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> VarRangeTypeNode::clone() const {

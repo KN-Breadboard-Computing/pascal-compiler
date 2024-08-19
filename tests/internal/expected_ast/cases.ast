@@ -1,0 +1,142 @@
+ProgramNode Cases:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+        Type 0:
+          IdentifierNode: Day
+          EnumerationTypeNode:
+            IdentifierNode: Sunday
+            IdentifierNode: Monday
+            IdentifierNode: Tuesday
+            IdentifierNode: Wednesday
+            IdentifierNode: Thursday
+            IdentifierNode: Friday
+            IdentifierNode: Saturday
+      Variables:
+        Group 0:
+          RenameTypeNode:
+            IdentifierNode: Day
+          Identifiers:
+            IdentifierNode: MyDay
+        Group 1:
+          SimpleTypeNode CHAR
+          Identifiers:
+            IdentifierNode: MyChar
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: MyDay
+          SpecialExpressionNode: ENUM ELEMENT
+            IdentifierNode: Sunday
+        CaseNode:
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: MyDay
+          Case 0:
+            Expression:
+              SpecialExpressionNode: ENUM ELEMENT
+                IdentifierNode: Sunday
+            Statement:
+              BuiltinCallNode: WRITELN
+                ArgumentsListNode:
+                  SpecialExpressionNode: CONST
+                    ConstantString<Sunday>
+          Case 1:
+            Expression:
+              SpecialExpressionNode: ENUM ELEMENT
+                IdentifierNode: Monday
+            Statement:
+              BuiltinCallNode: WRITELN
+                ArgumentsListNode:
+                  SpecialExpressionNode: CONST
+                    ConstantString<Monday>
+          Case 2:
+            Expression:
+              SpecialExpressionNode: ENUM ELEMENT
+                IdentifierNode: Tuesday
+            Statement:
+              BuiltinCallNode: WRITELN
+                ArgumentsListNode:
+                  SpecialExpressionNode: CONST
+                    ConstantString<Tuesday>
+          Case 3:
+            Expression:
+              SpecialExpressionNode: ENUM ELEMENT
+                IdentifierNode: Wednesday
+            Statement:
+              BuiltinCallNode: WRITELN
+                ArgumentsListNode:
+                  SpecialExpressionNode: CONST
+                    ConstantString<Wednesday>
+          Case 4:
+            Expression:
+              SpecialExpressionNode: ENUM ELEMENT
+                IdentifierNode: Thursday
+            Statement:
+              BuiltinCallNode: WRITELN
+                ArgumentsListNode:
+                  SpecialExpressionNode: CONST
+                    ConstantString<Thursday>
+          Case 5:
+            Expression:
+              SpecialExpressionNode: ENUM ELEMENT
+                IdentifierNode: Friday
+            Statement:
+              BuiltinCallNode: WRITELN
+                ArgumentsListNode:
+                  SpecialExpressionNode: CONST
+                    ConstantString<Friday>
+          Case 6:
+            Expression:
+              SpecialExpressionNode: ENUM ELEMENT
+                IdentifierNode: Saturday
+            Statement:
+              BuiltinCallNode: WRITELN
+                ArgumentsListNode:
+                  SpecialExpressionNode: CONST
+                    ConstantString<Saturday>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: MyChar
+          SpecialExpressionNode: CONST
+            ConstantChar<A>
+        CaseNode:
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: MyChar
+          Case 0:
+            Expression:
+              SpecialExpressionNode: CONST
+                ConstantChar<A>
+            Statement:
+              BuiltinCallNode: WRITELN
+                ArgumentsListNode:
+                  SpecialExpressionNode: CONST
+                    ConstantChar<A>
+          Case 1:
+            Expression:
+              SpecialExpressionNode: CONST
+                ConstantChar<B>
+            Statement:
+              BuiltinCallNode: WRITELN
+                ArgumentsListNode:
+                  SpecialExpressionNode: CONST
+                    ConstantChar<B>
+          Case 2:
+            Expression:
+              SpecialExpressionNode: CONST
+                ConstantChar<C>
+            Statement:
+              BuiltinCallNode: WRITELN
+                ArgumentsListNode:
+                  SpecialExpressionNode: CONST
+                    ConstantChar<C>
+          Case 3:
+            Expression:
+              Otherwise
+            Statement:
+              BuiltinCallNode: WRITELN
+                ArgumentsListNode:
+                  SpecialExpressionNode: CONST
+                    ConstantString<Not A, B, or C>

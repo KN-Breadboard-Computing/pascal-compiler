@@ -1,8 +1,8 @@
 #include "assign_node.hpp"
 
 namespace ast {
-void AssignNode::accept(const std::unique_ptr<AstVisitor> &visitor) const {
-  visitor->visit(*this);
+void AssignNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> AssignNode::clone() const {
@@ -24,8 +24,8 @@ void AssignNode::print(std::ostream &out, int tab) const {
 }
 
 // AssignToVariableNode
-//void AssignToVariableNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-//  visitor->visit(*this);
+//void AssignToVariableNode::accept(AstVisitor* visitor) const {
+//  visitor->visit(this);
 //}
 //
 //[[nodiscard]] std::unique_ptr<AstNode> AssignToVariableNode::clone() const {
@@ -49,8 +49,8 @@ void AssignNode::print(std::ostream &out, int tab) const {
 //
 //
 // AssignToArrayNode
-//void AssignToArrayNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-//  visitor->visit(*this);
+//void AssignToArrayNode::accept(AstVisitor* visitor) const {
+//  visitor->visit(this);
 //}
 //
 //[[nodiscard]] std::unique_ptr<AstNode> AssignToArrayNode::clone() const {
@@ -76,8 +76,8 @@ void AssignNode::print(std::ostream &out, int tab) const {
 //
 //
 // AssignToRecordFieldNode
-//void AssignToRecordFieldNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-//  visitor->visit(*this);
+//void AssignToRecordFieldNode::accept(AstVisitor* visitor) const {
+//  visitor->visit(this);
 //}
 //
 //[[nodiscard]] std::unique_ptr<AstNode> AssignToRecordFieldNode::clone() const {

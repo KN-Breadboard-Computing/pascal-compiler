@@ -87,8 +87,9 @@ ProgramNode Expressions:
           ArgumentsListNode:
             SpecialExpressionNode: VARIABLE
               IdentifierNode: j
-        AssignToVariableNode
-          IdentifierNode: f
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: f
           ExpressionNode: SUBTRACTION
             SpecialExpressionNode: CONST
               ConstantInteger<7>
@@ -114,9 +115,9 @@ ProgramNode Expressions:
                       IdentifierNode: e
               SpecialExpressionNode: CONST
                 ConstantInteger<2>
-        AssignToRecordFieldNode
-          IdentifierNode: lr
-          IdentifierNode: r1
+        AssignNode
+          SpecialExpressionNode: RECORD_ACCESS
+            IdentifierNode: lr
           ExpressionNode: OR
             ExpressionNode: AND
               SpecialExpressionNode: VARIABLE
@@ -131,12 +132,12 @@ ProgramNode Expressions:
                 ExpressionNode: OR
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: j
-                  ExpressionNode: NOT
+                  ExpressionNode: NEGATION
                     SpecialExpressionNode: VARIABLE
                       IdentifierNode: g
-        AssignToRecordFieldNode
-          IdentifierNode: lr
-          IdentifierNode: r2
+        AssignNode
+          SpecialExpressionNode: RECORD_ACCESS
+            IdentifierNode: lr
           ExpressionNode: OR
             ExpressionNode: OR
               ExpressionNode: AND
@@ -178,60 +179,53 @@ ProgramNode Expressions:
                     IdentifierNode: a
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: b
-        AssignToVariableNode
-          IdentifierNode: k
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: k
           ExpressionNode: AND
             SpecialExpressionNode: RECORD_ACCESS
               IdentifierNode: lr
-              IdentifierNode: r1
             SpecialExpressionNode: RECORD_ACCESS
               IdentifierNode: lr
-              IdentifierNode: r2
-        AssignToArrayNode
-          IdentifierNode: specialInts
-          SpecialExpressionNode: CONST
-            ConstantInteger<1>
+        AssignNode
+          SpecialExpressionNode: ARRAY_ACCESS
+            IdentifierNode: specialInts
           SpecialExpressionNode: ABS
             ArgumentsListNode:
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: a
-        AssignToArrayNode
-          IdentifierNode: specialInts
-          SpecialExpressionNode: CONST
-            ConstantInteger<2>
+        AssignNode
+          SpecialExpressionNode: ARRAY_ACCESS
+            IdentifierNode: specialInts
           SpecialExpressionNode: ORD
             ArgumentsListNode:
               SpecialExpressionNode: CONST
                 ConstantChar<a>
-        AssignToArrayNode
-          IdentifierNode: specialInts
-          SpecialExpressionNode: CONST
-            ConstantInteger<3>
+        AssignNode
+          SpecialExpressionNode: ARRAY_ACCESS
+            IdentifierNode: specialInts
           SpecialExpressionNode: PRED
             ArgumentsListNode:
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: b
-        AssignToArrayNode
-          IdentifierNode: specialInts
-          SpecialExpressionNode: CONST
-            ConstantInteger<4>
+        AssignNode
+          SpecialExpressionNode: ARRAY_ACCESS
+            IdentifierNode: specialInts
           SpecialExpressionNode: SUCC
             ArgumentsListNode:
               SpecialExpressionNode: ARRAY_ACCESS
                 IdentifierNode: specialInts
-                SpecialExpressionNode: CONST
-                  ConstantInteger<1>
-        AssignToVariableNode
-          IdentifierNode: l
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: l
           SpecialExpressionNode: ODD
             ArgumentsListNode:
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: c
-        AssignToVariableNode
-          IdentifierNode: m
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: m
           SpecialExpressionNode: CHR
             ArgumentsListNode:
               SpecialExpressionNode: ARRAY_ACCESS
                 IdentifierNode: specialInts
-                SpecialExpressionNode: CONST
-                  ConstantInteger<4>

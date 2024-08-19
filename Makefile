@@ -38,6 +38,12 @@ generate-examples:
 test-ast:
 	$(CXX) $(CXXFLAGS) out/*.cpp $(SRCS) tests/src/ast_test.cpp tests/src/main.cpp -lgtest -o ast-test
 
+run-ast-test:
+	@./ast-test | \
+    tee >(grep '^Total' | awk '{print $$0}' >&2) | \
+    grep -c 'OK' | \
+  	awk '{print "Passed count:", $$1}'
+
 clean:
 	rm -f compiler
 

@@ -72,7 +72,7 @@ class RoutineHeadNode : public AstNode {
     routinePart_ = std::move(routinePart);
   }
 
-  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
+  virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream& out, int tab) const override;
 
@@ -117,7 +117,7 @@ class RoutineDeclarationNode : public AstNode {
   void setReturnType(std::unique_ptr<SimpleTypeNode> returnType) { returnType_ = std::move(returnType); }
   void setRoutine(std::unique_ptr<RoutineNode> routine) { routine_ = std::move(routine); }
 
-  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
+  virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream& out, int tab) const override;
 
@@ -161,7 +161,7 @@ class RoutineNode : public AstNode {
   void setHead(std::unique_ptr<RoutineHeadNode> head) { head_ = std::move(head); }
   void setBody(std::unique_ptr<RoutineBodyNode> body) { body_ = std::move(body); }
 
-  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
+  virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream& out, int tab) const override;
 

@@ -85,8 +85,8 @@ void RoutineHeadNode::print(std::ostream& out, int tab) const {
   }
 }
 
-void RoutineHeadNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void RoutineHeadNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 // RoutineDeclarationNode
@@ -119,8 +119,8 @@ void RoutineDeclarationNode::print(std::ostream& out, int tab) const {
   }
 }
 
-void RoutineDeclarationNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void RoutineDeclarationNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 // RoutineNode
@@ -150,7 +150,7 @@ void RoutineNode::print(std::ostream& out, int tab) const {
   body_->print(out, tab + 2);
 }
 
-void RoutineNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void RoutineNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 }  // namespace ast

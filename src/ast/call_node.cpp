@@ -2,8 +2,8 @@
 
 namespace ast {
 // UserDefineCallNode
-void UserDefineCallNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void UserDefineCallNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> UserDefineCallNode::clone() const {
@@ -32,8 +32,8 @@ void UserDefineCallNode::print(std::ostream& out, int tab) const {
 
 
 // BuiltinCallNode
-void BuiltinCallNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void BuiltinCallNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> BuiltinCallNode::clone() const {

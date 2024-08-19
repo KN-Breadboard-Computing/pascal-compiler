@@ -1,8 +1,8 @@
 #include "identifier_node.hpp"
 
 namespace ast {
-void IdentifierNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void IdentifierNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> IdentifierNode::clone() const {

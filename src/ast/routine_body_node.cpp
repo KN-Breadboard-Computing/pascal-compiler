@@ -1,8 +1,8 @@
 #include "routine_body_node.hpp"
 
 namespace ast {
-void RoutineBodyNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void RoutineBodyNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> RoutineBodyNode::clone() const {

@@ -41,9 +41,9 @@ std::string getTypeString(ast::ConstantNode::ConstantType type);
 std::string getConstantString(ast::ConstantNode* constant);
 
 bool isBasicType(const std::string& type);
-bool isEnumType(const std::string& type, const std::string& enumType);
-bool isEnumType(const std::string& type);
-bool isEnumSubRangeType(const std::string& type, const std::string& enumType,
+bool isInEnum(const std::string& enumElement, const std::string& enumType);
+bool isInAnyEnum(const std::string& enumElement);
+bool isEnumSubRangeType(const std::string& enumElementPos, const std::string& enumType,
          const std::string& begin, const std::string& end);
 bool isLeftValueCompatible(ast::ExpressionNode* expr);
 
@@ -139,8 +139,8 @@ std::string getRecordFieldType(const std::string& recordType, const std::string&
     ast::IfNode* ifNode;
     ast::CallNode* callNode;
     ast::ExpressionNode* expressionNode;
-    std::vector<std::pair<ast::AstNode*, ast::StatementNode*>*>* caseExprList;
-    std::pair<ast::AstNode*, ast::StatementNode*>* caseExpr;
+    std::vector<std::pair<ast::ExpressionNode*, ast::StatementNode*>*>* caseExprList;
+    std::pair<ast::ExpressionNode*, ast::StatementNode*>* caseExpr;
     ast::ArgumentsListNode* argsList;
 }
 
@@ -1264,6 +1264,7 @@ assign_stmt :
 
         if($1->getInferredType() != $3->getInferredType()) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", both sides should be equal type");
+            std::cout << $1->getInferredType() << " " << $3->getInferredType() << std::endl;
             fatalError = true;
             YYERROR;
         }
@@ -1380,6 +1381,51 @@ case_stmt :
             std::cout << "Yacc debug: Parse case statement" << std::endl;
         #endif
 
+        if(!isBasicType($2->getInferredType()) && $2->getInferredType().substr(0, 5) != "enum%") {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", case expression must be integer, char, boolean or enum type");
+            fatalError = true;
+            YYERROR;
+        }
+
+        bool otherwiseFound{false};
+        for(const auto& caseExpr : *$4) {
+            if(caseExpr->first != nullptr) {
+                if(otherwiseFound) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", otherwise must be last label");
+                    fatalError = true;
+                    YYERROR;
+                }
+
+                if(caseExpr->first->getOperation() != ast::ExpressionNode::Operation::SPECIAL) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", case value must be constant");
+                    fatalError = true;
+                    YYERROR;
+                }
+
+                ast::SpecialExpressionNode* specialExpr = dynamic_cast<ast::SpecialExpressionNode*>(caseExpr->first);
+                if(specialExpr->getFunctionName() != ast::SpecialExpressionNode::FunctionName::CONST &&
+                    specialExpr->getFunctionName() != ast::SpecialExpressionNode::FunctionName::ENUM_ELEMENT) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", case value must be constant");
+                    fatalError = true;
+                    YYERROR;
+                }
+
+                if(specialExpr->getInferredType() != $2->getInferredType()) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", case expression must be the same type as case value");
+                    fatalError = true;
+                    YYERROR;
+                }
+            }
+            else if(otherwiseFound) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", otherwise label can be used only once");
+                fatalError = true;
+                YYERROR;
+            }
+            else {
+                otherwiseFound = true;
+            }
+        }
+
         $$ = new ast::CaseNode($2, $4);
     }
 ;
@@ -1399,26 +1445,18 @@ case_expr_list :
             std::cout << "Yacc debug: Parse case expr list 2" << std::endl;
         #endif
 
-        $$ = new std::vector<std::pair<ast::AstNode*, ast::StatementNode*>*>();
+        $$ = new std::vector<std::pair<ast::ExpressionNode*, ast::StatementNode*>*>();
         $$->push_back($1);
     }
 ;
 
 case_expr :
-    const_value COLON stmt SEMICOLON {
+    expression COLON stmt SEMICOLON {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case expr 1" << std::endl;
         #endif
 
-        $$ = new std::pair<ast::AstNode*, ast::StatementNode*>($1, $3);
-    }
-|
-    identifier COLON stmt SEMICOLON {
-        #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse case expr 2" << std::endl;
-        #endif
-
-        $$ = new std::pair<ast::AstNode*, ast::StatementNode*>($1, $3);
+        $$ = new std::pair<ast::ExpressionNode*, ast::StatementNode*>($1, $3);
     }
 |
     OTHERWISE stmt SEMICOLON {
@@ -1426,7 +1464,7 @@ case_expr :
             std::cout << "Yacc debug: Parse case expr 3" << std::endl;
         #endif
 
-        $$ = new std::pair<ast::AstNode*, ast::StatementNode*>(nullptr, $2);
+        $$ = new std::pair<ast::ExpressionNode*, ast::StatementNode*>(nullptr, $2);
     }
 ;
 
@@ -1460,7 +1498,7 @@ for_head :
             fatalError = true;
             YYERROR;
         }
-        else if(!isBasicType($4->getInferredType()) && !isEnumType($4->getInferredType())) {
+        else if(!isBasicType($4->getInferredType()) && $4->getInferredType().substr(0, 5) != "enum%") {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", for begin and end values must be integer, char, boolean or enum type");
             fatalError = true;
             YYERROR;
@@ -1483,7 +1521,7 @@ for_head :
             fatalError = true;
             YYERROR;
         }
-        else if(!isBasicType($4->getInferredType()) && !isEnumType($4->getInferredType())) {
+        else if(!isBasicType($4->getInferredType()) && $4->getInferredType().substr(0, 5) != "enum%") {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", for begin and end values must be integer, char, boolean or enum type");
             fatalError = true;
             YYERROR;
@@ -2301,8 +2339,19 @@ lvalue :
         if(ctx->getLookupTable().isVariableDefined($1->getName(), "")) {
             $$ = new ast::SpecialExpressionNode($1, ast::SpecialExpressionNode::FunctionName::VARIABLE, ctx->getLookupTable().getVariable($1->getName(), "").type);
         }
-        else if(isEnumType($1->getName())) {
-            $$ = new ast::SpecialExpressionNode($1, ast::SpecialExpressionNode::FunctionName::ENUM_ELEMENT, $1->getName());
+        else if(isInAnyEnum($1->getName())) {
+            auto properEnums = ctx->getLookupTable().getTypes(
+            [&](const std::string&, const LookupTable::TypeInfo& tf) {
+                return tf.alive && tf.type.find("enum%") == 0 && tf.type.find("%" + $1->getName() + "%") != std::string::npos;
+            });
+
+            if(properEnums.size() != 1) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", variable " + $1->getName() + " is in more than one enum");
+                fatalError = true;
+                YYERROR;
+            }
+
+            $$ = new ast::SpecialExpressionNode($1, ast::SpecialExpressionNode::FunctionName::ENUM_ELEMENT, properEnums.front().type);
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", variable " + $1->getName() + " is not defined");
@@ -2641,27 +2690,27 @@ bool isBasicType(const std::string& type) {
     return type == "integer" || type == "boolean" || type == "char";
 }
 
-bool isEnumType(const std::string& type, const std::string& enumType) {
-    return enumType.find(type) != std::string::npos;
+bool isInEnum(const std::string& enumElement, const std::string& enumType) {
+    return enumType.find(enumElement) != std::string::npos;
 }
 
-bool isEnumType(const std::string& type) {
+bool isInAnyEnum(const std::string& enumElement) {
     const std::vector<LookupTable::TypeInfo>& types = ctx->getLookupTable().getTypes(
         [&](const std::string&, const LookupTable::TypeInfo& tf) {
-        return tf.alive && tf.type.find("enum%") == 0 && tf.type.find("%" + type + "%") != std::string::npos;
+        return tf.alive && tf.type.find("enum%") == 0 && tf.type.find("%" + enumElement + "%") != std::string::npos;
     });
 
     return !types.empty();
 }
 
-bool isEnumSubRangeType(const std::string& type, const std::string& enumType,
+bool isEnumSubRangeType(const std::string& enumElement, const std::string& enumType,
     const std::string& begin, const std::string& end) {
     size_t beginPos = enumType.find("%" + begin + "%");
     size_t endPos = enumType.find("%" + end + "%");
-    size_t typePos = enumType.find("%" + type + "%");
+    size_t enumElementPos = enumType.find("%" + enumElement + "%");
 
-    return beginPos != std::string::npos && endPos != std::string::npos && typePos != std::string::npos &&
-        beginPos <= typePos && typePos <= endPos;
+    return beginPos != std::string::npos && endPos != std::string::npos && enumElementPos != std::string::npos &&
+        beginPos <= enumElementPos && enumElementPos <= endPos;
 }
 
 bool isLeftValueCompatible(ast::ExpressionNode* expr) {
@@ -2759,14 +2808,22 @@ bool isArrayIndexCompatible(const std::string& arrayType, ast::ExpressionNode* i
             endEnum += arrayElementType[pos];
         }
 
-        return isEnumSubRangeType(index->getInferredType(), ctx->getLookupTable().getType(enumName, "").type, beginEnum, endEnum);
+        if(index->getOperation() == ast::ExpressionNode::Operation::SPECIAL) {
+            ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(index);
+            if(special->getFunctionName() == ast::SpecialExpressionNode::ENUM_ELEMENT) {
+                ast::IdentifierNode* enumElement = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
+                return isEnumSubRangeType(enumElement->getName(), ctx->getLookupTable().getType(enumName, "").type, beginEnum, endEnum);
+            }
+        }
+
+        return false;
     }
     else if(arrayElementType.substr(0, 4) == "enum") {
         if(index->getOperation() == ast::ExpressionNode::Operation::SPECIAL) {
             ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(index);
             if(special->getFunctionName() == ast::SpecialExpressionNode::ENUM_ELEMENT) {
                 ast::IdentifierNode* enumElement = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
-                return isEnumType(enumElement->getName(), arrayElementType);
+                return isInEnum(enumElement->getName(), arrayElementType);
             }
         }
         return false;
@@ -2909,6 +2966,9 @@ bool variableIsReassignedS(const std::string& varName, ast::StatementNode* stmt)
             }
             else {
                 ast::BuiltinCallNode* builtinCall = dynamic_cast<ast::BuiltinCallNode*>(call);
+                if(builtinCall->getArguments() == nullptr) {
+                    return false;
+                }
                 auto args = builtinCall->getArguments()->getArguments();
 
                 if(builtinCall->getName() == ast::BuiltinCallNode::FunctionName::READ) {
@@ -2957,7 +3017,7 @@ bool variableIsReassignedS(const std::string& varName, ast::StatementNode* stmt)
             return false;
         }
         case ast::StatementNode::Category::COMPOUND: {
-            for(auto& statement : *dynamic_cast<ast::CompoundStatementNode*>(stmt)->getStatements()) {
+            for(auto statement : *dynamic_cast<ast::CompoundStatementNode*>(stmt)->getStatements()) {
                 if(variableIsReassignedS(varName, statement)) {
                     return true;
                 }
@@ -2984,7 +3044,8 @@ bool variableIsReassignedS(const std::string& varName, ast::StatementNode* stmt)
             if(variableIsReassignedS(varName, dynamic_cast<ast::IfNode*>(stmt)->getThenStatement().get())) {
                 return true;
             }
-            if(variableIsReassignedS(varName, dynamic_cast<ast::IfNode*>(stmt)->getElseStatement().get())) {
+            if(dynamic_cast<ast::IfNode*>(stmt)->getElseStatement().get() != nullptr
+                && variableIsReassignedS(varName, dynamic_cast<ast::IfNode*>(stmt)->getElseStatement().get())) {
                 return true;
             }
 

@@ -21,7 +21,7 @@ class ConstantNode : public AstNode {
 
   [[nodiscard]] ConstantType getConstantType() const { return constantType_; }
 
-  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
+  virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] std::unique_ptr<AstNode> clone() const override;
   void print(std::ostream& out, int tab) const override;
 
@@ -45,7 +45,7 @@ class ConstantNodeSpec : public ConstantNode {
 
   [[nodiscard]] T getValue() const { return value_; }
 
-//  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override { visitor->visit(*this); }
+//  virtual void accept(AstVisitor* visitor) const override { visitor->visit(this); }
 //
 //  [[nodiscard]] std::unique_ptr<AstNode> clone() const override { return std::make_unique<ConstantNodeSpec<T, type>>(value_); }
 //

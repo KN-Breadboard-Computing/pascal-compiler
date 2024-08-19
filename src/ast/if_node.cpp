@@ -1,8 +1,8 @@
 #include "if_node.hpp"
 
 namespace ast {
-void IfNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void IfNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> IfNode::clone() const {

@@ -1,8 +1,8 @@
 #include "params_group_node.hpp"
 
 namespace ast {
-void ParamsGroupNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void ParamsGroupNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> ParamsGroupNode::clone() const {

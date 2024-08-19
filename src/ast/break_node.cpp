@@ -1,8 +1,8 @@
 #include "break_node.hpp"
 
 namespace ast {
-void BreakNode::accept(const std::unique_ptr<AstVisitor> &visitor) const {
-  visitor->visit(*this);
+void BreakNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> BreakNode::clone() const {

@@ -1,8 +1,8 @@
 #include "arguments_list_node.hpp"
 
 namespace ast {
-void ArgumentsListNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void ArgumentsListNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> ArgumentsListNode::clone() const {

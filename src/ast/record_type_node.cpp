@@ -1,8 +1,8 @@
 #include "record_type_node.hpp"
 
 namespace ast {
-void RecordTypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void RecordTypeNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> RecordTypeNode::clone() const {

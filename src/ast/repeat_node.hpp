@@ -28,7 +28,7 @@ class RepeatNode : public StatementNode {
   void setCondition(std::unique_ptr<ExpressionNode> condition) { condition_ = std::move(condition); }
   void setStatements(std::unique_ptr<std::vector<StatementNode*>> statements) { statements_ = std::move(statements); }
 
-  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
+  virtual void accept(AstVisitor* visitor) const override;
   virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream& out, int tab) const override;
 

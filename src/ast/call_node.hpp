@@ -49,7 +49,7 @@ class UserDefineCallNode : public CallNode {
   [[nodiscard]] const std::unique_ptr<IdentifierNode> &getName() const { return name_; }
   [[nodiscard]] const std::unique_ptr<ArgumentsListNode> &getArguments() const { return arguments_; }
 
-  virtual void accept(const std::unique_ptr<AstVisitor> &visitor) const override;
+  virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream &out, int tab) const override;
 
@@ -77,7 +77,7 @@ class BuiltinCallNode : public CallNode {
   [[nodiscard]] FunctionName getName() const { return name_; }
   [[nodiscard]] const std::unique_ptr<ArgumentsListNode> &getArguments() const { return arguments_; }
 
-  virtual void accept(const std::unique_ptr<AstVisitor> &visitor) const override;
+  virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream &out, int tab) const override;
 

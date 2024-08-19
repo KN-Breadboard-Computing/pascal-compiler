@@ -1,8 +1,8 @@
 #include "goto_node.hpp"
 
 namespace ast {
-void GotoNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void GotoNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> GotoNode::clone() const {

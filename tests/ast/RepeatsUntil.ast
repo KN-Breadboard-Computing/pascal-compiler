@@ -12,8 +12,9 @@ ProgramNode RepeatsUntil:
       Routines:
     RoutineBodyNode:
       CompoundStatementNode:
-        AssignToVariableNode
-          IdentifierNode: i
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: i
           SpecialExpressionNode: CONST
             ConstantInteger<1>
         RepeatNode:
@@ -22,8 +23,9 @@ ProgramNode RepeatsUntil:
               IdentifierNode: i
             SpecialExpressionNode: CONST
               ConstantInteger<5>
-          AssignToVariableNode
-            IdentifierNode: j
+          AssignNode
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: j
             SpecialExpressionNode: CONST
               ConstantInteger<1>
           RepeatNode:
@@ -47,8 +49,9 @@ ProgramNode RepeatsUntil:
                     IdentifierNode: i
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: j
-            AssignToVariableNode
-              IdentifierNode: j
+            AssignNode
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: j
               ExpressionNode: ADDITION
                 SpecialExpressionNode: VARIABLE
                   IdentifierNode: j
@@ -56,8 +59,9 @@ ProgramNode RepeatsUntil:
                   ConstantInteger<1>
           BuiltinCallNode: WRITELN
             Arguments: nullptr
-          AssignToVariableNode
-            IdentifierNode: i
+          AssignNode
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: i
             ExpressionNode: ADDITION
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: i

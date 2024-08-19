@@ -1,8 +1,8 @@
 #include "params_node.hpp"
 
 namespace ast {
-void ParamsNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void ParamsNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> ParamsNode::clone() const {

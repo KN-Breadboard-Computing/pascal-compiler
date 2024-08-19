@@ -1,8 +1,8 @@
 #include "type_node.hpp"
 
 namespace ast {
-void TypeNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void TypeNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> TypeNode::clone() const {

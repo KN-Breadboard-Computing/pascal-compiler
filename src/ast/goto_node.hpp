@@ -21,7 +21,7 @@ class GotoNode : public StatementNode {
 
   void setLine(uint64_t line) { line_ = line; }
 
-  virtual void accept(const std::unique_ptr<AstVisitor> &visitor) const override;
+  virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] std::unique_ptr<AstNode> clone() const override;
   void print(std::ostream &out, int tab) const override;
 

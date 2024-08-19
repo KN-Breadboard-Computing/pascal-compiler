@@ -223,8 +223,8 @@ union YYSTYPE
     ast::IfNode* ifNode;
     ast::CallNode* callNode;
     ast::ExpressionNode* expressionNode;
-    std::vector<std::pair<ast::AstNode*, ast::StatementNode*>*>* caseExprList;
-    std::pair<ast::AstNode*, ast::StatementNode*>* caseExpr;
+    std::vector<std::pair<ast::ExpressionNode*, ast::StatementNode*>*>* caseExprList;
+    std::pair<ast::ExpressionNode*, ast::StatementNode*>* caseExpr;
     ast::ArgumentsListNode* argsList;
 
 #line 231 "out/parser.hpp"

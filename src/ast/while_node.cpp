@@ -1,8 +1,8 @@
 #include "while_node.hpp"
 
 namespace ast {
-void WhileNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void WhileNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> WhileNode::clone() const {

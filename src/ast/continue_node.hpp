@@ -17,7 +17,7 @@ class ContinueNode : public StatementNode {
 
   ~ContinueNode() override = default;
 
-  virtual void accept(const std::unique_ptr<AstVisitor> &visitor) const override;
+  virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] std::unique_ptr<AstNode> clone() const override;
   void print(std::ostream &out, int tab) const override;
 };

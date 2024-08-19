@@ -1,8 +1,8 @@
 #include "constant_node.hpp"
 
 namespace ast {
-void ConstantNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void ConstantNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> ConstantNode::clone() const {

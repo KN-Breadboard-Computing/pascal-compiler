@@ -55,7 +55,6 @@ TEST(toAstConversion, constTypeVarDefs) {
   validateAst(program, "tests/internal/expected_ast/const-type-var-defs.ast");
 }
 
-
 TEST(toAstConversion, constTypeVarDefs1) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
@@ -194,7 +193,8 @@ TEST(toAstConversion, succInvalidArgType) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 8, wrong argument type for succ - integer or char expected"});
+  ASSERT_EQ(errors,
+			std::vector<std::string>{"Error at line 8, wrong argument type for succ - integer or char expected"});
 }
 
 TEST(toAstConversion, succInvalidReturnType) {
@@ -239,7 +239,9 @@ TEST(toAstConversion, boolExpressionDifferentTypes) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 12, wrong argument type for greater or equal - matching types(integer, char, boolean) expected"});
+  ASSERT_EQ(errors,
+			std::vector<std::string>{
+				"Error at line 12, wrong argument type for greater or equal - matching types(integer, char, boolean) expected"});
 }
 
 TEST(toAstConversion, io) {
@@ -262,7 +264,9 @@ TEST(toAstConversion, ioComplexType) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 12, wrong argument type for read - integer, char or boolean expected"});
+  ASSERT_EQ(errors,
+			std::vector<std::string>{
+				"Error at line 12, wrong argument type for read - integer, char or boolean expected"});
 }
 
 TEST(toAstConversion, ioInvalidArguments) {
@@ -273,7 +277,9 @@ TEST(toAstConversion, ioInvalidArguments) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 9, wrong argument type for memory write - second argument should be integer"});
+  ASSERT_EQ(errors,
+			std::vector<std::string>{
+				"Error at line 9, wrong argument type for memory write - second argument should be integer"});
 }
 
 TEST(toAstConversion, procFunDefs) {
@@ -458,4 +464,73 @@ TEST(toAstConversion, passConstantAsReferenceArgument) {
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
   ASSERT_EQ(errors, std::vector<std::string>{"Error at line 20, passed incompatible arguments"});
+}
+
+TEST(toAstConversion, gotos) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/gotos.pas", errors, program);
+
+  ASSERT_TRUE(result);
+  ASSERT_NE(program.get(), nullptr);
+  ASSERT_EQ(errors.size(), 0);
+  validateAst(program, "tests/internal/expected_ast/gotos.ast");
+}
+
+TEST(toAstConversion, gotoStrLabel) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/goto-str-label.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 4, syntax error"});
+}
+
+TEST(astConversion, cases) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/cases.pas", errors, program);
+
+  ASSERT_TRUE(result);
+  ASSERT_NE(program.get(), nullptr);
+  ASSERT_EQ(errors.size(), 0);
+  validateAst(program, "tests/internal/expected_ast/cases.ast");
+}
+
+TEST(astConversion, caseMultipleOtherwise) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/case-multiple-otherwise.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 16, otherwise label can be used only once"});
+}
+
+TEST(astConversion, caseOtherwiseNoLast) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/case-otherwise-no-last.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 15, otherwise must be last label"});
+}
+
+TEST(toAstConversion, caseInvalidExpressionType) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/case-invalid-expression-type.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors,
+			std::vector<std::string>{"Error at line 10, case expression must be integer, char, boolean or enum type"});
 }

@@ -1,8 +1,8 @@
 #include "compound_statement_node.hpp"
 
 namespace ast {
-void CompoundStatementNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void CompoundStatementNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> CompoundStatementNode::clone() const {

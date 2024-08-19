@@ -45,7 +45,7 @@ class ForNode : public StatementNode {
   void setStatements(std::unique_ptr<StatementNode> statements) { statements_ = std::move(statements); }
   void setDirection(Direction direction) { direction_ = direction; }
 
-  virtual void accept(const std::unique_ptr<AstVisitor> &visitor) const override;
+  virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] std::unique_ptr<AstNode> clone() const override;
   void print(std::ostream &out, int tab) const override;
 

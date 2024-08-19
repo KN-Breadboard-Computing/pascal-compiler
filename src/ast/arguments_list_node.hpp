@@ -25,7 +25,7 @@ class ArgumentsListNode : public AstNode {
   void addArgument(ExpressionNode* argument) { arguments_.push_back(argument); }
   void setArguments(std::vector<ExpressionNode*> arguments) { arguments_ = std::move(arguments); }
 
-  virtual void accept(const std::unique_ptr<AstVisitor>& visitor) const override;
+  virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream& out, int tab) const override;
 

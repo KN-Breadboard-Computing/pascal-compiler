@@ -1,8 +1,8 @@
 #include "program_node.hpp"
 
 namespace ast {
-void ProgramNode::accept(const std::unique_ptr<AstVisitor>& visitor) const {
-  visitor->visit(*this);
+void ProgramNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> ProgramNode::clone() const {

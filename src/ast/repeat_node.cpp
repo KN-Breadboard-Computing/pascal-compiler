@@ -1,7 +1,7 @@
 #include "repeat_node.hpp"
 
 namespace ast {
-void RepeatNode::accept(const std::unique_ptr<AstVisitor>& visitor) const { visitor->visit(*this); }
+void RepeatNode::accept(AstVisitor* visitor) const { visitor->visit(this); }
 
 std::unique_ptr<AstNode> RepeatNode::clone() const {
   auto clone = std::make_unique<RepeatNode>();
