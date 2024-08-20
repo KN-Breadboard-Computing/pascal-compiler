@@ -5,7 +5,7 @@ ProgramNode Ifs:
       Types:
       Variables:
         Group 0:
-          SimpleTypeNode INTEGER
+          BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: num
       Routines:
@@ -21,7 +21,7 @@ ProgramNode Ifs:
               IdentifierNode: num
         IfNode:
           Condition:
-            ExpressionNode: GREATER
+            MathExpressionNode: GREATER
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: num
               SpecialExpressionNode: CONST
@@ -33,7 +33,7 @@ ProgramNode Ifs:
                   ConstantString<The number is positive.>
         IfNode:
           Condition:
-            ExpressionNode: LESS
+            MathExpressionNode: LESS
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: num
               SpecialExpressionNode: CONST
@@ -50,7 +50,7 @@ ProgramNode Ifs:
                   ConstantString<The number is zero or positive.>
         IfNode:
           Condition:
-            ExpressionNode: GREATER
+            MathExpressionNode: GREATER
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: num
               SpecialExpressionNode: CONST
@@ -63,7 +63,7 @@ ProgramNode Ifs:
           ElseStatement:
             IfNode:
               Condition:
-                ExpressionNode: LESS
+                MathExpressionNode: LESS
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: num
                   SpecialExpressionNode: CONST
@@ -80,7 +80,7 @@ ProgramNode Ifs:
                       ConstantString<The number is zero.>
         IfNode:
           Condition:
-            ExpressionNode: GREATER
+            MathExpressionNode: GREATER
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: num
               SpecialExpressionNode: CONST
@@ -93,8 +93,8 @@ ProgramNode Ifs:
                     ConstantString<The number is positive.>
               IfNode:
                 Condition:
-                  ExpressionNode: EQUAL
-                    ExpressionNode: MODULUS
+                  MathExpressionNode: EQUAL
+                    MathExpressionNode: MODULUS
                       SpecialExpressionNode: VARIABLE
                         IdentifierNode: num
                       SpecialExpressionNode: CONST
@@ -114,7 +114,7 @@ ProgramNode Ifs:
           ElseStatement:
             IfNode:
               Condition:
-                ExpressionNode: LESS
+                MathExpressionNode: LESS
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: num
                   SpecialExpressionNode: CONST
@@ -127,8 +127,8 @@ ProgramNode Ifs:
                         ConstantString<The number is negative.>
                   IfNode:
                     Condition:
-                      ExpressionNode: EQUAL
-                        ExpressionNode: MODULUS
+                      MathExpressionNode: EQUAL
+                        MathExpressionNode: MODULUS
                           SpecialExpressionNode: VARIABLE
                             IdentifierNode: num
                           SpecialExpressionNode: CONST

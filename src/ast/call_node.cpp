@@ -22,14 +22,13 @@ void UserDefineCallNode::print(std::ostream& out, int tab) const {
   }
 
   name_->print(out, tab + 2);
-  if(arguments_ != nullptr) {
+  if (arguments_ != nullptr) {
     arguments_->print(out, tab + 2);
   }
   else {
     out << std::string(tab + 2, ' ') << "Arguments: nullptr\n";
   }
 }
-
 
 // BuiltinCallNode
 void BuiltinCallNode::accept(AstVisitor* visitor) const {

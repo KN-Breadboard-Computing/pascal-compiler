@@ -5,11 +5,11 @@ ProgramNode Whiles:
       Types:
       Variables:
         Group 0:
-          SimpleTypeNode INTEGER
+          BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: counter
         Group 1:
-          SimpleTypeNode INTEGER
+          BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: i
             IdentifierNode: j
@@ -22,7 +22,7 @@ ProgramNode Whiles:
           SpecialExpressionNode: CONST
             ConstantInteger<0>
         WhileNode:
-          ExpressionNode: LESS_EQUAL
+          MathExpressionNode: LESS_EQUAL
             SpecialExpressionNode: VARIABLE
               IdentifierNode: counter
             SpecialExpressionNode: CONST
@@ -30,7 +30,7 @@ ProgramNode Whiles:
           AssignNode
             SpecialExpressionNode: VARIABLE
               IdentifierNode: counter
-            ExpressionNode: ADDITION
+            MathExpressionNode: ADDITION
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: counter
               SpecialExpressionNode: CONST
@@ -41,7 +41,7 @@ ProgramNode Whiles:
           SpecialExpressionNode: CONST
             ConstantInteger<0>
         WhileNode:
-          ExpressionNode: LESS_EQUAL
+          MathExpressionNode: LESS_EQUAL
             SpecialExpressionNode: VARIABLE
               IdentifierNode: counter
             SpecialExpressionNode: CONST
@@ -56,7 +56,7 @@ ProgramNode Whiles:
             AssignNode
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: counter
-              ExpressionNode: ADDITION
+              MathExpressionNode: ADDITION
                 SpecialExpressionNode: VARIABLE
                   IdentifierNode: counter
                 SpecialExpressionNode: CONST
@@ -67,7 +67,7 @@ ProgramNode Whiles:
           SpecialExpressionNode: CONST
             ConstantInteger<1>
         WhileNode:
-          ExpressionNode: LESS_EQUAL
+          MathExpressionNode: LESS_EQUAL
             SpecialExpressionNode: VARIABLE
               IdentifierNode: i
             SpecialExpressionNode: CONST
@@ -79,7 +79,7 @@ ProgramNode Whiles:
               SpecialExpressionNode: CONST
                 ConstantInteger<1>
             WhileNode:
-              ExpressionNode: LESS_EQUAL
+              MathExpressionNode: LESS_EQUAL
                 SpecialExpressionNode: VARIABLE
                   IdentifierNode: j
                 SpecialExpressionNode: CONST
@@ -95,7 +95,7 @@ ProgramNode Whiles:
                       IdentifierNode: j
                     SpecialExpressionNode: CONST
                       ConstantString< = >
-                    ExpressionNode: MULTIPLICATION
+                    MathExpressionNode: MULTIPLICATION
                       SpecialExpressionNode: VARIABLE
                         IdentifierNode: i
                       SpecialExpressionNode: VARIABLE
@@ -103,14 +103,14 @@ ProgramNode Whiles:
                 AssignNode
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: j
-                  ExpressionNode: ADDITION
+                  MathExpressionNode: ADDITION
                     SpecialExpressionNode: VARIABLE
                       IdentifierNode: j
                     SpecialExpressionNode: CONST
                       ConstantInteger<1>
                 IfNode:
                   Condition:
-                    ExpressionNode: EQUAL
+                    MathExpressionNode: EQUAL
                       SpecialExpressionNode: VARIABLE
                         IdentifierNode: j
                       SpecialExpressionNode: CONST
@@ -119,7 +119,7 @@ ProgramNode Whiles:
                     BreakNode
                 IfNode:
                   Condition:
-                    ExpressionNode: EQUAL
+                    MathExpressionNode: EQUAL
                       SpecialExpressionNode: VARIABLE
                         IdentifierNode: j
                       SpecialExpressionNode: CONST
@@ -131,7 +131,7 @@ ProgramNode Whiles:
             AssignNode
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: i
-              ExpressionNode: ADDITION
+              MathExpressionNode: ADDITION
                 SpecialExpressionNode: VARIABLE
                   IdentifierNode: i
                 SpecialExpressionNode: CONST

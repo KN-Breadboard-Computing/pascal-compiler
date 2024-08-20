@@ -38,7 +38,16 @@ generate-examples:
 test-ast:
 	$(CXX) $(CXXFLAGS) out/*.cpp $(SRCS) tests/src/ast_test.cpp tests/src/main.cpp -lgtest -o ast-test
 
+test-bb:
+	$(CXX) $(CXXFLAGS) out/*.cpp $(SRCS) tests/src/bb_test.cpp tests/src/main.cpp -lgtest -o bb-test
+
 run-ast-test:
+	@./ast-test | \
+    tee >(grep '^Total' | awk '{print $$0}' >&2) | \
+    grep -c 'OK' | \
+  	awk '{print "Passed count:", $$1}'
+
+run-bb-test:
 	@./ast-test | \
     tee >(grep '^Total' | awk '{print $$0}' >&2) | \
     grep -c 'OK' | \
@@ -48,4 +57,4 @@ clean:
 	rm -f compiler
 
 clean-test:
-	rm -f ast-test
+	rm -f ast-test bb-test

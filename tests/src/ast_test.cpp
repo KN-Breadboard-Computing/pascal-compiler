@@ -5,11 +5,9 @@
 
 #include "../../src/ast/program_node.hpp"
 
-bool parse(const std::string &inputFileName,
-		   std::vector<std::string> &errors,
-		   std::unique_ptr<ast::ProgramNode> &program);
+bool parse(const std::string& inputFileName, std::vector<std::string>& errors, std::unique_ptr<ast::ProgramNode>& program);
 
-void validateAst(const std::unique_ptr<ast::ProgramNode> &program, const std::string &expectedAstFilename) {
+void validateAst(const std::unique_ptr<ast::ProgramNode>& program, const std::string& expectedAstFilename) {
   std::stringstream astStream;
   astStream << *program;
 
@@ -63,9 +61,7 @@ TEST(toAstConversion, constTypeVarDefs1) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors, (std::vector<std::string>{
-	  "Error at line 12, name `c3` already used"
-  }));
+  ASSERT_EQ(errors, (std::vector<std::string>{"Error at line 12, name `c3` already used"}));
 }
 
 TEST(toAstConversion, constTypeVarDefs2) {
@@ -76,9 +72,7 @@ TEST(toAstConversion, constTypeVarDefs2) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors, (std::vector<std::string>{
-	  "Error at line 26, Mon and Fri are in more than one enum"
-  }));
+  ASSERT_EQ(errors, (std::vector<std::string>{"Error at line 26, Mon and Fri are in more than one enum"}));
 }
 
 TEST(toAstConversion, constTypeVarDefs3) {
@@ -89,12 +83,10 @@ TEST(toAstConversion, constTypeVarDefs3) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors, (std::vector<std::string>{
-	  "Error at line 26, Sat and Sum are not in any enum"
-  }));
+  ASSERT_EQ(errors, (std::vector<std::string>{"Error at line 26, Sat and Sum are not in any enum"}));
 }
 
-TEST(toAstConversion, lValuesCorrect) {
+TEST(toAstConversion, lValues) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
@@ -193,8 +185,7 @@ TEST(toAstConversion, succInvalidArgType) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors,
-			std::vector<std::string>{"Error at line 8, wrong argument type for succ - integer or char expected"});
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 8, wrong argument type for succ - integer or char expected"});
 }
 
 TEST(toAstConversion, succInvalidReturnType) {
@@ -240,8 +231,8 @@ TEST(toAstConversion, boolExpressionDifferentTypes) {
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
   ASSERT_EQ(errors,
-			std::vector<std::string>{
-				"Error at line 12, wrong argument type for greater or equal - matching types(integer, char, boolean) expected"});
+            std::vector<std::string>{
+                "Error at line 12, wrong argument type for greater or equal - matching types(integer, char, boolean) expected"});
 }
 
 TEST(toAstConversion, io) {
@@ -265,8 +256,7 @@ TEST(toAstConversion, ioComplexType) {
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
   ASSERT_EQ(errors,
-			std::vector<std::string>{
-				"Error at line 12, wrong argument type for read - integer, char or boolean expected"});
+            std::vector<std::string>{"Error at line 12, wrong argument type for read - integer, char or boolean expected"});
 }
 
 TEST(toAstConversion, ioInvalidArguments) {
@@ -277,9 +267,8 @@ TEST(toAstConversion, ioInvalidArguments) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors,
-			std::vector<std::string>{
-				"Error at line 9, wrong argument type for memory write - second argument should be integer"});
+  ASSERT_EQ(errors, std::vector<std::string>{
+                        "Error at line 9, wrong argument type for memory write - second argument should be integer"});
 }
 
 TEST(toAstConversion, procFunDefs) {
@@ -531,6 +520,16 @@ TEST(toAstConversion, caseInvalidExpressionType) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors,
-			std::vector<std::string>{"Error at line 10, case expression must be integer, char, boolean or enum type"});
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 10, case expression must be integer, char, boolean or enum type"});
+}
+
+TEST(toAstConversion, variableEnumNameCollision) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input/variable-enum-name-collision.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 6, name `a` already used"});
 }

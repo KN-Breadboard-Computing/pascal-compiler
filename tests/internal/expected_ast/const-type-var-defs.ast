@@ -29,7 +29,7 @@ ProgramNode ConstTypeVarDefs:
       Types:
         Type 0:
           IdentifierNode: IntRenamed
-          SimpleTypeNode INTEGER
+          BasicTypeNode INTEGER
         Type 1:
           IdentifierNode: IntRenamed2
           RenameTypeNode:
@@ -94,7 +94,7 @@ ProgramNode ConstTypeVarDefs:
                 ConstantInteger<1>
                 ConstantInteger<10>
             Element type:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
         Type 12:
           IdentifierNode: TMatrix
           ArrayTypeNode:
@@ -109,7 +109,7 @@ ProgramNode ConstTypeVarDefs:
                     ConstantInteger<1>
                     ConstantInteger<10>
                 Element type:
-                  SimpleTypeNode INTEGER
+                  BasicTypeNode INTEGER
         Type 13:
           IdentifierNode: TMatrix2
           ArrayTypeNode:
@@ -124,9 +124,9 @@ ProgramNode ConstTypeVarDefs:
           IdentifierNode: TArrayIntIndex
           ArrayTypeNode:
             Range:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
             Element type:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
         Type 15:
           IdentifierNode: TArrayLetterIndex
           ArrayTypeNode:
@@ -135,7 +135,7 @@ ProgramNode ConstTypeVarDefs:
                 ConstantChar<a>
                 ConstantChar<z>
             Element type:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
         Type 16:
           IdentifierNode: TArrayBoolIndex
           ArrayTypeNode:
@@ -143,7 +143,7 @@ ProgramNode ConstTypeVarDefs:
               RenameTypeNode:
                 IdentifierNode: TBools
             Element type:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
         Type 17:
           IdentifierNode: TArrayDayIndex
           ArrayTypeNode:
@@ -151,7 +151,7 @@ ProgramNode ConstTypeVarDefs:
               RenameTypeNode:
                 IdentifierNode: TWorkDay
             Element type:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
         Type 18:
           IdentifierNode: TRenamedArray
           RenameTypeNode:
@@ -162,10 +162,10 @@ ProgramNode ConstTypeVarDefs:
             Field:
               IdentifierNode: Name
               IdentifierNode: Surname
-              SimpleTypeNode CHAR
+              BasicTypeNode CHAR
             Field:
               IdentifierNode: Age
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
             Field:
               IdentifierNode: WorkHours
               ArrayTypeNode:
@@ -173,7 +173,7 @@ ProgramNode ConstTypeVarDefs:
                   RenameTypeNode:
                     IdentifierNode: TDay
                 Element type:
-                  SimpleTypeNode INTEGER
+                  BasicTypeNode INTEGER
         Type 20:
           IdentifierNode: TFamiliy
           RecordTypeNode:
@@ -201,22 +201,22 @@ ProgramNode ConstTypeVarDefs:
             IdentifierNode: TFamiliy
       Variables:
         Group 0:
-          SimpleTypeNode INTEGER
+          BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: x
             IdentifierNode: y
             IdentifierNode: z
         Group 1:
-          SimpleTypeNode BOOLEAN
+          BasicTypeNode BOOLEAN
           Identifiers:
             IdentifierNode: a
         Group 2:
-          SimpleTypeNode CHAR
+          BasicTypeNode CHAR
           Identifiers:
             IdentifierNode: c
             IdentifierNode: d
         Group 3:
-          SimpleTypeNode INTEGER
+          BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: b
         Group 4:

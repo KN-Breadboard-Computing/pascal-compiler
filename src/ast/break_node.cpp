@@ -10,11 +10,12 @@ void BreakNode::accept(AstVisitor* visitor) const {
   return clone;
 }
 
-void BreakNode::print(std::ostream &out, int tab) const {
+void BreakNode::print(std::ostream& out, int tab) const {
   if (getLabel().has_value()) {
-	out << std::string(tab, ' ') << "BreakNode with label: " << getLabel().value() << std::endl;
-  } else {
-	out << std::string(tab, ' ') << "BreakNode\n";
+    out << std::string(tab, ' ') << "BreakNode with label: " << getLabel().value() << std::endl;
+  }
+  else {
+    out << std::string(tab, ' ') << "BreakNode\n";
   }
 }
 

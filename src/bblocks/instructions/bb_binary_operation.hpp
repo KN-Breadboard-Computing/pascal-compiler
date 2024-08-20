@@ -14,7 +14,7 @@ concept BinaryOperationArgs = requires {
 template <typename Arg1T, typename Arg2T, typename DestT>
 requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : public BBInstruction {
  public:
-  enum class OperationType { ADD, SUB, AND, OR, XOR, SHL, SHR, SAR, EQ, NE, LT, LE, GT, GE };
+  enum class OperationType { ADD, SUB, MUL, DIV, MOD, AND, OR, XOR, EQ, NE, LT, LE, GT, GE };
   enum class DestinationType { VARIABLE, ADDRESS };
 
   BBBinaryOperation() = default;
@@ -26,10 +26,10 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
         destinationType_{destinationType} {}
 
   BBBinaryOperation(const BBBinaryOperation&) = default;
-  BBBinaryOperation(BBBinaryOperation&&) = default;
+  BBBinaryOperation(BBBinaryOperation&&) noexcept = default;
 
   BBBinaryOperation& operator=(const BBBinaryOperation&) = default;
-  BBBinaryOperation& operator=(BBBinaryOperation&&) = default;
+  BBBinaryOperation& operator=(BBBinaryOperation&&) noexcept = default;
 
   ~BBBinaryOperation() override = default;
 
@@ -39,8 +39,24 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
   [[nodiscard]] OperationType getOperation() const { return operationType_; }
   [[nodiscard]] DestinationType getDestinationType() const { return destinationType_; }
 
+  virtual std::unique_ptr<BBInstruction> clone() const override {
+    return std::make_unique<BBBinaryOperation<Arg1T, Arg2T, DestT>>(source1_, source2_, destination_, operationType_,
+                                                                    destinationType_);
+  }
+
   virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "MOV " << source1_ << " ";
+    out << std::string(tab, ' ');
+
+    switch (destinationType_) {
+      case DestinationType::VARIABLE:
+        out << destination_;
+        break;
+      case DestinationType::ADDRESS:
+        out << "[ " << destination_ << " ]";
+        break;
+    }
+
+    out << " := " << source1_ << " ";
 
     switch (operationType_) {
       case OperationType::ADD:
@@ -48,6 +64,15 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
         break;
       case OperationType::SUB:
         out << "-";
+        break;
+      case OperationType::MUL:
+        out << "*";
+        break;
+      case OperationType::DIV:
+        out << "/";
+        break;
+      case OperationType::MOD:
+        out << "%";
         break;
       case OperationType::AND:
         out << "&";
@@ -57,15 +82,6 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
         break;
       case OperationType::XOR:
         out << "^";
-        break;
-      case OperationType::SHL:
-        out << "<<";
-        break;
-      case OperationType::SHR:
-        out << ">>";
-        break;
-      case OperationType::SAR:
-        out << ">>>";
         break;
       case OperationType::EQ:
         out << "==";
@@ -87,18 +103,7 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
         break;
     }
 
-    out << source2_;
-
-    switch (destinationType_) {
-      case DestinationType::VARIABLE:
-        out << " TO " << destination_;
-        break;
-      case DestinationType::ADDRESS:
-        out << " TO [ " << destination_ << " ]";
-        break;
-    }
-
-    out << std::endl;
+    out << " " << source2_ << std::endl;
   }
 
  private:

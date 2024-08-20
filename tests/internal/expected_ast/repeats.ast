@@ -5,7 +5,7 @@ ProgramNode Repeats:
       Types:
       Variables:
         Group 0:
-          SimpleTypeNode INTEGER
+          BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: i
             IdentifierNode: j
@@ -18,7 +18,7 @@ ProgramNode Repeats:
           SpecialExpressionNode: CONST
             ConstantInteger<1>
         RepeatNode:
-          ExpressionNode: GREATER
+          MathExpressionNode: GREATER
             SpecialExpressionNode: VARIABLE
               IdentifierNode: i
             SpecialExpressionNode: CONST
@@ -29,7 +29,7 @@ ProgramNode Repeats:
             SpecialExpressionNode: CONST
               ConstantInteger<1>
           RepeatNode:
-            ExpressionNode: GREATER
+            MathExpressionNode: GREATER
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: j
               SpecialExpressionNode: CONST
@@ -44,7 +44,7 @@ ProgramNode Repeats:
                   IdentifierNode: j
                 SpecialExpressionNode: CONST
                   ConstantString< = >
-                ExpressionNode: MULTIPLICATION
+                MathExpressionNode: MULTIPLICATION
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: i
                   SpecialExpressionNode: VARIABLE
@@ -52,14 +52,14 @@ ProgramNode Repeats:
             AssignNode
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: j
-              ExpressionNode: ADDITION
+              MathExpressionNode: ADDITION
                 SpecialExpressionNode: VARIABLE
                   IdentifierNode: j
                 SpecialExpressionNode: CONST
                   ConstantInteger<1>
             IfNode:
               Condition:
-                ExpressionNode: GREATER
+                MathExpressionNode: GREATER
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: j
                   SpecialExpressionNode: CONST
@@ -68,7 +68,7 @@ ProgramNode Repeats:
                 BreakNode
             IfNode:
               Condition:
-                ExpressionNode: EQUAL
+                MathExpressionNode: EQUAL
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: j
                   SpecialExpressionNode: CONST
@@ -80,7 +80,7 @@ ProgramNode Repeats:
           AssignNode
             SpecialExpressionNode: VARIABLE
               IdentifierNode: i
-            ExpressionNode: ADDITION
+            MathExpressionNode: ADDITION
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: i
               SpecialExpressionNode: CONST

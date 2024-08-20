@@ -14,7 +14,7 @@ ProgramNode RoutineScoping:
               Types:
               Variables:
                 Group 0:
-                  SimpleTypeNode INTEGER
+                  BasicTypeNode INTEGER
                   Identifiers:
                     IdentifierNode: a
                     IdentifierNode: b
@@ -25,7 +25,7 @@ ProgramNode RoutineScoping:
                     ParamsGroupNode:
                       PassType: PASS_BY_VALUE
                       ParamsType:
-                        SimpleTypeNode INTEGER
+                        BasicTypeNode INTEGER
                       Params:
                         IdentifierNode: d
                   RoutineNode of type UNSPECIFIED:
@@ -34,7 +34,7 @@ ProgramNode RoutineScoping:
                       Types:
                       Variables:
                         Group 0:
-                          SimpleTypeNode INTEGER
+                          BasicTypeNode INTEGER
                           Identifiers:
                             IdentifierNode: c
                       Routines:
@@ -43,7 +43,7 @@ ProgramNode RoutineScoping:
                         AssignNode
                           SpecialExpressionNode: VARIABLE
                             IdentifierNode: c
-                          ExpressionNode: ADDITION
+                          MathExpressionNode: ADDITION
                             SpecialExpressionNode: VARIABLE
                               IdentifierNode: d
                             SpecialExpressionNode: CONST
@@ -55,14 +55,14 @@ ProgramNode RoutineScoping:
                 RoutineDeclarationNode:
                   Name: SubTest2
                   ParamsNode:
-                  SimpleTypeNode INTEGER
+                  BasicTypeNode INTEGER
                   RoutineNode of type UNSPECIFIED:
                     RoutineHeadNode:
                       Constants:
                       Types:
                       Variables:
                         Group 0:
-                          SimpleTypeNode INTEGER
+                          BasicTypeNode INTEGER
                           Identifiers:
                             IdentifierNode: d
                       Routines:

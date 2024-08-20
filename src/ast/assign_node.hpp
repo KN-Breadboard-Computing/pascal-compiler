@@ -11,27 +11,25 @@ namespace ast {
 class AssignNode : public StatementNode {
  public:
   AssignNode() : StatementNode{Category::ASSIGN} {}
-  explicit AssignNode(ExpressionNode *lhs, ExpressionNode *rhs) : StatementNode{Category::ASSIGN},
-																  lhs_{lhs},
-																  rhs_{rhs} {}
+  explicit AssignNode(ExpressionNode* lhs, ExpressionNode* rhs) : StatementNode{Category::ASSIGN}, lhs_{lhs}, rhs_{rhs} {}
 
-  AssignNode(const AssignNode &) = delete;
-  AssignNode(AssignNode &&) = default;
+  AssignNode(const AssignNode&) = delete;
+  AssignNode(AssignNode&&) = default;
 
-  AssignNode &operator=(const AssignNode &) = delete;
-  AssignNode &operator=(AssignNode &&) = default;
+  AssignNode& operator=(const AssignNode&) = delete;
+  AssignNode& operator=(AssignNode&&) = default;
 
   ~AssignNode() override = default;
 
-  [[nodiscard]] const std::unique_ptr<ExpressionNode> &getLhs() const { return lhs_; }
-  [[nodiscard]] const std::unique_ptr<ExpressionNode> &getRhs() const { return rhs_; }
+  [[nodiscard]] const std::unique_ptr<ExpressionNode>& getLhs() const { return lhs_; }
+  [[nodiscard]] const std::unique_ptr<ExpressionNode>& getRhs() const { return rhs_; }
 
   void setLhs(std::unique_ptr<ExpressionNode> lhs) { lhs_ = std::move(lhs); }
   void setRhs(std::unique_ptr<ExpressionNode> rhs) { rhs_ = std::move(rhs); }
 
   virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
-  void print(std::ostream &out, int tab) const override;
+  void print(std::ostream& out, int tab) const override;
 
  private:
   std::unique_ptr<ExpressionNode> lhs_;

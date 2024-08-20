@@ -1,6 +1,8 @@
 #ifndef AST_TYPE_NODE_HPP
 #define AST_TYPE_NODE_HPP
 
+#include <memory>
+
 #include "ast_node.hpp"
 
 namespace ast {
@@ -20,10 +22,6 @@ class TypeNode : public AstNode {
   ~TypeNode() override = default;
 
   [[nodiscard]] TypeType getTypeType() const { return typeType_; }
-
-  virtual void accept(AstVisitor* visitor) const override;
-  [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
-  virtual void print(std::ostream& out, int tab) const override;
 
  private:
   TypeType typeType_;

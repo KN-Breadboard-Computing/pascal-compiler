@@ -15,15 +15,15 @@ ProgramNode Io:
             IdentifierNode: Sun
       Variables:
         Group 0:
-          SimpleTypeNode INTEGER
+          BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: IntVar
         Group 1:
-          SimpleTypeNode CHAR
+          BasicTypeNode CHAR
           Identifiers:
             IdentifierNode: CharVar
         Group 2:
-          SimpleTypeNode BOOLEAN
+          BasicTypeNode BOOLEAN
           Identifiers:
             IdentifierNode: BoolVar
         Group 3:
@@ -33,7 +33,7 @@ ProgramNode Io:
                 ConstantInteger<1>
                 ConstantInteger<10>
             Element type:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: ArrayVar
         Group 4:
@@ -42,14 +42,14 @@ ProgramNode Io:
               RenameTypeNode:
                 IdentifierNode: TDay
             Element type:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: ArrayVar2
         Group 5:
           RecordTypeNode:
             Field:
               IdentifierNode: IntField
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: RecordVar
       Routines:
@@ -133,7 +133,7 @@ ProgramNode Io:
               IdentifierNode: RecordVar
         BuiltinCallNode: WRITELN
           ArgumentsListNode:
-            ExpressionNode: MULTIPLICATION
+            MathExpressionNode: MULTIPLICATION
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: IntVar
               SpecialExpressionNode: CONST

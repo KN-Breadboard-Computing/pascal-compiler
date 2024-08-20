@@ -13,7 +13,7 @@ concept UnaryOperationArgs = requires {
 template <typename ArgT, typename DestT>
 requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstruction {
  public:
-  enum class OperationType { NEG, NOT, INC, DEC };
+  enum class OperationType { NEG, NOT, INC, DEC, SHL, SHR, SAR };
   enum class DestinationType { VARIABLE, ADDRESS };
 
   BBUnaryOperation() = default;
@@ -21,10 +21,10 @@ requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstr
       : source_{source}, destination_{destination}, operationType_{operationType}, destinationType_{destinationType} {}
 
   BBUnaryOperation(const BBUnaryOperation&) = default;
-  BBUnaryOperation(BBUnaryOperation&&) = default;
+  BBUnaryOperation(BBUnaryOperation&&) noexcept = default;
 
   BBUnaryOperation& operator=(const BBUnaryOperation&) = default;
-  BBUnaryOperation& operator=(BBUnaryOperation&&) = default;
+  BBUnaryOperation& operator=(BBUnaryOperation&&) noexcept = default;
 
   ~BBUnaryOperation() override = default;
 
@@ -33,34 +33,49 @@ requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstr
   [[nodiscard]] OperationType getOperation() const { return operationType_; }
   [[nodiscard]] DestinationType getDestinationType() const { return destinationType_; }
 
+  virtual std::unique_ptr<BBInstruction> clone() const override {
+    return std::make_unique<BBUnaryOperation<ArgT, DestT>>(source_, destination_, operationType_, destinationType_);
+  }
+
   virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "MOV ";
-
-    switch (operationType_) {
-      case OperationType::NEG:
-        out << "NEG ";
-        break;
-      case OperationType::NOT:
-        out << "NOT ";
-        break;
-      case OperationType::INC:
-        out << "INC ";
-        break;
-      case OperationType::DEC:
-        out << "DEC ";
-        break;
-    }
-
-    out << source_;
+    out << std::string(tab, ' ');
 
     switch (destinationType_) {
       case DestinationType::VARIABLE:
-        out << " TO " << destination_;
+        out << destination_;
         break;
       case DestinationType::ADDRESS:
-        out << " TO [ " << destination_ << " ]";
+        out << "[ " << destination_ << " ]";
         break;
     }
+
+    out << " := ";
+
+    switch (operationType_) {
+      case OperationType::NEG:
+        out << "- ";
+        break;
+      case OperationType::NOT:
+        out << "~ ";
+        break;
+      case OperationType::INC:
+        out << "inc ";
+        break;
+      case OperationType::DEC:
+        out << "dec ";
+        break;
+      case OperationType::SHL:
+        out << "shl ";
+        break;
+      case OperationType::SHR:
+        out << "shr ";
+        break;
+      case OperationType::SAR:
+        out << "sar ";
+        break;
+    }
+
+    out << source_ << std::endl;
   }
 
  private:

@@ -18,18 +18,20 @@ requires PushArgs<SrcT> class BBPush : public BBInstruction {
   BBPush(SrcT source, SourceType sourceType) : source_{source}, sourceType_{sourceType} {}
 
   BBPush(const BBPush&) = default;
-  BBPush(BBPush&&) = default;
+  BBPush(BBPush&&) noexcept = default;
 
   BBPush& operator=(const BBPush&) = default;
-  BBPush& operator=(BBPush&&) = default;
+  BBPush& operator=(BBPush&&) noexcept = default;
 
   ~BBPush() override = default;
 
   [[nodiscard]] SrcT getSource() const { return source_; }
   [[nodiscard]] SourceType getSourceType() const { return sourceType_; }
 
+  virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBPush<SrcT>>(source_, sourceType_); }
+
   virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "PUSH ";
+    out << std::string(tab, ' ') << "stack := ";
 
     switch (sourceType_) {
       case SourceType::VARIABLE:
@@ -42,6 +44,8 @@ requires PushArgs<SrcT> class BBPush : public BBInstruction {
         out << source_;
         break;
     }
+
+    out << std::endl;
   }
 
  private:

@@ -5,11 +5,11 @@ ProgramNode ChrOrd:
       Types:
       Variables:
         Group 0:
-          SimpleTypeNode CHAR
+          BasicTypeNode CHAR
           Identifiers:
             IdentifierNode: c
         Group 1:
-          SimpleTypeNode INTEGER
+          BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: k
       Routines:

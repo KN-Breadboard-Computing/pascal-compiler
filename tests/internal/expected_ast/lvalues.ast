@@ -7,9 +7,9 @@ ProgramNode LValuesTypes:
           IdentifierNode: TArray
           ArrayTypeNode:
             Range:
-              SimpleTypeNode BOOLEAN
+              BasicTypeNode BOOLEAN
             Element type:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
         Type 1:
           IdentifierNode: TMatrix
           ArrayTypeNode:
@@ -24,7 +24,7 @@ ProgramNode LValuesTypes:
                     ConstantInteger<1>
                     ConstantInteger<10>
                 Element type:
-                  SimpleTypeNode INTEGER
+                  BasicTypeNode INTEGER
         Type 2:
           IdentifierNode: TDay
           EnumerationTypeNode:
@@ -46,10 +46,10 @@ ProgramNode LValuesTypes:
             Field:
               IdentifierNode: Name
               IdentifierNode: Surname
-              SimpleTypeNode CHAR
+              BasicTypeNode CHAR
             Field:
               IdentifierNode: Age
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
             Field:
               IdentifierNode: WorkHours
               ArrayTypeNode:
@@ -57,7 +57,7 @@ ProgramNode LValuesTypes:
                   RenameTypeNode:
                     IdentifierNode: TDay
                 Element type:
-                  SimpleTypeNode INTEGER
+                  BasicTypeNode INTEGER
             Field:
               IdentifierNode: FamilyTime
               ArrayTypeNode:
@@ -65,7 +65,7 @@ ProgramNode LValuesTypes:
                   RenameTypeNode:
                     IdentifierNode: TWeekend
                 Element type:
-                  SimpleTypeNode INTEGER
+                  BasicTypeNode INTEGER
         Type 5:
           IdentifierNode: TFamily
           RecordTypeNode:
@@ -89,7 +89,7 @@ ProgramNode LValuesTypes:
                     IdentifierNode: TPerson
       Variables:
         Group 0:
-          SimpleTypeNode INTEGER
+          BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: x
         Group 1:

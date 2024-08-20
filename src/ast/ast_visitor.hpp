@@ -9,22 +9,13 @@ class AstVisitor {
 
   virtual void visit(const class ArgumentsListNode* node) = 0;
   virtual void visit(const class ArrayTypeNode* node) = 0;
-  virtual void visit(const class AssignToArrayNode* node) = 0;
-  virtual void visit(const class AssignToRecordFieldNode* node) = 0;
-  virtual void visit(const class AssignToVariableNode* node) = 0;
-  virtual void visit(const class AstNode* node) = 0;
+  virtual void visit(const class AssignNode* node) = 0;
   virtual void visit(const class BuiltinCallNode* node) = 0;
-  virtual void visit(const class CallNode* node) = 0;
   virtual void visit(const class UserDefineCallNode* node) = 0;
   virtual void visit(const class CaseNode* node) = 0;
   virtual void visit(const class CompoundStatementNode* node) = 0;
   virtual void visit(const class ConstantNode* node) = 0;
-  //  virtual void visit(const class ConstantNodeSpec* node) = 0;
-  //  virtual void visit(const class IntegerConstantNode* node) = 0;
-  //  virtual void visit(const class CharConstantNode* node) = 0;
-  //  virtual void visit(const class BooleanConstantNode* node) = 0;
-  //  virtual void visit(const class StringConstantNode* node) = 0;
-  virtual void visit(const class ExpressionNode* node) = 0;
+  virtual void visit(const class MathExpressionNode* node) = 0;
   virtual void visit(const class SpecialExpressionNode* node) = 0;
   virtual void visit(const class BreakNode* node) = 0;
   virtual void visit(const class ContinueNode* node) = 0;
@@ -44,10 +35,8 @@ class AstVisitor {
   virtual void visit(const class ConstRangeTypeNode* node) = 0;
   virtual void visit(const class EnumerationTypeNode* node) = 0;
   virtual void visit(const class RenameTypeNode* node) = 0;
-  virtual void visit(const class SimpleTypeNode* node) = 0;
+  virtual void visit(const class BasicTypeNode* node) = 0;
   virtual void visit(const class VarRangeTypeNode* node) = 0;
-  virtual void visit(const class StatementNode* node) = 0;
-  virtual void visit(const class TypeNode* node) = 0;
   virtual void visit(const class WhileNode* node) = 0;
 };
 }  // namespace ast

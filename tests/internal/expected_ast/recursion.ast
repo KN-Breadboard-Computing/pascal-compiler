@@ -11,10 +11,10 @@ ProgramNode Recursion:
             ParamsGroupNode:
               PassType: PASS_BY_VALUE
               ParamsType:
-                SimpleTypeNode INTEGER
+                BasicTypeNode INTEGER
               Params:
                 IdentifierNode: n
-          SimpleTypeNode INTEGER
+          BasicTypeNode INTEGER
           RoutineNode of type UNSPECIFIED:
             RoutineHeadNode:
               Constants:
@@ -26,13 +26,13 @@ ProgramNode Recursion:
                 AssignNode
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: F
-                  ExpressionNode: MULTIPLICATION
+                  MathExpressionNode: MULTIPLICATION
                     SpecialExpressionNode: VARIABLE
                       IdentifierNode: n
                     SpecialExpressionNode: CALL
                       IdentifierNode: F
                       ArgumentsListNode:
-                        ExpressionNode: SUBTRACTION
+                        MathExpressionNode: SUBTRACTION
                           SpecialExpressionNode: VARIABLE
                             IdentifierNode: n
                           SpecialExpressionNode: CONST
@@ -43,7 +43,7 @@ ProgramNode Recursion:
             ParamsGroupNode:
               PassType: PASS_BY_VALUE
               ParamsType:
-                SimpleTypeNode INTEGER
+                BasicTypeNode INTEGER
               Params:
                 IdentifierNode: n
           RoutineNode of type UNSPECIFIED:
@@ -61,7 +61,7 @@ ProgramNode Recursion:
                 UserDefineCallNode
                   IdentifierNode: G
                   ArgumentsListNode:
-                    ExpressionNode: SUBTRACTION
+                    MathExpressionNode: SUBTRACTION
                       SpecialExpressionNode: VARIABLE
                         IdentifierNode: n
                       SpecialExpressionNode: CONST

@@ -5,16 +5,16 @@ ProgramNode PredSuccOddAbs:
       Types:
       Variables:
         Group 0:
-          SimpleTypeNode INTEGER
+          BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: n
             IdentifierNode: m
         Group 1:
-          SimpleTypeNode BOOLEAN
+          BasicTypeNode BOOLEAN
           Identifiers:
             IdentifierNode: b
         Group 2:
-          SimpleTypeNode CHAR
+          BasicTypeNode CHAR
           Identifiers:
             IdentifierNode: c1
             IdentifierNode: c2
@@ -69,7 +69,7 @@ ProgramNode PredSuccOddAbs:
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: m
-          ExpressionNode: NEGATION
+          MathExpressionNode: NEGATION
             SpecialExpressionNode: CONST
               ConstantInteger<5>
         AssignNode

@@ -11,7 +11,7 @@ ProgramNode Expressions:
                 ConstantInteger<1>
                 ConstantInteger<10>
             Element type:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
         Type 1:
           IdentifierNode: TArrChar
           ArrayTypeNode:
@@ -20,7 +20,7 @@ ProgramNode Expressions:
                 ConstantInteger<1>
                 ConstantInteger<10>
             Element type:
-              SimpleTypeNode CHAR
+              BasicTypeNode CHAR
         Type 2:
           IdentifierNode: TArrBool
           ArrayTypeNode:
@@ -29,28 +29,28 @@ ProgramNode Expressions:
                 ConstantInteger<1>
                 ConstantInteger<10>
             Element type:
-              SimpleTypeNode BOOLEAN
+              BasicTypeNode BOOLEAN
         Type 3:
           IdentifierNode: TRecord
           RecordTypeNode:
             Field:
               IdentifierNode: i
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
             Field:
               IdentifierNode: c
-              SimpleTypeNode CHAR
+              BasicTypeNode CHAR
             Field:
               IdentifierNode: b
-              SimpleTypeNode BOOLEAN
+              BasicTypeNode BOOLEAN
       Variables:
         Group 0:
-          SimpleTypeNode INTEGER
+          BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: i1
             IdentifierNode: i2
             IdentifierNode: i3
         Group 1:
-          SimpleTypeNode BOOLEAN
+          BasicTypeNode BOOLEAN
           Identifiers:
             IdentifierNode: b1
             IdentifierNode: b2
@@ -71,7 +71,7 @@ ProgramNode Expressions:
           Identifiers:
             IdentifierNode: r
         Group 5:
-          SimpleTypeNode BOOLEAN
+          BasicTypeNode BOOLEAN
           Identifiers:
             IdentifierNode: c1
             IdentifierNode: c2
@@ -92,25 +92,25 @@ ProgramNode Expressions:
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: i3
-          ExpressionNode: ADDITION
+          MathExpressionNode: ADDITION
             SpecialExpressionNode: VARIABLE
               IdentifierNode: i1
-            ExpressionNode: MULTIPLICATION
+            MathExpressionNode: MULTIPLICATION
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: i2
-              ExpressionNode: NEGATION
+              MathExpressionNode: NEGATION
                 SpecialExpressionNode: VARIABLE
                   IdentifierNode: i2
         AssignNode
           SpecialExpressionNode: RECORD_ACCESS
             IdentifierNode: r
-          ExpressionNode: DIVISION
+          MathExpressionNode: DIVISION
             SpecialExpressionNode: VARIABLE
               IdentifierNode: i2
             SpecialExpressionNode: PARENTHESIS
-              ExpressionNode: MODULUS
+              MathExpressionNode: MODULUS
                 SpecialExpressionNode: PARENTHESIS
-                  ExpressionNode: ADDITION
+                  MathExpressionNode: ADDITION
                     SpecialExpressionNode: VARIABLE
                       IdentifierNode: i1
                     SpecialExpressionNode: ARRAY_ACCESS
@@ -120,8 +120,8 @@ ProgramNode Expressions:
         AssignNode
           SpecialExpressionNode: ARRAY_ACCESS
             IdentifierNode: a1
-          ExpressionNode: SUBTRACTION
-            ExpressionNode: MODULUS
+          MathExpressionNode: SUBTRACTION
+            MathExpressionNode: MODULUS
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: i1
               SpecialExpressionNode: PARENTHESIS
@@ -134,7 +134,7 @@ ProgramNode Expressions:
             IdentifierNode: r
           SpecialExpressionNode: CHR
             ArgumentsListNode:
-              ExpressionNode: ADDITION
+              MathExpressionNode: ADDITION
                 SpecialExpressionNode: VARIABLE
                   IdentifierNode: i1
                 SpecialExpressionNode: VARIABLE
@@ -142,7 +142,7 @@ ProgramNode Expressions:
         AssignNode
           SpecialExpressionNode: RECORD_ACCESS
             IdentifierNode: r
-          ExpressionNode: ADDITION
+          MathExpressionNode: ADDITION
             SpecialExpressionNode: ORD
               ArgumentsListNode:
                 SpecialExpressionNode: RECORD_ACCESS
@@ -162,14 +162,14 @@ ProgramNode Expressions:
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: b3
-          ExpressionNode: OR
-            ExpressionNode: AND
-              ExpressionNode: NEGATION
+          MathExpressionNode: OR
+            MathExpressionNode: AND
+              MathExpressionNode: NEGATION
                 SpecialExpressionNode: VARIABLE
                   IdentifierNode: b1
               SpecialExpressionNode: RECORD_ACCESS
                 IdentifierNode: r
-            ExpressionNode: AND
+            MathExpressionNode: AND
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: b1
               SpecialExpressionNode: CONST
@@ -177,10 +177,10 @@ ProgramNode Expressions:
         AssignNode
           SpecialExpressionNode: RECORD_ACCESS
             IdentifierNode: r
-          ExpressionNode: OR
+          MathExpressionNode: OR
             SpecialExpressionNode: VARIABLE
               IdentifierNode: b1
-            ExpressionNode: AND
+            MathExpressionNode: AND
               SpecialExpressionNode: ARRAY_ACCESS
                 IdentifierNode: a2
               SpecialExpressionNode: VARIABLE
@@ -188,12 +188,12 @@ ProgramNode Expressions:
         AssignNode
           SpecialExpressionNode: ARRAY_ACCESS
             IdentifierNode: a2
-          ExpressionNode: OR
-            ExpressionNode: AND
+          MathExpressionNode: OR
+            MathExpressionNode: AND
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: b1
               SpecialExpressionNode: PARENTHESIS
-                ExpressionNode: OR
+                MathExpressionNode: OR
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: b2
                   SpecialExpressionNode: CONST
@@ -203,29 +203,29 @@ ProgramNode Expressions:
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: c1
-          ExpressionNode: OR
-            ExpressionNode: AND
-              ExpressionNode: AND
+          MathExpressionNode: OR
+            MathExpressionNode: AND
+              MathExpressionNode: AND
                 SpecialExpressionNode: PARENTHESIS
-                  ExpressionNode: GREATER
+                  MathExpressionNode: GREATER
                     SpecialExpressionNode: VARIABLE
                       IdentifierNode: i1
                     SpecialExpressionNode: VARIABLE
                       IdentifierNode: i2
                 SpecialExpressionNode: PARENTHESIS
-                  ExpressionNode: LESS
+                  MathExpressionNode: LESS
                     SpecialExpressionNode: VARIABLE
                       IdentifierNode: i1
                     SpecialExpressionNode: VARIABLE
                       IdentifierNode: i3
               SpecialExpressionNode: PARENTHESIS
-                ExpressionNode: NOT_EQUAL
+                MathExpressionNode: NOT_EQUAL
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: i2
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: i3
             SpecialExpressionNode: PARENTHESIS
-              ExpressionNode: EQUAL
+              MathExpressionNode: EQUAL
                 SpecialExpressionNode: VARIABLE
                   IdentifierNode: i1
                 SpecialExpressionNode: VARIABLE
@@ -233,22 +233,22 @@ ProgramNode Expressions:
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: c2
-          ExpressionNode: OR
-            ExpressionNode: AND
+          MathExpressionNode: OR
+            MathExpressionNode: AND
               SpecialExpressionNode: PARENTHESIS
-                ExpressionNode: GREATER_EQUAL
+                MathExpressionNode: GREATER_EQUAL
                   SpecialExpressionNode: RECORD_ACCESS
                     IdentifierNode: r
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: i1
               SpecialExpressionNode: PARENTHESIS
-                ExpressionNode: LESS_EQUAL
+                MathExpressionNode: LESS_EQUAL
                   SpecialExpressionNode: RECORD_ACCESS
                     IdentifierNode: r
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: i2
             SpecialExpressionNode: PARENTHESIS
-              ExpressionNode: LESS
+              MathExpressionNode: LESS
                 SpecialExpressionNode: RECORD_ACCESS
                   IdentifierNode: r
                 SpecialExpressionNode: VARIABLE
@@ -256,15 +256,15 @@ ProgramNode Expressions:
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: c3
-          ExpressionNode: AND
+          MathExpressionNode: AND
             SpecialExpressionNode: PARENTHESIS
-              ExpressionNode: LESS_EQUAL
+              MathExpressionNode: LESS_EQUAL
                 SpecialExpressionNode: RECORD_ACCESS
                   IdentifierNode: r
                 SpecialExpressionNode: CONST
                   ConstantChar<a>
             SpecialExpressionNode: PARENTHESIS
-              ExpressionNode: GREATER_EQUAL
+              MathExpressionNode: GREATER_EQUAL
                 SpecialExpressionNode: RECORD_ACCESS
                   IdentifierNode: r
                 SpecialExpressionNode: CONST
@@ -272,7 +272,7 @@ ProgramNode Expressions:
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: c1
-          ExpressionNode: LESS_EQUAL
+          MathExpressionNode: LESS_EQUAL
             SpecialExpressionNode: VARIABLE
               IdentifierNode: b1
             SpecialExpressionNode: VARIABLE

@@ -10,7 +10,7 @@
 namespace ast {
 class RepeatNode : public StatementNode {
  public:
-  RepeatNode() : StatementNode{Category::REPEAT} { }
+  RepeatNode() : StatementNode{Category::REPEAT} {}
   RepeatNode(ExpressionNode* condition, std::vector<StatementNode*>* statements)
       : StatementNode{Category::REPEAT}, condition_{condition}, statements_{statements} {}
 

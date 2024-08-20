@@ -14,7 +14,7 @@ ProgramNode ProcFunDefs:
                 ConstantInteger<1>
                 ConstantInteger<20>
             Element type:
-              SimpleTypeNode CHAR
+              BasicTypeNode CHAR
         Type 1:
           IdentifierNode: TPerson
           RecordTypeNode:
@@ -25,7 +25,7 @@ ProgramNode ProcFunDefs:
                 IdentifierNode: Str
             Field:
               IdentifierNode: Age
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
       Variables:
         Group 0:
           ArrayTypeNode:
@@ -77,11 +77,11 @@ ProgramNode ProcFunDefs:
                             ParamsGroupNode:
                               PassType: PASS_BY_VALUE
                               ParamsType:
-                                SimpleTypeNode INTEGER
+                                BasicTypeNode INTEGER
                               Params:
                                 IdentifierNode: a
                                 IdentifierNode: b
-                          SimpleTypeNode INTEGER
+                          BasicTypeNode INTEGER
                           RoutineNode of type UNSPECIFIED:
                             RoutineHeadNode:
                               Constants:
@@ -93,7 +93,7 @@ ProgramNode ProcFunDefs:
                                 AssignNode
                                   SpecialExpressionNode: VARIABLE
                                     IdentifierNode: Add
-                                  ExpressionNode: ADDITION
+                                  MathExpressionNode: ADDITION
                                     SpecialExpressionNode: VARIABLE
                                       IdentifierNode: a
                                     SpecialExpressionNode: VARIABLE
@@ -114,7 +114,7 @@ ProgramNode ProcFunDefs:
                                 SpecialExpressionNode: CALL
                                   IdentifierNode: Add
                                   ArgumentsListNode:
-                                    ExpressionNode: ADDITION
+                                    MathExpressionNode: ADDITION
                                       SpecialExpressionNode: ORD
                                         ArgumentsListNode:
                                           SpecialExpressionNode: ARRAY_ACCESS
@@ -197,11 +197,11 @@ ProgramNode ProcFunDefs:
                     ParamsGroupNode:
                       PassType: PASS_BY_VALUE
                       ParamsType:
-                        SimpleTypeNode INTEGER
+                        BasicTypeNode INTEGER
                       Params:
                         IdentifierNode: a
                         IdentifierNode: b
-                  SimpleTypeNode INTEGER
+                  BasicTypeNode INTEGER
                   RoutineNode of type UNSPECIFIED:
                     RoutineHeadNode:
                       Constants:
@@ -213,7 +213,7 @@ ProgramNode ProcFunDefs:
                         AssignNode
                           SpecialExpressionNode: VARIABLE
                             IdentifierNode: Add
-                          ExpressionNode: ADDITION
+                          MathExpressionNode: ADDITION
                             SpecialExpressionNode: VARIABLE
                               IdentifierNode: a
                             SpecialExpressionNode: VARIABLE

@@ -8,29 +8,16 @@
 namespace ast {
 class StatementNode : public AstNode {
  public:
-  enum Category {
-	UNSPECIFIED,
-	ASSIGN,
-	BREAK,
-	CALL,
-	CASE,
-	COMPOUND,
-	CONTINUE,
-	FOR,
-	GOTO,
-	IF,
-	REPEAT,
-	WHILE
-  };
+  enum Category { UNSPECIFIED, ASSIGN, BREAK, CALL, CASE, COMPOUND, CONTINUE, FOR, GOTO, IF, REPEAT, WHILE };
 
   StatementNode() : AstNode{Type::STATEMENT}, label_{std::nullopt}, category_{Category::UNSPECIFIED} {}
   explicit StatementNode(Category category) : AstNode{Type::STATEMENT}, label_{std::nullopt}, category_{category} {}
 
-  StatementNode(const StatementNode &) = delete;
-  StatementNode(StatementNode &&) = default;
+  StatementNode(const StatementNode&) = delete;
+  StatementNode(StatementNode&&) = default;
 
-  StatementNode &operator=(const StatementNode &) = delete;
-  StatementNode &operator=(StatementNode &&) = default;
+  StatementNode& operator=(const StatementNode&) = delete;
+  StatementNode& operator=(StatementNode&&) = default;
 
   ~StatementNode() override = default;
 

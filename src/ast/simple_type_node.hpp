@@ -8,7 +8,7 @@
 namespace ast {
 class SimpleTypeNode : public TypeNode {
  public:
-  enum Representation { UNSPECIFIED, INTEGER, BOOLEAN, CHAR, STRING, RENAMING, ENUMERATION, CONST_RANGE, VAR_RANGE };
+  enum Representation { UNSPECIFIED, BASIC, RENAMING, ENUMERATION, CONST_RANGE, VAR_RANGE };
 
   SimpleTypeNode() : TypeNode{TypeType::SIMPLE}, representation_{UNSPECIFIED} {}
   explicit SimpleTypeNode(Representation representation) : TypeNode{TypeType::SIMPLE}, representation_{representation} {}
@@ -23,12 +23,35 @@ class SimpleTypeNode : public TypeNode {
 
   [[nodiscard]] Representation getRepresentation() const { return representation_; }
 
+ private:
+  Representation representation_;
+};
+
+class BasicTypeNode : public SimpleTypeNode {
+ public:
+  enum BasicType { INTEGER, BOOLEAN, CHAR, STRING };
+
+  BasicTypeNode() : SimpleTypeNode{BASIC} {}
+  explicit BasicTypeNode(BasicType basicType) : SimpleTypeNode{BASIC}, basicType_{basicType} {}
+
+  BasicTypeNode(const BasicTypeNode&) = delete;
+  BasicTypeNode(BasicTypeNode&&) = default;
+
+  BasicTypeNode& operator=(const BasicTypeNode&) = delete;
+  BasicTypeNode& operator=(BasicTypeNode&&) = default;
+
+  ~BasicTypeNode() override = default;
+
+  [[nodiscard]] BasicType getBasicType() const { return basicType_; }
+
+  void setBasicType(BasicType basicType) { basicType_ = basicType; }
+
   virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream& out, int tab) const override;
 
  private:
-  Representation representation_;
+  BasicType basicType_;
 };
 
 class RenameTypeNode : public SimpleTypeNode {

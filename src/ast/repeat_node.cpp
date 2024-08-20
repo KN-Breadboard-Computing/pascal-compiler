@@ -1,7 +1,9 @@
 #include "repeat_node.hpp"
 
 namespace ast {
-void RepeatNode::accept(AstVisitor* visitor) const { visitor->visit(this); }
+void RepeatNode::accept(AstVisitor* visitor) const {
+  visitor->visit(this);
+}
 
 std::unique_ptr<AstNode> RepeatNode::clone() const {
   auto clone = std::make_unique<RepeatNode>();
@@ -17,9 +19,10 @@ std::unique_ptr<AstNode> RepeatNode::clone() const {
 }
 
 void RepeatNode::print(std::ostream& out, int tab) const {
-  if(getLabel().has_value()) {
+  if (getLabel().has_value()) {
     out << std::string(tab, ' ') << "RepeatNode with label: " << getLabel().value() << std::endl;
-  } else {
+  }
+  else {
     out << std::string(tab, ' ') << "RepeatNode:\n";
   }
 
@@ -28,4 +31,4 @@ void RepeatNode::print(std::ostream& out, int tab) const {
     statement->print(out, tab + 2);
   }
 }
-} // namespace ast
+}  // namespace ast

@@ -9,11 +9,11 @@ class GotoNode : public StatementNode {
   GotoNode() : StatementNode{Category::GOTO}, line_{0} {}
   explicit GotoNode(uint64_t line) : StatementNode{Category::GOTO}, line_{line} {}
 
-  GotoNode(const GotoNode &) = delete;
-  GotoNode(GotoNode &&) = default;
+  GotoNode(const GotoNode&) = delete;
+  GotoNode(GotoNode&&) = default;
 
-  GotoNode &operator=(const GotoNode &) = delete;
-  GotoNode &operator=(GotoNode &&) = default;
+  GotoNode& operator=(const GotoNode&) = delete;
+  GotoNode& operator=(GotoNode&&) = default;
 
   ~GotoNode() override = default;
 
@@ -23,7 +23,7 @@ class GotoNode : public StatementNode {
 
   virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] std::unique_ptr<AstNode> clone() const override;
-  void print(std::ostream &out, int tab) const override;
+  void print(std::ostream& out, int tab) const override;
 
  private:
   uint64_t line_;

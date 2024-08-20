@@ -9,17 +9,17 @@ namespace ast {
 class BreakNode : public StatementNode {
  public:
   BreakNode() : StatementNode{Category::BREAK} {}
-  BreakNode(const BreakNode &) = delete;
-  BreakNode(BreakNode &&) = default;
+  BreakNode(const BreakNode&) = delete;
+  BreakNode(BreakNode&&) = default;
 
-  BreakNode &operator=(const BreakNode &) = delete;
-  BreakNode &operator=(BreakNode &&) = default;
+  BreakNode& operator=(const BreakNode&) = delete;
+  BreakNode& operator=(BreakNode&&) = default;
 
   ~BreakNode() override = default;
 
   virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] std::unique_ptr<AstNode> clone() const override;
-  void print(std::ostream &out, int tab) const override;
+  void print(std::ostream& out, int tab) const override;
 };
 }  // namespace ast
 

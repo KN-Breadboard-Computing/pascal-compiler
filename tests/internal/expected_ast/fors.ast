@@ -5,7 +5,7 @@ ProgramNode Fors:
       Types:
       Variables:
         Group 0:
-          SimpleTypeNode INTEGER
+          BasicTypeNode INTEGER
           Identifiers:
             IdentifierNode: sum
       Routines:
@@ -35,7 +35,7 @@ ProgramNode Fors:
                       IdentifierNode: j
                     SpecialExpressionNode: CONST
                       ConstantString< = >
-                    ExpressionNode: MULTIPLICATION
+                    MathExpressionNode: MULTIPLICATION
                       SpecialExpressionNode: VARIABLE
                         IdentifierNode: i
                       SpecialExpressionNode: VARIABLE
@@ -60,7 +60,7 @@ ProgramNode Fors:
           AssignNode
             SpecialExpressionNode: VARIABLE
               IdentifierNode: sum
-            ExpressionNode: ADDITION
+            MathExpressionNode: ADDITION
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: sum
               SpecialExpressionNode: VARIABLE
@@ -80,14 +80,14 @@ ProgramNode Fors:
             AssignNode
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: sum
-              ExpressionNode: ADDITION
+              MathExpressionNode: ADDITION
                 SpecialExpressionNode: VARIABLE
                   IdentifierNode: sum
                 SpecialExpressionNode: VARIABLE
                   IdentifierNode: count
             IfNode:
               Condition:
-                ExpressionNode: EQUAL
+                MathExpressionNode: EQUAL
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: count
                   SpecialExpressionNode: CONST
@@ -96,7 +96,7 @@ ProgramNode Fors:
                 ContinueNode
             IfNode:
               Condition:
-                ExpressionNode: EQUAL
+                MathExpressionNode: EQUAL
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: sum
                   SpecialExpressionNode: CONST

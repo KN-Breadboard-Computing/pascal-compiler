@@ -9,18 +9,18 @@ namespace ast {
 class ContinueNode : public StatementNode {
  public:
   ContinueNode() : StatementNode{Category::CONTINUE} {}
-  ContinueNode(const ContinueNode &) = delete;
-  ContinueNode(ContinueNode &&) = default;
+  ContinueNode(const ContinueNode&) = delete;
+  ContinueNode(ContinueNode&&) = default;
 
-  ContinueNode &operator=(const ContinueNode &) = delete;
-  ContinueNode &operator=(ContinueNode &&) = default;
+  ContinueNode& operator=(const ContinueNode&) = delete;
+  ContinueNode& operator=(ContinueNode&&) = default;
 
   ~ContinueNode() override = default;
 
   virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] std::unique_ptr<AstNode> clone() const override;
-  void print(std::ostream &out, int tab) const override;
+  void print(std::ostream& out, int tab) const override;
 };
-} // namespace ast
+}  // namespace ast
 
-#endif // AST_CONTINUE_NODE_HPP
+#endif  // AST_CONTINUE_NODE_HPP

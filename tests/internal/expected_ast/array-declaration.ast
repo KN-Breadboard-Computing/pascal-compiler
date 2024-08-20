@@ -21,7 +21,7 @@ ProgramNode ArrayDeclaration:
                 ConstantInteger<-1>
                 ConstantInteger<10>
             Element type:
-              SimpleTypeNode CHAR
+              BasicTypeNode CHAR
         Type 2:
           IdentifierNode: TArr2
           ArrayTypeNode:
@@ -30,7 +30,7 @@ ProgramNode ArrayDeclaration:
                 ConstantChar<A>
                 ConstantChar<z>
             Element type:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
         Type 3:
           IdentifierNode: TArr3
           ArrayTypeNode:
@@ -39,7 +39,7 @@ ProgramNode ArrayDeclaration:
                 ConstantBoolean<0>
                 ConstantBoolean<1>
             Element type:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
         Type 4:
           IdentifierNode: TArr4
           ArrayTypeNode:
@@ -53,7 +53,7 @@ ProgramNode ArrayDeclaration:
                 IdentifierNode: Sat
                 IdentifierNode: Sun
             Element type:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
         Type 5:
           IdentifierNode: TArr5
           ArrayTypeNode:
@@ -62,28 +62,28 @@ ProgramNode ArrayDeclaration:
                 ConstantInteger<-255>
                 ConstantInteger<255>
             Element type:
-              SimpleTypeNode CHAR
+              BasicTypeNode CHAR
         Type 6:
           IdentifierNode: TArr6
           ArrayTypeNode:
             Range:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
             Element type:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
         Type 7:
           IdentifierNode: TArr8
           ArrayTypeNode:
             Range:
-              SimpleTypeNode CHAR
+              BasicTypeNode CHAR
             Element type:
-              SimpleTypeNode CHAR
+              BasicTypeNode CHAR
         Type 8:
           IdentifierNode: TArr9
           ArrayTypeNode:
             Range:
-              SimpleTypeNode BOOLEAN
+              BasicTypeNode BOOLEAN
             Element type:
-              SimpleTypeNode BOOLEAN
+              BasicTypeNode BOOLEAN
         Type 9:
           IdentifierNode: TArr10
           ArrayTypeNode:
@@ -92,7 +92,7 @@ ProgramNode ArrayDeclaration:
                 IdentifierNode: Mon
                 IdentifierNode: Fri
             Element type:
-              SimpleTypeNode CHAR
+              BasicTypeNode CHAR
         Type 10:
           IdentifierNode: TArr11
           ArrayTypeNode:
@@ -100,7 +100,7 @@ ProgramNode ArrayDeclaration:
               RenameTypeNode:
                 IdentifierNode: TDays
             Element type:
-              SimpleTypeNode INTEGER
+              BasicTypeNode INTEGER
       Variables:
         Group 0:
           RenameTypeNode:

@@ -13,30 +13,26 @@ class ForNode : public StatementNode {
   enum Direction { UNSPECIFIED, INCREMENT, DECREMENT };
 
   ForNode() : StatementNode{Category::FOR}, direction_{UNSPECIFIED} {}
-  ForNode(IdentifierNode *iterator,
-		  ExpressionNode *start,
-		  ExpressionNode *end,
-		  StatementNode *statements,
-		  Direction direction)
-	  : StatementNode{Category::FOR},
-		iterator_{iterator},
-		start_{start},
-		end_{end},
-		statements_{statements},
-		direction_{direction} {}
+  ForNode(IdentifierNode* iterator, ExpressionNode* start, ExpressionNode* end, StatementNode* statements, Direction direction)
+      : StatementNode{Category::FOR},
+        iterator_{iterator},
+        start_{start},
+        end_{end},
+        statements_{statements},
+        direction_{direction} {}
 
-  ForNode(const ForNode &) = delete;
-  ForNode(ForNode &&) = default;
+  ForNode(const ForNode&) = delete;
+  ForNode(ForNode&&) = default;
 
-  ForNode &operator=(const ForNode &) = delete;
-  ForNode &operator=(ForNode &&) = default;
+  ForNode& operator=(const ForNode&) = delete;
+  ForNode& operator=(ForNode&&) = default;
 
   ~ForNode() override = default;
 
-  [[nodiscard]] const std::unique_ptr<IdentifierNode> &getIterator() const { return iterator_; }
-  [[nodiscard]] const std::unique_ptr<ExpressionNode> &getStart() const { return start_; }
-  [[nodiscard]] const std::unique_ptr<ExpressionNode> &getEnd() const { return end_; }
-  [[nodiscard]] const std::unique_ptr<StatementNode> &getStatements() const { return statements_; }
+  [[nodiscard]] const std::unique_ptr<IdentifierNode>& getIterator() const { return iterator_; }
+  [[nodiscard]] const std::unique_ptr<ExpressionNode>& getStart() const { return start_; }
+  [[nodiscard]] const std::unique_ptr<ExpressionNode>& getEnd() const { return end_; }
+  [[nodiscard]] const std::unique_ptr<StatementNode>& getStatements() const { return statements_; }
   [[nodiscard]] Direction getDirection() const { return direction_; }
 
   void setIterator(std::unique_ptr<IdentifierNode> iterator) { iterator_ = std::move(iterator); }
@@ -47,7 +43,7 @@ class ForNode : public StatementNode {
 
   virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] std::unique_ptr<AstNode> clone() const override;
-  void print(std::ostream &out, int tab) const override;
+  void print(std::ostream& out, int tab) const override;
 
  private:
   std::unique_ptr<IdentifierNode> iterator_;

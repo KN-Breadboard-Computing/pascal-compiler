@@ -21,10 +21,10 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
       : source_{source}, destination_{destination}, sourceType_{sourceType}, destinationType_{destinationType} {}
 
   BBMove(const BBMove&) = default;
-  BBMove(BBMove&&) = default;
+  BBMove(BBMove&&) noexcept = default;
 
   BBMove& operator=(const BBMove&) = default;
-  BBMove& operator=(BBMove&&) = default;
+  BBMove& operator=(BBMove&&) noexcept = default;
 
   ~BBMove() override = default;
 
@@ -33,8 +33,23 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
   [[nodiscard]] SourceType getSourceType() const { return sourceType_; }
   [[nodiscard]] DestinationType getDestinationType() const { return destinationType_; }
 
+  virtual std::unique_ptr<BBInstruction> clone() const override {
+    return std::make_unique<BBMove<SrcT, DestT>>(source_, destination_, sourceType_, destinationType_);
+  }
+
   virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "MOVE ";
+    out << std::string(tab, ' ');
+
+    switch (destinationType_) {
+      case DestinationType::VARIABLE:
+        out << destination_;
+        break;
+      case DestinationType::ADDRESS:
+        out << "[ " << destination_ << " ]";
+        break;
+    }
+
+    out << " := ";
 
     switch (sourceType_) {
       case SourceType::VARIABLE:
@@ -44,16 +59,7 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
         out << source_;
         break;
       case SourceType::ADDRESS:
-        out << source_ << " ]";
-        break;
-    }
-
-    switch (destinationType_) {
-      case DestinationType::VARIABLE:
-        out << " TO " << destination_;
-        break;
-      case DestinationType::ADDRESS:
-        out << " TO [ " << destination_ << " ]";
+        out << "[ " << source_ << " ]";
         break;
     }
 
@@ -69,10 +75,10 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
 
 typedef BBMove<VariableType, VariableType> BBMoveVV;
 typedef BBMove<VariableType, AddressType> BBMoveVA;
-typedef BBMove<VariableType, NumericType> BBMoveVN;
+typedef BBMove<NumericType, VariableType> BBMoveNV;
 typedef BBMove<AddressType, VariableType> BBMoveAV;
 typedef BBMove<AddressType, AddressType> BBMoveAA;
-typedef BBMove<AddressType, NumericType> BBMoveAN;
+typedef BBMove<NumericType, AddressType> BBMoveNA;
 
 }  // namespace bblocks
 

@@ -1,47 +1,31 @@
 #include "simple_type_node.hpp"
 
 namespace ast {
-// SimpleTypeNode
-void SimpleTypeNode::accept(AstVisitor* visitor) const {
+// BasicTypeNode
+void BasicTypeNode::accept(AstVisitor* visitor) const {
   visitor->visit(this);
 }
 
-[[nodiscard]] std::unique_ptr<AstNode> SimpleTypeNode::clone() const {
-  return std::make_unique<SimpleTypeNode>(representation_);
+[[nodiscard]] std::unique_ptr<AstNode> BasicTypeNode::clone() const {
+  return std::make_unique<BasicTypeNode>(basicType_);
 }
 
-void SimpleTypeNode::print(std::ostream& out, int tab) const {
-  out << std::string(tab, ' ') << "SimpleTypeNode ";
-  switch (representation_) {
-    case INTEGER:
-      out << "INTEGER";
+void BasicTypeNode::print(std::ostream& out, int tab) const {
+  out << std::string(tab, ' ') << "BasicTypeNode ";
+  switch (basicType_) {
+    case BasicType::INTEGER:
+      out << "INTEGER\n";
       break;
-    case BOOLEAN:
-      out << "BOOLEAN";
+    case BasicType::BOOLEAN:
+      out << "BOOLEAN\n";
       break;
-    case CHAR:
-      out << "CHAR";
+    case BasicType::CHAR:
+      out << "CHAR\n";
       break;
-    case STRING:
-      out << "STRING";
-      break;
-    case RENAMING:
-      out << "RENAMING";
-      break;
-    case ENUMERATION:
-      out << "ENUMERATION";
-      break;
-    case CONST_RANGE:
-      out << "CONST_RANGE";
-      break;
-    case VAR_RANGE:
-      out << "VAR_RANGE";
-      break;
-    default:
-      out << "UNSPECIFIED";
+    case BasicType::STRING:
+      out << "STRING\n";
       break;
   }
-  out << '\n';
 }
 
 // RenameTypeNode

@@ -9,7 +9,7 @@
 namespace ast {
 class IfNode : public StatementNode {
  public:
-  IfNode() : StatementNode{Category::IF} { }
+  IfNode() : StatementNode{Category::IF} {}
   IfNode(ExpressionNode* condition, StatementNode* thenStatement)
       : StatementNode{Category::IF}, condition_{condition}, thenStatement_{thenStatement}, elseStatement_{nullptr} {}
   IfNode(ExpressionNode* condition, StatementNode* thenStatement, StatementNode* elseStatement)

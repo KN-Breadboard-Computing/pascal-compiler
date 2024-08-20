@@ -7,7 +7,33 @@
 #include <utility>
 #include <algorithm>
 
+#include "../src/ast/arguments_list_node.hpp"
+#include "../src/ast/array_type_node.hpp"
+#include "../src/ast/assign_node.hpp"
+#include "../src/ast/ast_node.hpp"
+#include "../src/ast/break_node.hpp"
+#include "../src/ast/call_node.hpp"
+#include "../src/ast/case_node.hpp"
+#include "../src/ast/compound_statement_node.hpp"
+#include "../src/ast/constant_node.hpp"
+#include "../src/ast/continue_node.hpp"
+#include "../src/ast/expression_node.hpp"
+#include "../src/ast/for_node.hpp"
+#include "../src/ast/goto_node.hpp"
+#include "../src/ast/identifier_node.hpp"
+#include "../src/ast/if_node.hpp"
+#include "../src/ast/params_group_node.hpp"
+#include "../src/ast/params_node.hpp"
 #include "../src/ast/program_node.hpp"
+#include "../src/ast/record_type_node.hpp"
+#include "../src/ast/repeat_node.hpp"
+#include "../src/ast/routine_body_node.hpp"
+#include "../src/ast/routine_decl_head_node.hpp"
+#include "../src/ast/simple_type_node.hpp"
+#include "../src/ast/statement_node.hpp"
+#include "../src/ast/type_node.hpp"
+#include "../src/ast/while_node.hpp"
+
 #include "../src/context.hpp"
 
 #undef YACC_DEBUG
@@ -1038,7 +1064,7 @@ simple_type :
             std::cout << "Yacc debug: Parse simple type - int" << std::endl;
         #endif
 
-        $$ = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::INTEGER);
+        $$ = new ast::BasicTypeNode(ast::BasicTypeNode::BasicType::INTEGER);
     }
 |
     BOOL_TYPE {
@@ -1046,7 +1072,7 @@ simple_type :
             std::cout << "Yacc debug: Parse simple type - bool" << std::endl;
         #endif
 
-        $$ = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::BOOLEAN);
+        $$ = new ast::BasicTypeNode(ast::BasicTypeNode::BasicType::BOOLEAN);
     }
 |
     CHAR_TYPE {
@@ -1054,7 +1080,7 @@ simple_type :
             std::cout << "Yacc debug: Parse simple type - char" << std::endl;
         #endif
 
-        $$ = new ast::SimpleTypeNode(ast::SimpleTypeNode::Representation::CHAR);
+        $$ = new ast::BasicTypeNode(ast::BasicTypeNode::BasicType::CHAR);
     }
 ;
 
@@ -1262,9 +1288,13 @@ assign_stmt :
             std::cout << "Yacc debug: Parse assign statement" << std::endl;
         #endif
 
-        if($1->getInferredType() != $3->getInferredType()) {
+        if(!isLeftValueCompatible($1)) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", left side of assignment must be assignable");
+            fatalError = true;
+            YYERROR;
+        }
+        else if($1->getInferredType() != $3->getInferredType()) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", both sides should be equal type");
-            std::cout << $1->getInferredType() << " " << $3->getInferredType() << std::endl;
             fatalError = true;
             YYERROR;
         }
@@ -1826,7 +1856,7 @@ expression :
         #endif
 
         if($1->getInferredType() == $3->getInferredType() && isBasicType($1->getInferredType())) {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::GREATER_EQUAL, "boolean");
+            $$ = new ast::MathExpressionNode($1, $3, ast::MathExpressionNode::FunctionName::GREATER_EQUAL, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for greater or equal - matching types(integer, char, boolean) expected");
@@ -1841,7 +1871,7 @@ expression :
         #endif
 
         if($1->getInferredType() == $3->getInferredType() && isBasicType($1->getInferredType())) {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::GREATER, "boolean");
+            $$ = new ast::MathExpressionNode($1, $3, ast::MathExpressionNode::FunctionName::GREATER, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for greater - matching types(integer, char, boolean) expected");
@@ -1856,7 +1886,7 @@ expression :
         #endif
 
         if($1->getInferredType() == $3->getInferredType() && isBasicType($1->getInferredType())) {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::LESS_EQUAL, "boolean");
+            $$ = new ast::MathExpressionNode($1, $3, ast::MathExpressionNode::FunctionName::LESS_EQUAL, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for less or equal - matching types(integer, char, boolean) expected");
@@ -1871,7 +1901,7 @@ expression :
         #endif
 
         if($1->getInferredType() == $3->getInferredType() && isBasicType($1->getInferredType())) {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::LESS, "boolean");
+            $$ = new ast::MathExpressionNode($1, $3, ast::MathExpressionNode::FunctionName::LESS, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for less - matching types(integer, char, boolean) expected");
@@ -1886,7 +1916,7 @@ expression :
         #endif
 
         if($1->getInferredType() == $3->getInferredType() && isBasicType($1->getInferredType())) {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::EQUAL, "boolean");
+            $$ = new ast::MathExpressionNode($1, $3, ast::MathExpressionNode::FunctionName::EQUAL, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for equal - matching types(integer, char, boolean) expected");
@@ -1901,7 +1931,7 @@ expression :
         #endif
 
         if($1->getInferredType() == $3->getInferredType() && isBasicType($1->getInferredType())) {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::NOT_EQUAL, "boolean");
+            $$ = new ast::MathExpressionNode($1, $3, ast::MathExpressionNode::FunctionName::NOT_EQUAL, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for not equal - matching types(integer, char, boolean) expected");
@@ -1926,7 +1956,7 @@ expr :
         #endif
 
         if($1->getInferredType() == "integer" && $3->getInferredType() == "integer") {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::ADDITION, $1->getInferredType());
+            $$ = new ast::MathExpressionNode($1, $3, ast::MathExpressionNode::FunctionName::ADDITION, $1->getInferredType());
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for addition - integer expected");
@@ -1941,7 +1971,7 @@ expr :
         #endif
 
         if($1->getInferredType() == "integer" && $3->getInferredType() == "integer") {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::SUBTRACTION, $1->getInferredType());
+            $$ = new ast::MathExpressionNode($1, $3, ast::MathExpressionNode::FunctionName::SUBTRACTION, $1->getInferredType());
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for subtraction - integer expected");
@@ -1956,7 +1986,7 @@ expr :
         #endif
 
         if($1->getInferredType() == "boolean" && $3->getInferredType() == "boolean") {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::OR, "boolean");
+            $$ = new ast::MathExpressionNode($1, $3, ast::MathExpressionNode::FunctionName::OR, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for or - boolean expected");
@@ -1981,7 +2011,7 @@ term :
         #endif
 
         if($1->getInferredType() == "integer" && $3->getInferredType() == "integer") {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::MULTIPLICATION, $1->getInferredType());
+            $$ = new ast::MathExpressionNode($1, $3, ast::MathExpressionNode::FunctionName::MULTIPLICATION, $1->getInferredType());
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for mul - integer expected");
@@ -1996,7 +2026,7 @@ term :
         #endif
 
         if($1->getInferredType() == "integer" && $3->getInferredType() == "integer") {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::DIVISION, $1->getInferredType());
+            $$ = new ast::MathExpressionNode($1, $3, ast::MathExpressionNode::FunctionName::DIVISION, $1->getInferredType());
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for div - integer expected");
@@ -2011,7 +2041,7 @@ term :
         #endif
 
         if($1->getInferredType() == "integer" && $3->getInferredType() == "integer") {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::MODULUS, $1->getInferredType());
+            $$ = new ast::MathExpressionNode($1, $3, ast::MathExpressionNode::FunctionName::MODULUS, $1->getInferredType());
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for mod - integer expected");
@@ -2026,7 +2056,7 @@ term :
         #endif
 
         if($1->getInferredType() == "boolean" && $3->getInferredType() == "boolean") {
-            $$ = new ast::ExpressionNode($1, $3, ast::ExpressionNode::Operation::AND, "boolean");
+            $$ = new ast::MathExpressionNode($1, $3, ast::MathExpressionNode::FunctionName::AND, "boolean");
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for and - boolean expected");
@@ -2098,7 +2128,7 @@ factor :
         #endif
 
         if($2->getInferredType() == "boolean") {
-            $$ = new ast::ExpressionNode($2, ast::ExpressionNode::Operation::NEGATION, $2->getInferredType());
+            $$ = new ast::MathExpressionNode($2, ast::MathExpressionNode::FunctionName::NEGATION, $2->getInferredType());
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for not - boolean expected");
@@ -2113,7 +2143,7 @@ factor :
         #endif
 
         if($2->getInferredType() == "integer") {
-            $$ = new ast::ExpressionNode($2, ast::ExpressionNode::Operation::NEGATION, $2->getInferredType());
+            $$ = new ast::MathExpressionNode($2, ast::MathExpressionNode::FunctionName::NEGATION, $2->getInferredType());
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for negation - integer expected");
@@ -2433,6 +2463,7 @@ lvalue :
             YYERROR;
         }
     }
+;
 %%
 
 void yyerror(const char *s) {
@@ -2470,7 +2501,15 @@ bool isBoolean(const std::string& expr) {
 }
 
 bool nameAlreadyUsed(std::string name) {
-    return ctx->getLookupTable().isVariableDefined(name, "") || ctx->getLookupTable().isRoutineDefined(name, "") || ctx->getLookupTable().isTypeDefined(name, "");
+    if(ctx->getLookupTable().isVariableDefined(name, "") || ctx->getLookupTable().isRoutineDefined(name, "") || ctx->getLookupTable().isTypeDefined(name, "")) {
+        return true;
+    }
+
+    if(isInAnyEnum(name)) {
+        return true;
+    }
+
+    return false;
 }
 
 bool saveType(ast::IdentifierNode* typeName, const std::string& typeDef) {
@@ -2562,14 +2601,19 @@ std::string getTypeString(ast::TypeNode* type) {
     if(type->getTypeType() == ast::TypeNode::TypeType::SIMPLE) {
         auto* simpleType = dynamic_cast<ast::SimpleTypeNode*>(type);
         switch(simpleType->getRepresentation()) {
-            case ast::SimpleTypeNode::Representation::INTEGER:
-                return "integer";
-            case ast::SimpleTypeNode::Representation::BOOLEAN:
-                return "boolean";
-            case ast::SimpleTypeNode::Representation::CHAR:
-                return "char";
-            case ast::SimpleTypeNode::Representation::STRING:
-                return "string";
+            case ast::SimpleTypeNode::Representation::BASIC: {
+                auto* basicType = dynamic_cast<ast::BasicTypeNode*>(simpleType);
+                switch(basicType->getBasicType()) {
+                    case ast::BasicTypeNode::BasicType::INTEGER:
+                        return "integer";
+                    case ast::BasicTypeNode::BasicType::BOOLEAN:
+                        return "boolean";
+                    case ast::BasicTypeNode::BasicType::CHAR:
+                        return "char";
+                    case ast::BasicTypeNode::BasicType::STRING:
+                        return "string";
+                }
+            }
             case ast::SimpleTypeNode::Representation::RENAMING: {
                 auto* renamingType = dynamic_cast<ast::RenameTypeNode*>(type);
                 if(!ctx->getLookupTable().isTypeDefined(renamingType->getIdentifier()->getName(), "")) {
@@ -2971,7 +3015,7 @@ bool variableIsReassignedS(const std::string& varName, ast::StatementNode* stmt)
                 }
                 auto args = builtinCall->getArguments()->getArguments();
 
-                if(builtinCall->getName() == ast::BuiltinCallNode::FunctionName::READ) {
+                if(builtinCall->getFunctionName() == ast::BuiltinCallNode::FunctionName::READ) {
                     if(args.front()->getOperation() == ast::ExpressionNode::Operation::SPECIAL) {
                         ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(args.front());
                         if(special->getFunctionName() == ast::SpecialExpressionNode::VARIABLE) {
@@ -2980,7 +3024,7 @@ bool variableIsReassignedS(const std::string& varName, ast::StatementNode* stmt)
                         }
                     }
                 }
-                if(builtinCall->getName() == ast::BuiltinCallNode::FunctionName::MEMORY_READ) {
+                if(builtinCall->getFunctionName() == ast::BuiltinCallNode::FunctionName::MEMORY_READ) {
                     if(args.back()->getOperation() == ast::ExpressionNode::Operation::SPECIAL) {
                         ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(args.back());
                         if(special->getFunctionName() == ast::SpecialExpressionNode::VARIABLE) {
@@ -2989,7 +3033,7 @@ bool variableIsReassignedS(const std::string& varName, ast::StatementNode* stmt)
                         }
                     }
                 }
-                if(builtinCall->getName() == ast::BuiltinCallNode::FunctionName::STACK_READ) {
+                if(builtinCall->getFunctionName() == ast::BuiltinCallNode::FunctionName::STACK_READ) {
                     if(args.back()->getOperation() == ast::ExpressionNode::Operation::SPECIAL) {
                         ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(args.back());
                         if(special->getFunctionName() == ast::SpecialExpressionNode::VARIABLE) {

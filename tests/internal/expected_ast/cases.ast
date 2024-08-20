@@ -20,7 +20,7 @@ ProgramNode Cases:
           Identifiers:
             IdentifierNode: MyDay
         Group 1:
-          SimpleTypeNode CHAR
+          BasicTypeNode CHAR
           Identifiers:
             IdentifierNode: MyChar
       Routines:

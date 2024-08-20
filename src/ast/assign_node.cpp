@@ -6,17 +6,18 @@ void AssignNode::accept(AstVisitor* visitor) const {
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> AssignNode::clone() const {
-  ExpressionNode *newLhs = dynamic_cast<ExpressionNode *>(lhs_->clone().release());
-  ExpressionNode *newRhs = dynamic_cast<ExpressionNode *>(rhs_->clone().release());
+  ExpressionNode* newLhs = dynamic_cast<ExpressionNode*>(lhs_->clone().release());
+  ExpressionNode* newRhs = dynamic_cast<ExpressionNode*>(rhs_->clone().release());
 
   return std::make_unique<AssignNode>(newLhs, newRhs);
 }
 
-void AssignNode::print(std::ostream &out, int tab) const {
+void AssignNode::print(std::ostream& out, int tab) const {
   if (getLabel().has_value()) {
-	out << std::string(tab, ' ') << "AssignNode with label: " << getLabel().value() << "\n";
-  } else {
-	out << std::string(tab, ' ') << "AssignNode\n";
+    out << std::string(tab, ' ') << "AssignNode with label: " << getLabel().value() << "\n";
+  }
+  else {
+    out << std::string(tab, ' ') << "AssignNode\n";
   }
 
   lhs_->print(out, tab + 2);

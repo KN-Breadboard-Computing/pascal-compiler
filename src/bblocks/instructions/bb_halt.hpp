@@ -9,16 +9,16 @@ class BBHalt : public BBInstruction {
   BBHalt() = default;
 
   BBHalt(const BBHalt&) = default;
-  BBHalt(BBHalt&&) = default;
+  BBHalt(BBHalt&&) noexcept = default;
 
   BBHalt& operator=(const BBHalt&) = default;
-  BBHalt& operator=(BBHalt&&) = default;
+  BBHalt& operator=(BBHalt&&) noexcept = default;
 
   ~BBHalt() override = default;
 
-  virtual void print(std::ostream& out, int tab) const override {
-    out << std::string(tab, ' ') << "HALT" << std::endl;
-  }
+  virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBHalt>(); }
+
+  virtual void print(std::ostream& out, int tab) const override { out << std::string(tab, ' ') << "halt" << std::endl; }
 };
 }  // namespace bblocks
 
