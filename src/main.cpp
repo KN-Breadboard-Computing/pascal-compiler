@@ -9,7 +9,7 @@ bool parse(const std::string& inputFileName, std::vector<std::string>& errors, s
 int main(int argc, char* argv[]) {
   constexpr int expectedArgumentsNumber{5};
   if (argc != expectedArgumentsNumber) {
-    std::cerr << "Usage: " << argv[0] << " <input-file> <output-ast-file> <output-bblocks-file> <output-asm-file>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <input_ast-file> <output-ast-file> <output-bblocks-file> <output-asm-file>" << std::endl;
     return 1;
   }
 

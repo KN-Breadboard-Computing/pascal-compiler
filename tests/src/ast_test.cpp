@@ -33,7 +33,7 @@ TEST(toAstConversion, emptyProgram) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/empty-program.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/empty-program.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -45,7 +45,7 @@ TEST(toAstConversion, constTypeVarDefs) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/const-type-var-defs.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/const-type-var-defs.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -57,7 +57,7 @@ TEST(toAstConversion, constTypeVarDefs1) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/const-type-var-defs1.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/const-type-var-defs1.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -68,7 +68,7 @@ TEST(toAstConversion, constTypeVarDefs2) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/const-type-var-defs2.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/const-type-var-defs2.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -79,7 +79,7 @@ TEST(toAstConversion, constTypeVarDefs3) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/const-type-var-defs3.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/const-type-var-defs3.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -90,7 +90,7 @@ TEST(toAstConversion, lValues) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/lvalues.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/lvalues.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -101,7 +101,7 @@ TEST(toAstConversion, recordFieldRedeclaration) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/record-field-redeclaration.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/record-field-redeclaration.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -112,7 +112,7 @@ TEST(toAstConversion, arrayDeclaration) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/array-declaration.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/array-declaration.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -124,7 +124,7 @@ TEST(toAstConversion, arrayStringIndex) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/array-string-index.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/array-string-index.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -135,7 +135,7 @@ TEST(toAstConversion, arrayVariousIndexRangeTypes) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/array-various-index-range-types.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/array-various-index-range-types.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -146,7 +146,7 @@ TEST(toAstConversion, predSuccOddAbs) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/pred-succ-odd-abs.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/pred-succ-odd-abs.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -158,7 +158,7 @@ TEST(toAstConversion, chrOrd) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/chr-ord.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/chr-ord.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -170,7 +170,7 @@ TEST(toAStConversion, succInvalidArgsNumber) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/succ-invalid-args-number.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/succ-invalid-args-number.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -181,7 +181,7 @@ TEST(toAstConversion, succInvalidArgType) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/succ-invalid-arg-type.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/succ-invalid-arg-type.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -192,7 +192,7 @@ TEST(toAstConversion, succInvalidReturnType) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/succ-invalid-return-type.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/succ-invalid-return-type.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -203,7 +203,7 @@ TEST(toAstCOnversion, expressions) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/expressions.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/expressions.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -215,7 +215,7 @@ TEST(toAstConversion, mathExpressionDifferentTypes) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/math-expression-different-types.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/math-expression-different-types.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -226,7 +226,7 @@ TEST(toAstConversion, boolExpressionDifferentTypes) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/bool-expression-different-types.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/bool-expression-different-types.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -239,7 +239,7 @@ TEST(toAstConversion, io) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/io.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/io.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -251,7 +251,7 @@ TEST(toAstConversion, ioComplexType) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/io-complex-type.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/io-complex-type.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -263,7 +263,7 @@ TEST(toAstConversion, ioInvalidArguments) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/io-invalid-arguments.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/io-invalid-arguments.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -275,7 +275,7 @@ TEST(toAstConversion, procFunDefs) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/proc-fun-defs.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/proc-fun-defs.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -287,7 +287,7 @@ TEST(toAstConversion, routineScoping) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/routine-scoping.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/routine-scoping.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -299,7 +299,7 @@ TEST(toAstConversion, recursion) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/recursion.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/recursion.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -311,7 +311,7 @@ TEST(toAstConversion, funMultipleReturn) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/fun-multiple-return.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/fun-multiple-return.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -322,7 +322,7 @@ TEST(toAstConversion, funNoReturn) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/fun-no-return.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/fun-no-return.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -333,7 +333,7 @@ TEST(toAstConversion, funNoReturnType) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/fun-no-return-type.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/fun-no-return-type.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -344,7 +344,7 @@ TEST(toAstConversion, typeCast) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/type-cast.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/type-cast.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -356,7 +356,7 @@ TEST(toAstConversion, ifs) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/ifs.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/ifs.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -368,7 +368,7 @@ TEST(toAstConversion, repeats) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/repeats.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/repeats.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -380,7 +380,7 @@ TEST(toAstConversion, whiles) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/whiles.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/whiles.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -392,7 +392,7 @@ TEST(toAstConversion, fors) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/fors.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/fors.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -404,7 +404,7 @@ TEST(toAstConversion, forIteratorRedeclaration) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/for-iterator-redeclaration.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/for-iterator-redeclaration.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -415,7 +415,7 @@ TEST(toAstConversion, forIndexReassignment1) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/for-index-reassignment1.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/for-index-reassignment1.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -426,7 +426,7 @@ TEST(toAstConversion, forIndexReassignment2) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/for-index-reassignment2.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/for-index-reassignment2.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -437,7 +437,7 @@ TEST(toAstConversion, forIndexReassignment3) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/for-index-reassignment3.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/for-index-reassignment3.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -448,7 +448,7 @@ TEST(toAstConversion, passConstantAsReferenceArgument) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/pass-constant-as-reference-argument.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/pass-constant-as-reference-argument.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -459,7 +459,7 @@ TEST(toAstConversion, gotos) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/gotos.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/gotos.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -471,7 +471,7 @@ TEST(toAstConversion, gotoStrLabel) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/goto-str-label.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/goto-str-label.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -482,7 +482,7 @@ TEST(astConversion, cases) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/cases.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/cases.pas", errors, program);
 
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
@@ -494,7 +494,7 @@ TEST(astConversion, caseMultipleOtherwise) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/case-multiple-otherwise.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/case-multiple-otherwise.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -505,7 +505,7 @@ TEST(astConversion, caseOtherwiseNoLast) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/case-otherwise-no-last.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/case-otherwise-no-last.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -516,7 +516,7 @@ TEST(toAstConversion, caseInvalidExpressionType) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/case-invalid-expression-type.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/case-invalid-expression-type.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
@@ -527,7 +527,7 @@ TEST(toAstConversion, variableEnumNameCollision) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
 
-  const auto result = parse("tests/internal/input/variable-enum-name-collision.pas", errors, program);
+  const auto result = parse("tests/internal/input_ast/variable-enum-name-collision.pas", errors, program);
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);

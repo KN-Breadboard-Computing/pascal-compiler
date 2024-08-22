@@ -45,7 +45,7 @@ class BBControlFlowGraph {
   [[nodiscard]] const std::string& getEntryLabel() const { return entryLabel_; }
   [[nodiscard]] const std::string& getExitLabel() const { return exitLabel_; }
   [[nodiscard]] const std::map<std::string, BasicBlock>& getBasicBlocks() const { return basicBlocks_; }
-  [[nodiscard]] const BasicBlock& getBasicBlock(const std::string& blockLabel) { return basicBlocks_.at(blockLabel); }
+  [[nodiscard]] BasicBlock& getBasicBlock(const std::string& blockLabel) { return basicBlocks_.at(blockLabel); }
   [[nodiscard]] const std::vector<std::string>& getOutLinks(const std::string& blockLabel) const {
     return srcDest_.at(blockLabel);
   }

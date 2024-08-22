@@ -309,13 +309,132 @@ void BbCfgGenerator::visit(const ast::BreakNode* /*node*/) {}
 
 void BbCfgGenerator::visit(const ast::ContinueNode* /*node*/) {}
 
-void BbCfgGenerator::visit(const ast::ForNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::ForNode* node) {
+  const std::string statementsBeforeFor = ctx->generateBasicBlockLabel();
+  saveBasicBlock(statementsBeforeFor, true, true);
+
+  const std::string firstBeginStatement = ctx->generateBasicBlockLabel();
+  const std::string lastBeginStatement = ctx->generateBasicBlockLabel();
+  newControlFlowGraph(firstBeginStatement);
+  node->getStart()->accept(this);
+  const std::string beginVariable = ctx->getLastTempVariable();
+  currentBasicBlock_.addInstruction(std::make_unique<BBMoveVV>(
+      beginVariable, node->getIterator()->getName(), BBMoveVV::SourceType::VARIABLE, BBMoveVV::DestinationType::VARIABLE));
+  saveBasicBlock(lastBeginStatement, true, true);
+  const BBControlFlowGraph begin{std::move(controlFlowGraphs_.top())};
+  controlFlowGraphs_.pop();
+  controlFlowGraphs_.top().merge(begin);
+  controlFlowGraphs_.top().setExitLabel(lastBeginStatement);
+
+  const std::string firstEndStatement = ctx->generateBasicBlockLabel();
+  const std::string lastEndStatement = ctx->generateBasicBlockLabel();
+  newControlFlowGraph(firstEndStatement);
+  node->getEnd()->accept(this);
+  const std::string endVariable = ctx->getLastTempVariable();
+  saveBasicBlock(lastEndStatement, true, true);
+  const BBControlFlowGraph end{std::move(controlFlowGraphs_.top())};
+  controlFlowGraphs_.pop();
+  controlFlowGraphs_.top().merge(end);
+  controlFlowGraphs_.top().setExitLabel(lastEndStatement);
+
+  currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
+      node->getIterator()->getName(), endVariable, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::SUB,
+      BBBinaryOperationVVV::DestinationType::VARIABLE));
+  const std::string conditionVariable = ctx->getLastTempVariable();
+  const std::string conditionStatement = ctx->generateBasicBlockLabel();
+  saveBasicBlock(conditionStatement, true, true);
+
+  const std::string firstBodyStatement = ctx->generateBasicBlockLabel();
+  const std::string lastBodyStatement = ctx->generateBasicBlockLabel();
+  newControlFlowGraph(firstBodyStatement);
+  node->getStatements()->accept(this);
+  currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVNV>(
+      node->getIterator()->getName(), 1, node->getIterator()->getName(),
+      node->getDirection() == ast::ForNode::INCREMENT ? BBBinaryOperationVNV::OperationType::ADD
+                                                      : BBBinaryOperationVNV::OperationType::SUB,
+      BBBinaryOperationVNV::DestinationType::VARIABLE));
+  saveBasicBlock(lastBodyStatement, true, true);
+  const BBControlFlowGraph body{std::move(controlFlowGraphs_.top())};
+  controlFlowGraphs_.pop();
+  controlFlowGraphs_.top().merge(body);
+
+  controlFlowGraphs_.top().addBlocksLink(lastBodyStatement, conditionStatement);
+
+  const std::string exitLabel = ctx->generateBasicBlockLabel();
+  saveBasicBlock(exitLabel, true, true);
+
+  controlFlowGraphs_.top()
+      .getBasicBlock(conditionStatement)
+      .addInstruction(std::make_unique<BBBranchV>(conditionVariable,
+                                                  node->getDirection() == ast::ForNode::Direction::INCREMENT
+                                                      ? BBBranchV::Condition::POSITIVE
+                                                      : BBBranchV::Condition::NEGATIVE,
+                                                  firstBodyStatement, exitLabel));
+}
 
 void BbCfgGenerator::visit(const ast::GotoNode* /*node*/) {}
 
 void BbCfgGenerator::visit(const ast::IdentifierNode* /*node*/) {}
 
-void BbCfgGenerator::visit(const ast::IfNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::IfNode* node) {
+  const std::string statementsBeforeIf = ctx->generateBasicBlockLabel();
+  saveBasicBlock(statementsBeforeIf, true, true);
+
+  const std::string firstConditionStatement = ctx->generateBasicBlockLabel();
+  const std::string lastConditionStatement = ctx->generateBasicBlockLabel();
+  newControlFlowGraph(firstConditionStatement);
+  node->getCondition()->accept(this);
+  const std::string conditionVariable = ctx->getLastTempVariable();
+  saveBasicBlock(lastConditionStatement, true, true);
+  const BBControlFlowGraph condition{std::move(controlFlowGraphs_.top())};
+  controlFlowGraphs_.pop();
+  controlFlowGraphs_.top().merge(condition);
+  controlFlowGraphs_.top().setExitLabel(lastConditionStatement);
+
+  const std::string firstTrueStatement = ctx->generateBasicBlockLabel();
+  const std::string lastTrueStatement = ctx->generateBasicBlockLabel();
+  newControlFlowGraph(firstTrueStatement);
+  node->getThenStatement()->accept(this);
+  saveBasicBlock(lastTrueStatement, true, false);
+  const BBControlFlowGraph trueStatement{std::move(controlFlowGraphs_.top())};
+  controlFlowGraphs_.pop();
+  controlFlowGraphs_.top().merge(trueStatement, lastConditionStatement);
+  controlFlowGraphs_.top().setExitLabel(lastTrueStatement);
+
+  std::string firstFalseStatement;
+  std::string lastFalseStatement;
+  if (node->getElseStatement() != nullptr) {
+    firstFalseStatement = ctx->generateBasicBlockLabel();
+    lastFalseStatement = ctx->generateBasicBlockLabel();
+    newControlFlowGraph(firstFalseStatement);
+    node->getElseStatement()->accept(this);
+    saveBasicBlock(lastFalseStatement, true, false);
+    const BBControlFlowGraph falseStatement{std::move(controlFlowGraphs_.top())};
+    controlFlowGraphs_.pop();
+    controlFlowGraphs_.top().merge(falseStatement, lastConditionStatement);
+    controlFlowGraphs_.top().setExitLabel(lastFalseStatement);
+  }
+
+  const std::string exitLabel = ctx->generateBasicBlockLabel();
+  saveBasicBlock(exitLabel, false, true);
+
+  controlFlowGraphs_.top().addBlocksLink(lastTrueStatement, exitLabel);
+
+  if (node->getElseStatement() != nullptr) {
+    controlFlowGraphs_.top().addBlocksLink(lastFalseStatement, exitLabel);
+    controlFlowGraphs_.top()
+        .getBasicBlock(lastConditionStatement)
+        .addInstruction(std::make_unique<BBBranchV>(conditionVariable, BBBranchV::Condition::NONZERO, firstTrueStatement,
+                                                    firstFalseStatement));
+  }
+  else {
+    controlFlowGraphs_.top().addBlocksLink(lastConditionStatement, exitLabel);
+    controlFlowGraphs_.top()
+        .getBasicBlock(lastConditionStatement)
+        .addInstruction(
+            std::make_unique<BBBranchV>(conditionVariable, BBBranchV::Condition::NONZERO, firstTrueStatement, exitLabel));
+  }
+}
 
 void BbCfgGenerator::visit(const ast::ParamsGroupNode* /*node*/) {}
 
@@ -328,7 +447,43 @@ void BbCfgGenerator::visit(const ast::ProgramNode* node) {
 
 void BbCfgGenerator::visit(const ast::RecordTypeNode* /*node*/) {}
 
-void BbCfgGenerator::visit(const ast::RepeatNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::RepeatNode* node) {
+  const std::string statementsBeforeRepeat = ctx->generateBasicBlockLabel();
+  saveBasicBlock(statementsBeforeRepeat, true, true);
+
+  const std::string firstBodyStatement = ctx->generateBasicBlockLabel();
+  const std::string lastBodyStatement = ctx->generateBasicBlockLabel();
+  newControlFlowGraph(firstBodyStatement);
+  for (const auto* statement : *node->getStatements()) {
+    statement->accept(this);
+  }
+  saveBasicBlock(lastBodyStatement, true, true);
+  const BBControlFlowGraph body{std::move(controlFlowGraphs_.top())};
+  controlFlowGraphs_.pop();
+  controlFlowGraphs_.top().merge(body);
+  controlFlowGraphs_.top().setExitLabel(lastBodyStatement);
+
+  const std::string firstConditionStatement = ctx->generateBasicBlockLabel();
+  const std::string lastConditionStatement = ctx->generateBasicBlockLabel();
+  newControlFlowGraph(firstConditionStatement);
+  node->getCondition()->accept(this);
+  const std::string conditionVariable = ctx->getLastTempVariable();
+  saveBasicBlock(lastConditionStatement, true, true);
+  const BBControlFlowGraph condition{std::move(controlFlowGraphs_.top())};
+  controlFlowGraphs_.pop();
+  controlFlowGraphs_.top().merge(condition);
+  controlFlowGraphs_.top().setExitLabel(lastConditionStatement);
+
+  controlFlowGraphs_.top().addBlocksLink(lastConditionStatement, firstBodyStatement);
+
+  const std::string exitLabel = ctx->generateBasicBlockLabel();
+  saveBasicBlock(exitLabel, true, true);
+
+  controlFlowGraphs_.top()
+      .getBasicBlock(lastConditionStatement)
+      .addInstruction(
+          std::make_unique<BBBranchV>(conditionVariable, BBBranchV::Condition::NONZERO, firstBodyStatement, exitLabel));
+}
 
 void BbCfgGenerator::visit(const ast::RoutineBodyNode* node) {
   node->getStatements()->accept(this);
@@ -351,7 +506,7 @@ void BbCfgGenerator::visit(const ast::RoutineNode* node) {
 
   currentBasicBlock_.addInstruction(std::make_unique<BBHalt>());
   const std::string haltLabel = ctx->generateBasicBlockLabel();
-  saveBasicBlock(haltLabel, "last statements with halt", true, true);
+  saveBasicBlock(haltLabel, true, true);
 
   functionControlFlowGraphs_.insert({"program", controlFlowGraphs_.top()});
 }
@@ -368,13 +523,14 @@ void BbCfgGenerator::visit(const ast::VarRangeTypeNode* /*node*/) {}
 
 void BbCfgGenerator::visit(const ast::WhileNode* node) {
   const std::string statementsBeforeWhile = ctx->generateBasicBlockLabel();
-  saveBasicBlock(statementsBeforeWhile, "statements before while", true, true);
+  saveBasicBlock(statementsBeforeWhile, true, true);
 
   const std::string firstConditionStatement = ctx->generateBasicBlockLabel();
   const std::string lastConditionStatement = ctx->generateBasicBlockLabel();
   newControlFlowGraph(firstConditionStatement);
   node->getCondition()->accept(this);
-  saveBasicBlock(lastConditionStatement, "last statement of condition", true, true);
+  const std::string conditionVariable = ctx->getLastTempVariable();
+  saveBasicBlock(lastConditionStatement, true, true);
   const BBControlFlowGraph condition{std::move(controlFlowGraphs_.top())};
   controlFlowGraphs_.pop();
   controlFlowGraphs_.top().merge(condition);
@@ -384,13 +540,21 @@ void BbCfgGenerator::visit(const ast::WhileNode* node) {
   const std::string lastBodyStatement = ctx->generateBasicBlockLabel();
   newControlFlowGraph(firstBodyStatement);
   node->getStatements()->accept(this);
-  saveBasicBlock(lastBodyStatement, "last statement of body", true, true);
+  saveBasicBlock(lastBodyStatement, true, true);
   const BBControlFlowGraph body{std::move(controlFlowGraphs_.top())};
   controlFlowGraphs_.pop();
   controlFlowGraphs_.top().merge(body);
 
   controlFlowGraphs_.top().addBlocksLink(lastBodyStatement, firstConditionStatement);
   controlFlowGraphs_.top().setExitLabel(lastConditionStatement);
+
+  const std::string exitLabel = ctx->generateBasicBlockLabel();
+  saveBasicBlock(exitLabel, true, true);
+
+  controlFlowGraphs_.top()
+      .getBasicBlock(lastConditionStatement)
+      .addInstruction(
+          std::make_unique<BBBranchV>(conditionVariable, BBBranchV::Condition::NONZERO, firstBodyStatement, exitLabel));
 }
 
 std::map<std::string, BBControlFlowGraph> BbCfgGenerator::generate(const std::unique_ptr<ast::ProgramNode>& program) {
@@ -404,9 +568,7 @@ void BbCfgGenerator::newControlFlowGraph(const std::string& label) {
   controlFlowGraphs_.push(BBControlFlowGraph{label});
 }
 
-void BbCfgGenerator::saveBasicBlock(const std::string& label, const std::string& description, bool connectToLastBlock,
-                                    bool setAsExit) {
-  currentBasicBlock_.setDescription(description);
+void BbCfgGenerator::saveBasicBlock(const std::string& label, bool connectToLastBlock, bool setAsExit) {
   controlFlowGraphs_.top().addBBlock(label, std::move(currentBasicBlock_));
 
   if (connectToLastBlock) {

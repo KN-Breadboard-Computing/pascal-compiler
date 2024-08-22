@@ -7,7 +7,7 @@ This project can run on Linux, make sure you have flex and bison. If you do not 
 Then compile the project with the `make` command.
 
 # Supported Pascal Syntax
-The `tests/input` directory contains examples showing the syntax described below.
+The `tests/examples` directory contains examples showing the syntax described below.
 
 ## Identifiers
 + Pascal is case insensitive.

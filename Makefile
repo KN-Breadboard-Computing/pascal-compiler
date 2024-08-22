@@ -48,7 +48,7 @@ run-ast-test:
   	awk '{print "Passed count:", $$1}'
 
 run-bb-test:
-	@./ast-test | \
+	@./bb-test | \
     tee >(grep '^Total' | awk '{print $$0}' >&2) | \
     grep -c 'OK' | \
   	awk '{print "Passed count:", $$1}'
@@ -56,5 +56,8 @@ run-bb-test:
 clean:
 	rm -f compiler
 
-clean-test:
-	rm -f ast-test bb-test
+clean-ast-test:
+	rm -f ast-test
+
+clean-bb-test:
+	rm -f bb-test

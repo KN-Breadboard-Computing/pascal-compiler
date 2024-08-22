@@ -84,7 +84,7 @@ class BbCfgGenerator : public ast::AstVisitor {
 
  private:
   void newControlFlowGraph(const std::string& label);
-  void saveBasicBlock(const std::string& label, const std::string& description, bool connectToLastBlock, bool setAsExit);
+  void saveBasicBlock(const std::string& label, bool connectToLastBlock, bool setAsExit);
 
   void generateVariableMove(ast::ExpressionNode* dest, const std::string& src);
 
