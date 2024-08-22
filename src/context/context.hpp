@@ -28,28 +28,19 @@ class Context {
   [[nodiscard]] std::string generateTempVariable() { return "#t" + std::to_string(tempVariableCounter_++); }
   [[nodiscard]] std::string getLastTempVariable() const { return "#t" + std::to_string(tempVariableCounter_ - 1); }
 
-  [[nodiscard]] std::string generateBBlockLabel() { return "Block " + std::to_string(bblocksCounter_++); }
-  [[nodiscard]] std::string getLastBBlockLabel() const { return "Block " + std::to_string(bblocksCounter_ - 1); }
-  [[nodiscard]] std::vector<std::string> getNextBBlockLabels(size_t num) const {
-    std::vector<std::string> labels;
-    for (size_t i = 0; i < num; ++i) {
-      labels.emplace_back("Block " + std::to_string(bblocksCounter_ + i));
-    }
-    return labels;
-  }
-  void resetBBlockLabel() { bblocksCounter_ = 0; }
+  [[nodiscard]] std::string generateBasicBlockLabel() { return "bb" + std::to_string(basicBlockCounter_++); }
 
   [[nodiscard]] LookupTable& getLookupTable() { return lookupTable_; }
   [[nodiscard]] MemoryLayout& getMemoryLayout() { return memoryLayout_; }
 
  protected:
-  Context() : tempVariableCounter_{0}, bblocksCounter_{0} {}
+  Context() : tempVariableCounter_{0}, basicBlockCounter_{0} {}
 
  private:
   static Context* instance_;
 
   size_t tempVariableCounter_;
-  size_t bblocksCounter_;
+  size_t basicBlockCounter_;
 
   LookupTable lookupTable_;
   MemoryLayout memoryLayout_;

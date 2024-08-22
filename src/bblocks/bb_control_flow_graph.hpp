@@ -14,6 +14,9 @@ namespace bblocks {
 class BBControlFlowGraph {
  public:
   BBControlFlowGraph() = default;
+  explicit BBControlFlowGraph(const std::string& entryLabel) : entryLabel_{entryLabel}, exitLabel_{entryLabel} {
+    addBBlock(entryLabel, BasicBlock{});
+  }
 
   BBControlFlowGraph(const BBControlFlowGraph&) = default;
   BBControlFlowGraph(BBControlFlowGraph&&) = default;
@@ -23,37 +26,45 @@ class BBControlFlowGraph {
 
   virtual ~BBControlFlowGraph() = default;
 
-  void addBBlock(const std::string& label, BasicBlock basicBlock) { basicBlocks_.insert({label, std::move(basicBlock)}); }
+  void addBBlock(const std::string& label, BasicBlock basicBlock);
+  void addBlocksLink(const std::string& fromLabel, const std::string& toLabel);
 
-  void addBlocksLink(const std::string& label1, const std::string& label2) {
-    if (edges_.find(label1) == edges_.end()) {
-      edges_.insert({label1, {label2}});
-    }
-    else {
-      edges_[label1].emplace_back(label2);
-    }
+  void setEntryLabel(const std::string& entryLabel) {
+#ifdef BB_DEBUG
+    std::cout << "New entry label: " << entryLabel << std::endl;
+#endif
+    entryLabel_ = entryLabel;
+  }
+  void setExitLabel(const std::string& exitLabel) {
+#ifdef BB_DEBUG
+    std::cout << "New exit label: " << exitLabel << std::endl;
+#endif
+    exitLabel_ = exitLabel;
   }
 
-  friend std::ostream& operator<<(std::ostream& out, const std::map<std::string, BBControlFlowGraph>& cfgs) {
-    for (const auto& [name, cfg] : cfgs) {
-      out << "Control Flow Graph: " << name << std::endl;
-      for (const auto& basicBlock : cfg.basicBlocks_) {
-        out << basicBlock.first;
-        if (cfg.edges_.find(basicBlock.first) != cfg.edges_.end()) {
-          out << " -> ";
-          for (const auto& neighbour : cfg.edges_.at(basicBlock.first)) {
-            out << neighbour << " ";
-          }
-        }
-        out << std::endl << basicBlock.second << std::endl;
-      }
-    }
-    return out;
+  [[nodiscard]] const std::string& getEntryLabel() const { return entryLabel_; }
+  [[nodiscard]] const std::string& getExitLabel() const { return exitLabel_; }
+  [[nodiscard]] const std::map<std::string, BasicBlock>& getBasicBlocks() const { return basicBlocks_; }
+  [[nodiscard]] const BasicBlock& getBasicBlock(const std::string& blockLabel) { return basicBlocks_.at(blockLabel); }
+  [[nodiscard]] const std::vector<std::string>& getOutLinks(const std::string& blockLabel) const {
+    return srcDest_.at(blockLabel);
   }
+  [[nodiscard]] const std::vector<std::string>& getInLinks(const std::string& blockLabel) const {
+    return destSrc_.at(blockLabel);
+  }
+
+  void merge(const BBControlFlowGraph& cfg, const std::string& attachPoint, const std::string& cfgAttachPoint);
+  void merge(const BBControlFlowGraph& cfg, const std::string& attachPoint);
+  void merge(const BBControlFlowGraph& cfg);
+
+  friend std::ostream& operator<<(std::ostream& out, const BBControlFlowGraph& cfg);
 
  private:
+  std::string entryLabel_;
+  std::string exitLabel_;
   std::map<std::string, BasicBlock> basicBlocks_;
-  std::map<std::string, std::vector<std::string>> edges_;
+  std::map<std::string, std::vector<std::string>> srcDest_;
+  std::map<std::string, std::vector<std::string>> destSrc_;
 };
 }  // namespace bblocks
 

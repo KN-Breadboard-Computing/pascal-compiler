@@ -33,7 +33,9 @@ requires BranchArgs<ArgT> class BBBranch : public BBInstruction {
   [[nodiscard]] LabelType getTrueLabel() const { return trueLabel_; }
   [[nodiscard]] LabelType getFalseLabel() const { return falseLabel_; }
 
-  virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBBranch>(); }
+  virtual std::unique_ptr<BBInstruction> clone() const override {
+    return std::make_unique<BBBranch>(value_, condition_, trueLabel_, falseLabel_);
+  }
 
   virtual void print(std::ostream& out, int tab) const override {
     out << std::string(tab, ' ') << "br ";
@@ -41,6 +43,36 @@ requires BranchArgs<ArgT> class BBBranch : public BBInstruction {
     switch (condition_) {
       case Condition::ANY:
         out << "any ";
+        break;
+      case Condition::NEGATIVE:
+        out << "negative ";
+        break;
+      case Condition::POSITIVE:
+        out << "positive ";
+        break;
+      case Condition::ODD:
+        out << "odd ";
+        break;
+      case Condition::EVEN:
+        out << "even ";
+        break;
+      case Condition::ZERO:
+        out << "zero ";
+        break;
+      case Condition::NONZERO:
+        out << "nonzero ";
+        break;
+      case Condition::CARRY:
+        out << "carry ";
+        break;
+      case Condition::NOCARRY:
+        out << "nocarry ";
+        break;
+      case Condition::OVERFLOW:
+        out << "overflow ";
+        break;
+      case Condition::NOOVERFLOW:
+        out << "nooverflow ";
         break;
     }
 

@@ -104,7 +104,7 @@
 #include "../src/ast/type_node.hpp"
 #include "../src/ast/while_node.hpp"
 
-#include "../src/context.hpp"
+#include "../src/context/context.hpp"
 
 #undef YACC_DEBUG
 

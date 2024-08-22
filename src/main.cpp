@@ -37,10 +37,12 @@ int main(int argc, char* argv[]) {
   outputAstFile << *program;
 
   bblocks::BbCfgGenerator cfgGenerator;
-  const std::map<std::string, bblocks::BBControlFlowGraph> cfg{cfgGenerator.generate(program)};
+  const std::map<std::string, bblocks::BBControlFlowGraph> cfgs{cfgGenerator.generate(program)};
 
   std::ofstream outputBbFile(argv[3]);
-  outputBbFile << cfg;
+  for(const auto& [name, cfg]: cfgs) {
+    outputBbFile << name << ":\n" << cfg << std::endl;
+  }
 
   return 0;
 }

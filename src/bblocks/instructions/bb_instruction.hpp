@@ -6,6 +6,8 @@
 #include <string>
 #include <type_traits>
 
+#define BB_DEBUG
+
 typedef std::string VariableType;
 typedef int64_t NumericType;
 typedef bool BooleanType;

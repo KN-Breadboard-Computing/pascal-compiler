@@ -3,6 +3,7 @@
 
 #include <map>
 #include <memory>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -82,13 +83,15 @@ class BbCfgGenerator : public ast::AstVisitor {
   [[nodiscard]] std::map<std::string, BBControlFlowGraph> generate(const std::unique_ptr<ast::ProgramNode>& program);
 
  private:
-  void saveBasicBlock();
+  void newControlFlowGraph(const std::string& label);
+  void saveBasicBlock(const std::string& label, const std::string& description, bool connectToLastBlock, bool setAsExit);
+
   void generateVariableMove(ast::ExpressionNode* dest, const std::string& src);
 
   std::string currentScope_;
-  std::map<std::string, BBControlFlowGraph> controlFlowGraphs_;
-  BBControlFlowGraph currentControlFlowGraph_;
   BasicBlock currentBasicBlock_;
+  std::stack<BBControlFlowGraph> controlFlowGraphs_;
+  std::map<std::string, BBControlFlowGraph> functionControlFlowGraphs_;
 };
 }  // namespace bblocks
 
