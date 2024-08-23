@@ -5,6 +5,8 @@
 
 #include "../../src/ast/program_node.hpp"
 
+#undef YACC_ENABLE_GOTO
+
 bool parse(const std::string& inputFileName, std::vector<std::string>& errors, std::unique_ptr<ast::ProgramNode>& program);
 
 void validateAst(const std::unique_ptr<ast::ProgramNode>& program, const std::string& expectedAstFilename) {
@@ -461,10 +463,16 @@ TEST(toAstConversion, gotos) {
 
   const auto result = parse("tests/internal/input_ast/gotos.pas", errors, program);
 
+#ifdef YACC_ENABLE_GOTO
   ASSERT_TRUE(result);
   ASSERT_NE(program.get(), nullptr);
   ASSERT_EQ(errors.size(), 0);
   validateAst(program, "tests/internal/expected_ast/gotos.ast");
+#else
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 4, goto is disabled"});
+#endif
 }
 
 TEST(toAstConversion, gotoStrLabel) {
@@ -532,4 +540,28 @@ TEST(toAstConversion, variableEnumNameCollision) {
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
   ASSERT_EQ(errors, std::vector<std::string>{"Error at line 6, name `a` already used"});
+}
+
+TEST(toAstConversion, breakOutOfLoop) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input_ast/break-out-of-loop.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, (std::vector<std::string>{"Error at line 29, lack of end", "Error at line 29, lack of end dot",
+                                              "Error at line 29, syntax error"}));
+}
+
+TEST(toAstConversion, continueOutOfLoop) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input_ast/continue-out-of-loop.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, (std::vector<std::string>{"Error at line 31, lack of end", "Error at line 31, lack of end dot",
+                                              "Error at line 31, syntax error"}));
 }

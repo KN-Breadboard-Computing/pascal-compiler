@@ -37,6 +37,7 @@
 #include "../src/context/context.hpp"
 
 #undef YACC_DEBUG
+#undef YACC_ENABLE_GOTO
 
 Context* ctx = Context::getInstance();
 
@@ -218,20 +219,20 @@ std::string getRecordFieldType(const std::string& recordType, const std::string&
 %type <identifierList> name_list
 %type <identifierNode> identifier
 %type <routineBodyNode> routine_body
-%type <compoundStatementNode> compound_stmt
-%type <statementNodeList> stmt_list
-%type <statementNode> stmt no_label_stmt
+%type <compoundStatementNode> compound_stmt compound_loop_stmt
+%type <statementNodeList> stmt_list loop_stmt_list
+%type <statementNode> stmt loop_stmt no_label_stmt no_label_loop_stmt
 %type <assignNode> assign_stmt
 %type <gotoNode> goto_stmt
-%type <caseNode> case_stmt
+%type <caseNode> case_stmt case_loop_stmt
 %type <forNode> for_head for_stmt
 %type <whileNode> while_stmt
 %type <repeatNode> repeat_stmt
-%type <ifNode> if_stmt else_clause
+%type <ifNode> if_stmt if_loop_stmt else_clause else_loop_clause
 %type <callNode> proc_stmt
 %type <expressionNode> expression expr term factor lvalue
-%type <caseExprList> case_expr_list
-%type <caseExpr> case_expr
+%type <caseExprList> case_expr_list case_loop_expr_list
+%type <caseExpr> case_expr case_loop_expr
 %type <argsList> args_list
 %%
 
@@ -1144,6 +1145,25 @@ compound_stmt :
     }
 ;
 
+compound_loop_stmt :
+    BBEGIN loop_stmt_list END {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse loop compound statement 1" << std::endl;
+        #endif
+
+        $$ = new ast::CompoundStatementNode($2);
+    }
+|
+    BBEGIN loop_stmt_list {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse loop compound statement 2" << std::endl;
+        #endif
+
+        $$ = new ast::CompoundStatementNode($2);
+        parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of end");
+    }
+;
+
 stmt_list :
     {
         #ifdef YACC_DEBUG
@@ -1173,10 +1193,45 @@ stmt_list :
     }
 ;
 
+loop_stmt_list :
+    {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse empty loop statement list" << std::endl;
+        #endif
+
+        $$ = new std::vector<ast::StatementNode*>();
+    }
+|
+    loop_stmt_list loop_stmt SEMICOLON {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse loop statement list 1" << std::endl;
+        #endif
+
+        $$ = $1;
+        $$->push_back($2);
+    }
+|
+    loop_stmt_list loop_stmt {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse loop statement list 2" << std::endl;
+        #endif
+
+        $$ = $1;
+        $$->push_back($2);
+        parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
+    }
+;
+
 stmt :
     INTEGER COLON no_label_stmt {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse statement with label " << $1.numericalValue << std::endl;
+        #endif
+
+        #ifndef YACC_ENABLE_GOTO
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", goto is disabled");
+            fatalError = true;
+            YYERROR;
         #endif
 
         $$ = $3;
@@ -1186,6 +1241,31 @@ stmt :
     no_label_stmt {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse statement without label" << std::endl;
+        #endif
+
+        $$ = $1;
+    }
+;
+
+loop_stmt :
+    INTEGER COLON no_label_loop_stmt {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse loop statement with label " << $1.numericalValue << std::endl;
+        #endif
+
+        #ifndef YACC_ENABLE_GOTO
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", goto is disabled");
+            fatalError = true;
+            YYERROR;
+        #endif
+
+        $$ = $3;
+        $$->setLabel($1.numericalValue);
+    }
+|
+    no_label_loop_stmt {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse loop statement without label" << std::endl;
         #endif
 
         $$ = $1;
@@ -1212,6 +1292,12 @@ no_label_stmt :
     goto_stmt {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - goto" << std::endl;
+        #endif
+
+        #ifndef YACC_ENABLE_GOTO
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", goto is disabled");
+            fatalError = true;
+            YYERROR;
         #endif
 
         $$ = $1;
@@ -1264,10 +1350,84 @@ no_label_stmt :
 
         $$ = $1;
     }
+;
+
+no_label_loop_stmt :
+    assign_stmt {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse no label loop statement - assign" << std::endl;
+        #endif
+
+        $$=$1;
+    }
+|
+    compound_loop_stmt {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse no label loop statement - compound" << std::endl;
+        #endif
+
+        $$ = $1;
+    }
+|
+    goto_stmt {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse no label loop statement - goto" << std::endl;
+        #endif
+
+        $$ = $1;
+    }
+|
+    if_loop_stmt {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse no label loop statement - if" << std::endl;
+        #endif
+
+        $$ = $1;
+    }
+|
+    repeat_stmt {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse no label loop statement - repeat" << std::endl;
+        #endif
+
+        $$ = $1;
+    }
+|
+    while_stmt {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse no label loop statement - while" << std::endl;
+        #endif
+
+        $$ = $1;
+    }
+|
+    case_loop_stmt {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse no label loop statement - case" << std::endl;
+        #endif
+
+        $$ = $1;
+    }
+|
+    for_stmt {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse no label loop statement - for" << std::endl;
+        #endif
+
+        $$ = $1;
+    }
+|
+    proc_stmt {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse no label loop statement - proc" << std::endl;
+        #endif
+
+        $$ = $1;
+    }
 |
     BREAK {
         #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse no label statement - break" << std::endl;
+            std::cout << "Yacc debug: Parse no label loop statement - break" << std::endl;
         #endif
 
         $$ = new ast::BreakNode();
@@ -1275,7 +1435,7 @@ no_label_stmt :
 |
     CONTINUE {
         #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse no label statement - continue" << std::endl;
+            std::cout << "Yacc debug: Parse no label loop statement - continue" << std::endl;
         #endif
 
         $$ = new ast::ContinueNode();
@@ -1347,6 +1507,39 @@ if_stmt :
     }
 ;
 
+if_loop_stmt :
+    IF expression THEN loop_stmt else_loop_clause {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse if loop statement 1" << std::endl;
+        #endif
+
+        if($2->getInferredType() == "boolean") {
+            $$ = new ast::IfNode($2, $4, $5);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", if condition must be boolean expression");
+            fatalError = true;
+            YYERROR;
+        }
+    }
+|
+    IF expression loop_stmt else_loop_clause {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse if loop statement 2" << std::endl;
+        #endif
+
+        if($2->getInferredType() == "boolean") {
+            $$ = new ast::IfNode($2, $3, $4);
+        }
+        else {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of then");
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", if condition must be boolean expression");
+            fatalError = true;
+            YYERROR;
+        }
+    }
+;
+
 else_clause :
     {
         #ifdef YACC_DEBUG
@@ -1365,8 +1558,26 @@ else_clause :
     }
 ;
 
+else_loop_clause :
+    {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse empty else loop clause" << std::endl;
+        #endif
+
+        $$ = new ast::IfNode(nullptr, nullptr);
+    }
+|
+    ELSE loop_stmt {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse else loop clause" << std::endl;
+        #endif
+
+        $$ = new ast::IfNode(nullptr, nullptr, $2);
+    }
+;
+
 repeat_stmt :
-    REPEAT stmt_list UNTIL expression {
+    REPEAT loop_stmt_list UNTIL expression {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse repeat statement" << std::endl;
         #endif
@@ -1389,7 +1600,7 @@ repeat_stmt :
 ;
 
 while_stmt :
-    WHILE expression DO stmt {
+    WHILE expression DO loop_stmt {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse while statement" << std::endl;
         #endif
@@ -1409,6 +1620,61 @@ case_stmt :
     CASE expression OF case_expr_list END {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case statement" << std::endl;
+        #endif
+
+        if(!isBasicType($2->getInferredType()) && $2->getInferredType().substr(0, 5) != "enum%") {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", case expression must be integer, char, boolean or enum type");
+            fatalError = true;
+            YYERROR;
+        }
+
+        bool otherwiseFound{false};
+        for(const auto& caseExpr : *$4) {
+            if(caseExpr->first != nullptr) {
+                if(otherwiseFound) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", otherwise must be last label");
+                    fatalError = true;
+                    YYERROR;
+                }
+
+                if(caseExpr->first->getOperation() != ast::ExpressionNode::Operation::SPECIAL) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", case value must be constant");
+                    fatalError = true;
+                    YYERROR;
+                }
+
+                ast::SpecialExpressionNode* specialExpr = dynamic_cast<ast::SpecialExpressionNode*>(caseExpr->first);
+                if(specialExpr->getFunctionName() != ast::SpecialExpressionNode::FunctionName::CONST &&
+                    specialExpr->getFunctionName() != ast::SpecialExpressionNode::FunctionName::ENUM_ELEMENT) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", case value must be constant");
+                    fatalError = true;
+                    YYERROR;
+                }
+
+                if(specialExpr->getInferredType() != $2->getInferredType()) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", case expression must be the same type as case value");
+                    fatalError = true;
+                    YYERROR;
+                }
+            }
+            else if(otherwiseFound) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", otherwise label can be used only once");
+                fatalError = true;
+                YYERROR;
+            }
+            else {
+                otherwiseFound = true;
+            }
+        }
+
+        $$ = new ast::CaseNode($2, $4);
+    }
+;
+
+case_loop_stmt :
+    CASE expression OF case_loop_expr_list END {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse case loop statement" << std::endl;
         #endif
 
         if(!isBasicType($2->getInferredType()) && $2->getInferredType().substr(0, 5) != "enum%") {
@@ -1480,6 +1746,26 @@ case_expr_list :
     }
 ;
 
+case_loop_expr_list :
+    case_loop_expr_list case_loop_expr {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse case loop expr list 1" << std::endl;
+        #endif
+
+        $$ = $1;
+        $$->push_back($2);
+    }
+|
+    case_loop_expr {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse case loop expr list 2" << std::endl;
+        #endif
+
+        $$ = new std::vector<std::pair<ast::ExpressionNode*, ast::StatementNode*>*>();
+        $$->push_back($1);
+    }
+;
+
 case_expr :
     expression COLON stmt SEMICOLON {
         #ifdef YACC_DEBUG
@@ -1498,8 +1784,26 @@ case_expr :
     }
 ;
 
+case_loop_expr:
+    expression COLON loop_stmt SEMICOLON {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse case loop expr 1" << std::endl;
+        #endif
+
+        $$ = new std::pair<ast::ExpressionNode*, ast::StatementNode*>($1, $3);
+    }
+|
+    OTHERWISE loop_stmt SEMICOLON {
+        #ifdef YACC_DEBUG
+            std::cout << "Yacc debug: Parse case loop expr 3" << std::endl;
+        #endif
+
+        $$ = new std::pair<ast::ExpressionNode*, ast::StatementNode*>(nullptr, $2);
+    }
+;
+
 for_stmt :
-    for_head stmt {
+    for_head loop_stmt {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse for statement" << std::endl;
         #endif
@@ -2469,6 +2773,7 @@ lvalue :
 void yyerror(const char *s) {
     parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + s);
     fatalError = true;
+    resultAst = nullptr;
 }
 
 bool parse(const std::string& inputFileName, std::vector<std::string>& errors, std::unique_ptr<ast::ProgramNode>& program) {
@@ -3048,7 +3353,7 @@ bool variableIsReassignedS(const std::string& varName, ast::StatementNode* stmt)
         }
         case ast::StatementNode::Category::CASE: {
             for(auto caseStatement: *dynamic_cast<ast::CaseNode*>(stmt)->getStatements()) {
-                if(caseStatement->first->getType() == ast::AstNode::Type::EXPRESSION) {
+                if(caseStatement->first != nullptr && caseStatement->first->getType() == ast::AstNode::Type::EXPRESSION) {
                     if(variableIsReassignedE(varName, dynamic_cast<ast::ExpressionNode*>(caseStatement->first))) {
                         return true;
                     }

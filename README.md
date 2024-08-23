@@ -242,7 +242,7 @@ repeat
 until BooleanExpression;
 ```
 
-### Goto
+### Goto - disabled
 ```
 GOTO Label;
 .
