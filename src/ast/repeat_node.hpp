@@ -11,7 +11,7 @@ namespace ast {
 class RepeatNode : public StatementNode {
  public:
   RepeatNode() : StatementNode{Category::REPEAT} {}
-  RepeatNode(ExpressionNode* condition, std::vector<StatementNode*>* statements)
+  RepeatNode(ExpressionNode* condition, StatementNode* statements)
       : StatementNode{Category::REPEAT}, condition_{condition}, statements_{statements} {}
 
   RepeatNode(const RepeatNode&) = delete;
@@ -23,10 +23,10 @@ class RepeatNode : public StatementNode {
   ~RepeatNode() override = default;
 
   const std::unique_ptr<ExpressionNode>& getCondition() const { return condition_; }
-  const std::unique_ptr<std::vector<StatementNode*>>& getStatements() const { return statements_; }
+  const std::unique_ptr<StatementNode>& getStatements() const { return statements_; }
 
   void setCondition(std::unique_ptr<ExpressionNode> condition) { condition_ = std::move(condition); }
-  void setStatements(std::unique_ptr<std::vector<StatementNode*>> statements) { statements_ = std::move(statements); }
+  void setStatements(std::unique_ptr<StatementNode> statements) { statements_ = std::move(statements); }
 
   virtual void accept(AstVisitor* visitor) const override;
   virtual std::unique_ptr<AstNode> clone() const override;
@@ -34,7 +34,7 @@ class RepeatNode : public StatementNode {
 
  private:
   std::unique_ptr<ExpressionNode> condition_;
-  std::unique_ptr<std::vector<StatementNode*>> statements_;
+  std::unique_ptr<StatementNode> statements_;
 };
 }  // namespace ast
 

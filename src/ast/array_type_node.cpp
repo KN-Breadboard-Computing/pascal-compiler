@@ -1,6 +1,10 @@
 #include "array_type_node.hpp"
 
 namespace ast {
+std::string ArrayTypeNode::flat() const {
+  return "array@@" + range_->flat() + "@" + elementType_->flat() + "@@";
+}
+
 void ArrayTypeNode::accept(AstVisitor* visitor) const {
   visitor->visit(this);
 }

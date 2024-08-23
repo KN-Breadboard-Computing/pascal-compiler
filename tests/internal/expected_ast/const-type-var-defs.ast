@@ -23,9 +23,6 @@ ProgramNode ConstTypeVarDefs:
         Constant 6:
           IdentifierNode: c7
           ConstantInteger<-255>
-        Constant 7:
-          IdentifierNode: c8
-          ConstantString<Hello>
       Types:
         Type 0:
           IdentifierNode: IntRenamed

@@ -1,6 +1,45 @@
 #include "constant_node.hpp"
 
 namespace ast {
+[[nodiscard]] std::string ConstantNode::flat() const {
+  switch (constantType_) {
+    case UNSPECIFIED: {
+      throw std::runtime_error("unspecified type");
+    }
+    case INTEGER: {
+      const IntegerConstantNode* integerNode = dynamic_cast<const IntegerConstantNode*>(this);
+      return std::to_string(integerNode->getValue());
+    }
+    case CHAR: {
+      const CharConstantNode* charNode = dynamic_cast<const CharConstantNode*>(this);
+      return std::string(1, charNode->getValue());
+    }
+    case BOOLEAN: {
+      const BooleanConstantNode* boolNode = dynamic_cast<const BooleanConstantNode*>(this);
+      return boolNode->getValue() ? "true" : "false";
+    }
+    case STRING: {
+      const StringConstantNode* stringNode = dynamic_cast<const StringConstantNode*>(this);
+      return stringNode->getValue();
+    }
+  }
+}
+
+std::string ConstantNode::flatType() const {
+  switch (constantType_) {
+    case UNSPECIFIED:
+      throw std::runtime_error("unspecified type");
+    case INTEGER:
+      return "integer";
+    case CHAR:
+      return "char";
+    case BOOLEAN:
+      return "boolean";
+    case STRING:
+      return "string";
+  }
+}
+
 void ConstantNode::accept(AstVisitor* visitor) const {
   visitor->visit(this);
 }

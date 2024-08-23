@@ -30,6 +30,8 @@ class RecordTypeNode : public TypeNode {
     fields_ = std::move(fields);
   }
 
+  [[nodiscard]] virtual std::string flat() const override;
+
   virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream& out, int tab) const override;

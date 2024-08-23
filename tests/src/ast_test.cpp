@@ -565,3 +565,25 @@ TEST(toAstConversion, continueOutOfLoop) {
   ASSERT_EQ(errors, (std::vector<std::string>{"Error at line 31, lack of end", "Error at line 31, lack of end dot",
                                               "Error at line 31, syntax error"}));
 }
+
+TEST(toAstConversion, assignToConst) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input_ast/assign-to-const.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 7, left side of assignment must be assignable"});
+}
+
+TEST(toAstConversion, stringConstant) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+
+  const auto result = parse("tests/internal/input_ast/string-constant.pas", errors, program);
+
+  ASSERT_FALSE(result);
+  ASSERT_EQ(program.get(), nullptr);
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 4, const type must be basic"});
+}

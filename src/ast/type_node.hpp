@@ -2,6 +2,7 @@
 #define AST_TYPE_NODE_HPP
 
 #include <memory>
+#include <stdexcept>
 
 #include "ast_node.hpp"
 
@@ -22,6 +23,7 @@ class TypeNode : public AstNode {
   ~TypeNode() override = default;
 
   [[nodiscard]] TypeType getTypeType() const { return typeType_; }
+  [[nodiscard]] virtual std::string flat() const = 0;
 
  private:
   TypeType typeType_;

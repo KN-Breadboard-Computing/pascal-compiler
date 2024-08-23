@@ -46,6 +46,8 @@ class BasicTypeNode : public SimpleTypeNode {
 
   void setBasicType(BasicType basicType) { basicType_ = basicType; }
 
+  [[nodiscard]] virtual std::string flat() const override;
+
   virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream& out, int tab) const override;
@@ -70,6 +72,8 @@ class RenameTypeNode : public SimpleTypeNode {
   [[nodiscard]] const std::unique_ptr<IdentifierNode>& getIdentifier() const { return identifier_; }
 
   void setIdentifier(std::unique_ptr<IdentifierNode> identifier) { identifier_ = std::move(identifier); }
+
+  [[nodiscard]] virtual std::string flat() const override;
 
   virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
@@ -96,6 +100,8 @@ class EnumerationTypeNode : public SimpleTypeNode {
   [[nodiscard]] const std::unique_ptr<std::vector<IdentifierNode*>>& getIdentifiers() const { return identifiers_; }
 
   void setIdentifiers(std::unique_ptr<std::vector<IdentifierNode*>> identifiers) { identifiers_ = std::move(identifiers); }
+
+  [[nodiscard]] virtual std::string flat() const override;
 
   virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
@@ -125,6 +131,8 @@ class ConstRangeTypeNode : public SimpleTypeNode {
   void setLowerBound(std::unique_ptr<ConstantNode> lowerBound) { lowerBound_ = std::move(lowerBound); }
   void setUpperBound(std::unique_ptr<ConstantNode> upperBound) { upperBound_ = std::move(upperBound); }
 
+  [[nodiscard]] virtual std::string flat() const override;
+
   virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
   virtual void print(std::ostream& out, int tab) const override;
@@ -153,6 +161,8 @@ class VarRangeTypeNode : public SimpleTypeNode {
 
   void setLowerBound(std::unique_ptr<IdentifierNode> lowerBound) { lowerBound_ = std::move(lowerBound); }
   void setUpperBound(std::unique_ptr<IdentifierNode> upperBound) { upperBound_ = std::move(upperBound); }
+
+  [[nodiscard]] virtual std::string flat() const override;
 
   virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;

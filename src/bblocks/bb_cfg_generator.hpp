@@ -38,7 +38,11 @@
 namespace bblocks {
 class BbCfgGenerator : public ast::AstVisitor {
  public:
-  BbCfgGenerator() = default;
+  BbCfgGenerator() {
+    typeBytes.insert({"integer", 1});
+    typeBytes.insert({"boolean", 1});
+    typeBytes.insert({"char", 1});
+  }
 
   BbCfgGenerator(const BbCfgGenerator&) = delete;
   BbCfgGenerator(BbCfgGenerator&&) = default;
@@ -89,6 +93,9 @@ class BbCfgGenerator : public ast::AstVisitor {
   void generateVariableMove(ast::ExpressionNode* dest, const std::string& src);
 
   std::string currentScope_;
+  std::map<std::string, size_t> typeBytes;
+  std::map<std::string, std::map<std::string, int>> enumTranslator;
+
   BasicBlock currentBasicBlock_;
   std::stack<BBControlFlowGraph> controlFlowGraphs_;
   std::map<std::string, BBControlFlowGraph> functionControlFlowGraphs_;

@@ -1,7 +1,22 @@
 #include "simple_type_node.hpp"
 
+#include "../context/context.hpp"
+
 namespace ast {
 // BasicTypeNode
+std::string BasicTypeNode::flat() const {
+  switch (basicType_) {
+    case ast::BasicTypeNode::BasicType::INTEGER:
+      return "integer";
+    case ast::BasicTypeNode::BasicType::BOOLEAN:
+      return "boolean";
+    case ast::BasicTypeNode::BasicType::CHAR:
+      return "char";
+    case ast::BasicTypeNode::BasicType::STRING:
+      return "string";
+  }
+}
+
 void BasicTypeNode::accept(AstVisitor* visitor) const {
   visitor->visit(this);
 }
@@ -29,6 +44,15 @@ void BasicTypeNode::print(std::ostream& out, int tab) const {
 }
 
 // RenameTypeNode
+std::string RenameTypeNode::flat() const {
+  auto* const ctx = Context::getInstance();
+  if (!ctx->getLookupTable().isTypeDefined(identifier_->getName(), "")) {
+    throw std::runtime_error("unknown type `" + identifier_->getName() + "`");
+  }
+
+  return ctx->getLookupTable().getType(identifier_->getName(), "").type;
+}
+
 void RenameTypeNode::accept(AstVisitor* visitor) const {
   visitor->visit(this);
 }
@@ -44,6 +68,14 @@ void RenameTypeNode::print(std::ostream& out, int tab) const {
 }
 
 // EnumerationTypeNode
+std::string EnumerationTypeNode::flat() const {
+  std::string mergedEnum = "enum%";
+  for (auto& identifier : *identifiers_) {
+    mergedEnum += identifier->getName() + "%";
+  }
+  return mergedEnum;
+}
+
 void EnumerationTypeNode::accept(AstVisitor* visitor) const {
   visitor->visit(this);
 }
@@ -64,6 +96,10 @@ void EnumerationTypeNode::print(std::ostream& out, int tab) const {
 }
 
 // ConstRangeTypeNode
+std::string ConstRangeTypeNode::flat() const {
+  return "constrange%" + lowerBound_->flat() + ".." + upperBound_->flat();
+}
+
 void ConstRangeTypeNode::accept(AstVisitor* visitor) const {
   visitor->visit(this);
 }
@@ -81,6 +117,28 @@ void ConstRangeTypeNode::print(std::ostream& out, int tab) const {
 }
 
 // VarRangeTypeNode
+std::string VarRangeTypeNode::flat() const {
+  auto* const ctx = Context::getInstance();
+
+  const std::string lowBound = lowerBound_->getName();
+  const std::string upBound = upperBound_->getName();
+
+  auto properEnums = ctx->getLookupTable().getTypes([&](const std::string&, const LookupTable::TypeInfo& tf) {
+    return tf.alive && tf.type.find("enum%") == 0 && tf.type.find("%" + lowBound + "%") != std::string::npos &&
+           tf.type.find("%" + upBound + "%") != std::string::npos;
+  });
+
+  if (properEnums.empty()) {
+    throw std::runtime_error(lowBound + " and " + upBound + " are not in any enum");
+  }
+
+  if (properEnums.size() > 1) {
+    throw std::runtime_error(lowBound + " and " + upBound + " are in more than one enum");
+  }
+
+  return "enumrange%" + properEnums.front().name + "%" + lowBound + ".." + upBound;
+}
+
 void VarRangeTypeNode::accept(AstVisitor* visitor) const {
   visitor->visit(this);
 }

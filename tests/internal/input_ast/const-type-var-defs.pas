@@ -8,7 +8,6 @@ const
   c5 = FALSE;
   c6 = MAXINT;
   c7 = -MAXINT;
-  c8 = 'Hello';
 
 type
   IntRenamed = integer;

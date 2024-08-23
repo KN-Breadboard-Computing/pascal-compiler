@@ -38,62 +38,53 @@ ProgramNode TypeCast:
           SpecialExpressionNode: VARIABLE
             IdentifierNode: i
           SpecialExpressionNode: TOINT
-            ArgumentsListNode:
-              SpecialExpressionNode: VARIABLE
-                IdentifierNode: i
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: i
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: i
           SpecialExpressionNode: TOINT
-            ArgumentsListNode:
-              SpecialExpressionNode: VARIABLE
-                IdentifierNode: c
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: c
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: i
           SpecialExpressionNode: TOINT
-            ArgumentsListNode:
-              SpecialExpressionNode: VARIABLE
-                IdentifierNode: b
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: b
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: c
           SpecialExpressionNode: TOCHAR
-            ArgumentsListNode:
-              SpecialExpressionNode: VARIABLE
-                IdentifierNode: i
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: i
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: c
           SpecialExpressionNode: TOCHAR
-            ArgumentsListNode:
-              SpecialExpressionNode: VARIABLE
-                IdentifierNode: c
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: c
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: c
           SpecialExpressionNode: TOCHAR
-            ArgumentsListNode:
-              SpecialExpressionNode: VARIABLE
-                IdentifierNode: b
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: b
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: b
           SpecialExpressionNode: TOBOOL
-            ArgumentsListNode:
-              SpecialExpressionNode: VARIABLE
-                IdentifierNode: i
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: i
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: b
           SpecialExpressionNode: TOBOOL
-            ArgumentsListNode:
-              SpecialExpressionNode: VARIABLE
-                IdentifierNode: c
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: c
         AssignNode
           SpecialExpressionNode: VARIABLE
             IdentifierNode: b
           SpecialExpressionNode: TOBOOL
-            ArgumentsListNode:
-              SpecialExpressionNode: VARIABLE
-                IdentifierNode: b
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: b

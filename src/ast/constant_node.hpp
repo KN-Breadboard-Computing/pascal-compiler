@@ -21,6 +21,9 @@ class ConstantNode : public AstNode {
 
   [[nodiscard]] ConstantType getConstantType() const { return constantType_; }
 
+  [[nodiscard]] std::string flat() const;
+  [[nodiscard]] std::string flatType() const;
+
   virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] std::unique_ptr<AstNode> clone() const override;
   void print(std::ostream& out, int tab) const override;

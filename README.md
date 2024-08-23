@@ -265,14 +265,13 @@ Each of these comments is multiline.
 ### Basic Data Types
 + Bool $\in$ {TRUE, FALSE}
 + Char $\in$ [0, 255] (represent ASCII codes)
-+ Integer $\in$ [-128, 127] / [0, 255] (2's complement)
++ Integer $\in$ [0, 255] / [-128, 127] (2's complement)
 
 ### Constants
 ```
   ConstInt = -19;
   ConstUInt = 28;
-  ConstChar = 'P';
-  ConstString = 'Hello, World!';
+  ConstChar = 'A';
   ConstTrue = TRUE;
   ConstFalse = FALSE;
   ConstMaxInt = MAXINT;
@@ -315,8 +314,6 @@ TCharArrayUIntIndex = array[Unsigned] of Char;
 
 TCharArrayCharRange = array['a'..'z'] of Char;
 TCharArrayBoolsRange = array[TBools] of Char;
-
-TIntLettersIndex = array['hello'] of Integer;
 
 TWeekDayArray = array[TDay] of Integer;
 ```

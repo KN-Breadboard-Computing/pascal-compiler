@@ -62,11 +62,6 @@ bool saveConstant(ast::IdentifierNode* constName, const std::string& constValue,
 bool saveVariables(std::vector<ast::IdentifierNode*>* varNames, const std::string& typeDef);
 bool saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward);
 
-std::string getTypeString(ast::TypeNode* type);
-std::string getTypeString(ast::ConstantNode::ConstantType type);
-
-std::string getConstantString(ast::ConstantNode* constant);
-
 bool isBasicType(const std::string& type);
 bool isInEnum(const std::string& enumElement, const std::string& enumType);
 bool isInAnyEnum(const std::string& enumElement);
@@ -452,8 +447,11 @@ fun_head :
 
         ctx->getLookupTable().pushScope(*$2.stringValue);
 
-        std::string funType = getTypeString($5);
-        if(funType == "unspecified") {
+        std::string funType;
+        try { funType = $5->flat(); }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
             YYERROR;
         }
 
@@ -463,8 +461,11 @@ fun_head :
         }
 
         for(const auto& param : *$3->getParams()) {
-            std::string paramType = getTypeString(param->getParamsType().get());
-            if(paramType == "unspecified") {
+            std::string paramType;
+            try { paramType = param->getParamsType()->flat(); }
+            catch(std::runtime_error& err) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+                fatalError = true;
                 YYERROR;
             }
 
@@ -544,8 +545,11 @@ proc_head :
         ctx->getLookupTable().pushScope(*$2.stringValue);
 
         for(const auto& param : *$3->getParams()) {
-            std::string paramType = getTypeString(param->getParamsType().get());
-            if(paramType == "unspecified") {
+            std::string paramType;
+            try { paramType = param->getParamsType()->flat(); }
+            catch(std::runtime_error& err) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+                fatalError = true;
                 YYERROR;
             }
 
@@ -664,8 +668,11 @@ var_decl :
             std::cout << "Yacc debug: Parse var decl 1" << std::endl;
         #endif
 
-        std::string varType = getTypeString($3);
-        if(varType == "unspecified") {
+        std::string varType;
+        try { varType = $3->flat(); }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
             YYERROR;
         }
 
@@ -681,8 +688,11 @@ var_decl :
             std::cout << "Yacc debug: Parse var decl 2" << std::endl;
         #endif
 
-        std::string varType = getTypeString($3);
-        if(varType == "unspecified") {
+        std::string varType;
+        try { varType = $3->flat(); }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
             YYERROR;
         }
 
@@ -739,12 +749,27 @@ const_expr :
             std::cout << "Yacc debug: Parse const expr 1" << std::endl;
         #endif
 
-        std::string constType = getTypeString($3->getConstantType());
-        if(constType == "unspecified") {
+        try {
+            if(!saveConstant($1, $3->flat(), $3->flatType())) {
+                YYERROR;
+            }
+        }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
             YYERROR;
         }
 
-        if(!saveConstant($1, getConstantString($3), constType)) {
+        try {
+            if($3->flatType() == "string") {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", const type must be basic");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
             YYERROR;
         }
 
@@ -756,12 +781,27 @@ const_expr :
             std::cout << "Yacc debug: Parse const expr 2" << std::endl;
         #endif
 
-        std::string constType = getTypeString($3->getConstantType());
-        if(constType == "unspecified") {
+        try {
+            if(!saveConstant($1, $3->flat(), $3->flatType())) {
+                YYERROR;
+            }
+        }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
             YYERROR;
         }
 
-        if(!saveConstant($1, getConstantString($3), constType)) {
+        try {
+            if($3->flatType() == "string") {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", const type must be basic");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
             YYERROR;
         }
 
@@ -884,8 +924,11 @@ type_def :
             std::cout << "Yacc debug: Parse type def 1" << std::endl;
         #endif
 
-        std::string typeType = getTypeString($3);
-        if(typeType == "unspecified") {
+        std::string typeType;
+        try { typeType = $3->flat(); }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
             YYERROR;
         }
 
@@ -901,8 +944,11 @@ type_def :
             std::cout << "Yacc debug: Parse type def 2" << std::endl;
         #endif
 
-        std::string typeType = getTypeString($3);
-        if(typeType == "unspecified") {
+        std::string typeType;
+        try { typeType = $3->flat(); }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
             YYERROR;
         }
 
@@ -1583,7 +1629,7 @@ repeat_stmt :
         #endif
 
         if($4->getInferredType() == "boolean") {
-            $$ = new ast::RepeatNode($4, $2);
+            $$ = new ast::RepeatNode($4, new ast::CompoundStatementNode($2));
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", repeat condition must be boolean expression");
@@ -2410,12 +2456,7 @@ factor :
 
         ast::ConstantNode* constant = dynamic_cast<ast::ConstantNode*>($1);
 
-        std::string constantType = getTypeString(constant->getConstantType());
-        if(constantType == "undefined") {
-            YYERROR;
-        }
-
-        $$ = new ast::SpecialExpressionNode($1, ast::SpecialExpressionNode::FunctionName::CONST, constantType);
+        $$ = new ast::SpecialExpressionNode($1, ast::SpecialExpressionNode::FunctionName::CONST, constant->flatType());
     }
 |
     LP expression RP {
@@ -2607,7 +2648,7 @@ factor :
         else {
             ast::ExpressionNode* arg = $3->getArguments().front();
             if(isBasicType(arg->getInferredType())) {
-                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::TOINT, "integer");
+                $$ = new ast::SpecialExpressionNode(arg, ast::SpecialExpressionNode::FunctionName::TOINT, "integer");
             }
             else {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for toint - basic type expected");
@@ -2630,7 +2671,7 @@ factor :
         else {
             ast::ExpressionNode* arg = $3->getArguments().front();
             if(isBasicType(arg->getInferredType())) {
-                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::TOCHAR, "char");
+                $$ = new ast::SpecialExpressionNode(arg, ast::SpecialExpressionNode::FunctionName::TOCHAR, "char");
             }
             else {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for tochar - basic type expected");
@@ -2653,7 +2694,7 @@ factor :
         else {
             ast::ExpressionNode* arg = $3->getArguments().front();
             if(isBasicType(arg->getInferredType())) {
-                $$ = new ast::SpecialExpressionNode($3, ast::SpecialExpressionNode::FunctionName::TOBOOL, "boolean");
+                $$ = new ast::SpecialExpressionNode(arg, ast::SpecialExpressionNode::FunctionName::TOBOOL, "boolean");
             }
             else {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", wrong argument type for tobool - basic type expected");
@@ -2875,8 +2916,11 @@ bool saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward) {
 
     std::vector<LookupTable::ArgumentInfo> arguments;
     for(const auto& paramGroup : *routineDef->getParams()->getParams()) {
-        std::string typeString = getTypeString(paramGroup->getParamsType().get());
-        if(typeString == "unspecified") {
+        std::string typeString;
+        try { typeString = paramGroup->getParamsType()->flat(); }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
             return false;
         }
 
@@ -2890,8 +2934,11 @@ bool saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward) {
             arguments, "void", "");
     }
     else {
-        std::string returnType = getTypeString(routineDef->getReturnType().get());
-        if(returnType == "unspecified") {
+        std::string returnType;
+        try { returnType = routineDef->getReturnType()->flat(); }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
             return false;
         }
 
@@ -2900,139 +2947,6 @@ bool saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward) {
     }
 
     return true;
-}
-
-std::string getTypeString(ast::TypeNode* type) {
-    if(type->getTypeType() == ast::TypeNode::TypeType::SIMPLE) {
-        auto* simpleType = dynamic_cast<ast::SimpleTypeNode*>(type);
-        switch(simpleType->getRepresentation()) {
-            case ast::SimpleTypeNode::Representation::BASIC: {
-                auto* basicType = dynamic_cast<ast::BasicTypeNode*>(simpleType);
-                switch(basicType->getBasicType()) {
-                    case ast::BasicTypeNode::BasicType::INTEGER:
-                        return "integer";
-                    case ast::BasicTypeNode::BasicType::BOOLEAN:
-                        return "boolean";
-                    case ast::BasicTypeNode::BasicType::CHAR:
-                        return "char";
-                    case ast::BasicTypeNode::BasicType::STRING:
-                        return "string";
-                }
-            }
-            case ast::SimpleTypeNode::Representation::RENAMING: {
-                auto* renamingType = dynamic_cast<ast::RenameTypeNode*>(type);
-                if(!ctx->getLookupTable().isTypeDefined(renamingType->getIdentifier()->getName(), "")) {
-                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", unknown type `" + renamingType->getIdentifier()->getName() + "`");
-                    fatalError = true;
-                    return "unspecified";
-                }
-                return ctx->getLookupTable().getType(renamingType->getIdentifier()->getName(), "").type;
-             }
-            case ast::SimpleTypeNode::Representation::ENUMERATION: {
-                auto* enumType = dynamic_cast<ast::EnumerationTypeNode*>(type);
-                std::string mergedEnum = "enum%";
-                for(auto& identifier : *enumType->getIdentifiers()) {
-                    mergedEnum += identifier->getName() + "%";
-                }
-                return mergedEnum;
-            }
-            case ast::SimpleTypeNode::Representation::CONST_RANGE: {
-                auto* rangeType = dynamic_cast<ast::ConstRangeTypeNode*>(type);
-                return "constrange%" + getConstantString(rangeType->getLowerBound().get()) + ".." + getConstantString(rangeType->getUpperBound().get());
-            }
-            case ast::SimpleTypeNode::Representation::VAR_RANGE: {
-                auto* rangeType = dynamic_cast<ast::VarRangeTypeNode*>(type);
-                std::string lb = rangeType->getLowerBound()->getName();
-                std::string ub = rangeType->getUpperBound()->getName();
-
-                auto properEnums = ctx->getLookupTable().getTypes(
-                [&](const std::string&, const LookupTable::TypeInfo& tf) {
-                    return tf.alive && tf.type.find("enum%") == 0 && tf.type.find("%" + lb + "%") != std::string::npos && tf.type.find("%" + ub + "%") != std::string::npos;
-                });
-
-                if(properEnums.empty()) {
-                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + lb + " and " + ub + " are not in any enum");
-                    fatalError = true;
-                    return "unspecified";
-                }
-                else if(properEnums.size() > 1) {
-                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + lb + " and " + ub + " are in more than one enum");
-                    fatalError = true;
-                    return "unspecified";
-                }
-
-                return "enumrange%" + properEnums.front().name + "%"  + lb + ".." + ub;
-            }
-            default:
-                return "unspecified";
-        }
-    }
-    else if(type->getTypeType() == ast::TypeNode::TypeType::ARRAY) {
-        auto* arrayType = dynamic_cast<ast::ArrayTypeNode*>(type);
-
-        std::string elementTypeName = getTypeString(arrayType->getElementType().get());
-        std::string rangeTypeName = getTypeString(arrayType->getRange().get());
-
-        if(elementTypeName == "unspecified" || rangeTypeName == "unspecified") {
-            return "unspecified";
-        }
-
-        return "array@@" + rangeTypeName + "@" + elementTypeName + "@@";
-    }
-    else if(type->getTypeType() == ast::TypeNode::TypeType::RECORD) {
-        auto* recordType = dynamic_cast<ast::RecordTypeNode*>(type);
-
-        std::string mergedRecord = "record"  "$$";
-        for(auto& field : *recordType->getFields()) {
-            for(auto& identifier : *field->first) {
-                if(getTypeString(field->second) == "unspecified") {
-                    return "unspecified";
-                }
-
-                mergedRecord += identifier->getName() + "#(" + getTypeString(field->second) + ")$";
-            }
-        }
-
-        return mergedRecord + "$";
-    }
-    else {
-        return "unspecified";
-    }
-}
-
-std::string getTypeString(ast::ConstantNode::ConstantType type) {
-    switch(type) {
-        case ast::ConstantNode::ConstantType::INTEGER:
-            return "integer";
-        case ast::ConstantNode::ConstantType::BOOLEAN:
-            return "boolean";
-        case ast::ConstantNode::ConstantType::CHAR:
-            return "char";
-        case ast::ConstantNode::ConstantType::STRING:
-            return "string";
-        default:
-            return "unspecified";
-    }
-}
-
-std::string getConstantString(ast::ConstantNode* constant) {
-    if(constant->getConstantType() == ast::ConstantNode::ConstantType::INTEGER) {
-        auto* intConst = dynamic_cast<ast::IntegerConstantNode*>(constant);
-        return std::to_string(intConst->getValue());
-    } else if(constant->getConstantType() == ast::ConstantNode::ConstantType::BOOLEAN) {
-        auto* boolConst = dynamic_cast<ast::BooleanConstantNode*>(constant);
-        return boolConst->getValue() ? "true" : "false";
-    } else if(constant->getConstantType() == ast::ConstantNode::ConstantType::CHAR) {
-        auto* charConst = dynamic_cast<ast::CharConstantNode*>(constant);
-        return std::string(1, charConst->getValue());
-    }
-    else if(constant->getConstantType() == ast::ConstantNode::ConstantType::STRING) {
-        auto* stringConst = dynamic_cast<ast::StringConstantNode*>(constant);
-        return stringConst->getValue();
-    }
-    else {
-        return "unspecified";
-    }
 }
 
 bool isBasicType(const std::string& type) {
@@ -3068,10 +2982,14 @@ bool isLeftValueCompatible(ast::ExpressionNode* expr) {
     }
 
     ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(expr);
-    if(special->getFunctionName() == ast::SpecialExpressionNode::VARIABLE ||
-       special->getFunctionName() == ast::SpecialExpressionNode::ARRAY_ACCESS ||
+    if(special->getFunctionName() == ast::SpecialExpressionNode::ARRAY_ACCESS ||
        special->getFunctionName() == ast::SpecialExpressionNode::RECORD_ACCESS) {
         return true;
+    }
+
+    if(special->getFunctionName() == ast::SpecialExpressionNode::VARIABLE) {
+        ast::IdentifierNode* var = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
+        return !ctx->getLookupTable().isVariableConst(var->getName(), "");
     }
 
     return false;
@@ -3405,10 +3323,8 @@ bool variableIsReassignedS(const std::string& varName, ast::StatementNode* stmt)
                 return true;
             }
 
-            for(auto& statement : *dynamic_cast<ast::RepeatNode*>(stmt)->getStatements()) {
-                if(variableIsReassignedS(varName, statement)) {
-                    return true;
-                }
+            if(variableIsReassignedS(varName, dynamic_cast<ast::RepeatNode*>(stmt)->getStatements().get())) {
+                return true;
             }
 
             return false;

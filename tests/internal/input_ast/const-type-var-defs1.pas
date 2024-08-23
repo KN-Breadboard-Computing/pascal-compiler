@@ -8,7 +8,7 @@ const
   c5 = FALSE;
   c6 = MAXINT;
   c7 = -MAXINT;
-  c8 = 'Hello';
+  c8 = 'H';
   c3 = 5;
 
 type

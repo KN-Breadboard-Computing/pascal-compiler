@@ -1,7 +1,6 @@
 #include "bb_cfg_generator.hpp"
 #include "../context/context.hpp"
 
-#include <queue>
 #include <stdexcept>
 
 namespace bblocks {
@@ -9,7 +8,9 @@ Context* ctx = Context::getInstance();
 
 void BbCfgGenerator::visit(const ast::ArgumentsListNode* /*node*/) {}
 
-void BbCfgGenerator::visit(const ast::ArrayTypeNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::ArrayTypeNode* node) {
+  node->getElementType()->accept(this);
+}
 
 void BbCfgGenerator::visit(const ast::AssignNode* node) {
   node->getRhs()->accept(this);
@@ -82,7 +83,35 @@ void BbCfgGenerator::visit(const ast::CompoundStatementNode* node) {
   }
 }
 
-void BbCfgGenerator::visit(const ast::ConstantNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::ConstantNode* node) {
+  switch (node->getConstantType()) {
+    case ast::ConstantNode::UNSPECIFIED:
+      throw std::runtime_error("Type error");
+    case ast::ConstantNode::INTEGER: {
+      const ast::IntegerConstantNode* integerConstant = dynamic_cast<const ast::IntegerConstantNode*>(node);
+      currentBasicBlock_.addInstruction(std::make_unique<BBMoveNV>(integerConstant->getValue(), ctx->generateTempVariable(),
+                                                                   BBMoveNV::SourceType::NUMERIC,
+                                                                   BBMoveNV::DestinationType::VARIABLE));
+      break;
+    }
+    case ast::ConstantNode::CHAR: {
+      const ast::CharConstantNode* charConstant = dynamic_cast<const ast::CharConstantNode*>(node);
+      currentBasicBlock_.addInstruction(std::make_unique<BBMoveNV>(charConstant->getValue(), ctx->generateTempVariable(),
+                                                                   BBMoveNV::SourceType::NUMERIC,
+                                                                   BBMoveNV::DestinationType::VARIABLE));
+      break;
+    }
+    case ast::ConstantNode::BOOLEAN: {
+      const ast::BooleanConstantNode* boolConstant = dynamic_cast<const ast::BooleanConstantNode*>(node);
+      currentBasicBlock_.addInstruction(std::make_unique<BBMoveNV>(boolConstant->getValue(), ctx->generateTempVariable(),
+                                                                   BBMoveNV::SourceType::NUMERIC,
+                                                                   BBMoveNV::DestinationType::VARIABLE));
+      break;
+    }
+    case ast::ConstantNode::STRING:
+      break;
+  }
+}
 
 void BbCfgGenerator::visit(const ast::MathExpressionNode* node) {
   std::string leftOperand;
@@ -234,33 +263,7 @@ void BbCfgGenerator::visit(const ast::SpecialExpressionNode* node) {
     }
     case ast::SpecialExpressionNode::CONST: {
       ast::ConstantNode* constant = dynamic_cast<ast::ConstantNode*>(node->getArgument1().get());
-      switch (constant->getConstantType()) {
-        case ast::ConstantNode::UNSPECIFIED:
-          throw std::runtime_error("Type error");
-        case ast::ConstantNode::INTEGER: {
-          ast::IntegerConstantNode* integerConstant = dynamic_cast<ast::IntegerConstantNode*>(constant);
-          currentBasicBlock_.addInstruction(std::make_unique<BBMoveNV>(integerConstant->getValue(), ctx->generateTempVariable(),
-                                                                       BBMoveNV::SourceType::NUMERIC,
-                                                                       BBMoveNV::DestinationType::VARIABLE));
-          break;
-        }
-        case ast::ConstantNode::CHAR: {
-          ast::CharConstantNode* charConstant = dynamic_cast<ast::CharConstantNode*>(constant);
-          currentBasicBlock_.addInstruction(std::make_unique<BBMoveNV>(charConstant->getValue(), ctx->generateTempVariable(),
-                                                                       BBMoveNV::SourceType::NUMERIC,
-                                                                       BBMoveNV::DestinationType::VARIABLE));
-          break;
-        }
-        case ast::ConstantNode::BOOLEAN: {
-          ast::BooleanConstantNode* boolConstant = dynamic_cast<ast::BooleanConstantNode*>(constant);
-          currentBasicBlock_.addInstruction(std::make_unique<BBMoveNV>(boolConstant->getValue(), ctx->generateTempVariable(),
-                                                                       BBMoveNV::SourceType::NUMERIC,
-                                                                       BBMoveNV::DestinationType::VARIABLE));
-          break;
-        }
-        case ast::ConstantNode::STRING:
-          break;
-      }
+      constant->accept(this);
       break;
     }
     case ast::SpecialExpressionNode::RECORD_ACCESS:
@@ -445,7 +448,11 @@ void BbCfgGenerator::visit(const ast::ProgramNode* node) {
   node->getRoutine()->accept(this);
 }
 
-void BbCfgGenerator::visit(const ast::RecordTypeNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::RecordTypeNode* node) {
+  for(const auto* field: *node->getFields()) {
+    field->second->accept(this);
+  }
+}
 
 void BbCfgGenerator::visit(const ast::RepeatNode* node) {
   const std::string statementsBeforeRepeat = ctx->generateBasicBlockLabel();
@@ -454,9 +461,7 @@ void BbCfgGenerator::visit(const ast::RepeatNode* node) {
   const std::string firstBodyStatement = ctx->generateBasicBlockLabel();
   const std::string lastBodyStatement = ctx->generateBasicBlockLabel();
   newControlFlowGraph(firstBodyStatement);
-  for (const auto* statement : *node->getStatements()) {
-    statement->accept(this);
-  }
+  node->getStatements()->accept(this);
   saveBasicBlock(lastBodyStatement, true, true);
   const BBControlFlowGraph body{std::move(controlFlowGraphs_.top())};
   controlFlowGraphs_.pop();
@@ -492,6 +497,34 @@ void BbCfgGenerator::visit(const ast::RoutineBodyNode* node) {
 void BbCfgGenerator::visit(const ast::RoutineDeclarationNode* /*node*/) {}
 
 void BbCfgGenerator::visit(const ast::RoutineHeadNode* node) {
+  for (const auto* constant : *node->getConstantsPart()) {
+    int value;
+    switch (constant->second->getConstantType()) {
+      case ast::ConstantNode::UNSPECIFIED:
+        throw std::runtime_error("Type error");
+      case ast::ConstantNode::INTEGER:
+        value = dynamic_cast<ast::IntegerConstantNode*>(constant->second)->getValue();
+        break;
+      case ast::ConstantNode::CHAR:
+        value = static_cast<unsigned char>(dynamic_cast<ast::CharConstantNode*>(constant->second)->getValue());
+        break;
+      case ast::ConstantNode::BOOLEAN:
+        value = dynamic_cast<ast::BooleanConstantNode*>(constant->second)->getValue() ? 1 : 0;
+        break;
+      case ast::ConstantNode::STRING:
+        throw std::runtime_error("Type error");
+    }
+    currentBasicBlock_.addInstruction(std::make_unique<BBMoveNV>(value, constant->first->getName(), BBMoveNV::SourceType::NUMERIC,
+                                                                 BBMoveNV::DestinationType::VARIABLE));
+  }
+
+  for (const auto* type : *node->getTypesPart()) {
+    const std::string typeName = type->first->getName();
+    type->second->accept(this);
+  }
+
+  for (const auto* var : *node->getVariablesPart()) {}
+
   for (const auto* routine : *node->getRoutinePart()) {
     currentScope_ += routine->getName();
     routine->accept(this);
@@ -513,7 +546,9 @@ void BbCfgGenerator::visit(const ast::RoutineNode* node) {
 
 void BbCfgGenerator::visit(const ast::ConstRangeTypeNode* /*node*/) {}
 
-void BbCfgGenerator::visit(const ast::EnumerationTypeNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::EnumerationTypeNode* node) {
+
+}
 
 void BbCfgGenerator::visit(const ast::RenameTypeNode* /*node*/) {}
 

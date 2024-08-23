@@ -221,6 +221,18 @@ class LookupTable {
     return false;
   }
 
+  [[nodiscard]] bool isVariableConst(const std::string& name, const std::string& scope = "") const {
+    const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
+    if (variables_.find(name) != variables_.end()) {
+      for (const auto& [scopeName, variableInfo] : variables_.at(name)) {
+        if (currentScope.find(scopeName) == 0) {
+          return variableInfo.category == VariableCategory::CONSTANT;
+        }
+      }
+    }
+    return false;
+  }
+
   [[nodiscard]] const VariableInfo& getVariable(const std::string& name, const std::string& scope = "") const {
     const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
     if (variables_.find(name) != variables_.end()) {

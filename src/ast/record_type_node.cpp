@@ -1,6 +1,17 @@
 #include "record_type_node.hpp"
 
 namespace ast {
+std::string RecordTypeNode::flat() const {
+  std::string mergedRecord = "record$$";
+  for (const auto* field : *fields_) {
+    for (const auto* ident : *field->first) {
+      mergedRecord += ident->getName() + "#(" + field->second->flat() + ")$";
+    }
+  }
+
+  return mergedRecord + "$";
+}
+
 void RecordTypeNode::accept(AstVisitor* visitor) const {
   visitor->visit(this);
 }

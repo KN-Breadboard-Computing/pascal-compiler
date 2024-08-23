@@ -16,6 +16,7 @@ class MemoryLayout {
 
   ~MemoryLayout() = default;
 
+
  private:
   std::map<std::string, size_t> memoryAddresses_;
   std::map<std::string, size_t> stackOffsets_;
