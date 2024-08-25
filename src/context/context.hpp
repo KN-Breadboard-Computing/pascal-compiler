@@ -1,9 +1,11 @@
 #ifndef CONTEXT_HPP
 #define CONTEXT_HPP
 
-#undef CONTEXT_DEBUG
+#define CONTEXT_DEBUG
 
+#include <algorithm>
 #include <string>
+#include <vector>
 
 #include "lookup_table.hpp"
 #include "memory_layout.hpp"
@@ -25,6 +27,30 @@ class Context {
     return instance_;
   }
 
+  void pushScope(const std::string& name) {
+    std::string loweredName = name;
+    std::transform(loweredName.begin(), loweredName.end(), loweredName.begin(), [](unsigned char c) { return std::tolower(c); });
+#ifdef CONTEXT_DEBUG
+    std::cout << "Push scope: " << loweredName << std::endl;
+#endif
+    scopes_.push_back(loweredName);
+  }
+
+  void popScope() {
+#ifdef CONTEXT_DEBUG
+    std::cout << "Pop top of scope: " << getCurrentScope() << std::endl;
+#endif
+    scopes_.pop_back();
+  }
+
+  std::string getCurrentScope() const {
+    std::string currentScope;
+    for (const auto& scope : scopes_) {
+      currentScope += "." + scope;
+    }
+    return currentScope;
+  }
+
   [[nodiscard]] std::string generateTempVariable() { return "#t" + std::to_string(tempVariableCounter_++); }
   [[nodiscard]] std::string getLastTempVariable() const { return "#t" + std::to_string(tempVariableCounter_ - 1); }
 
@@ -38,6 +64,8 @@ class Context {
 
  private:
   static Context* instance_;
+
+  std::vector<std::string> scopes_;
 
   size_t tempVariableCounter_;
   size_t basicBlockCounter_;

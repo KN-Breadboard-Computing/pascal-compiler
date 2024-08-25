@@ -15,6 +15,7 @@ class LookupTable {
   struct TypeInfo {
     TypeCategory category{};
     std::string name{};
+    std::string fullName{};
     std::string type{};
     bool alive{};
   };
@@ -23,6 +24,7 @@ class LookupTable {
   struct VariableInfo {
     VariableCategory category{};
     std::string name{};
+    std::string fullName{};
     std::string type{};
     bool isInitialized{};
     bool alive;
@@ -37,16 +39,17 @@ class LookupTable {
   struct RoutineInfo {
     RoutineCategory category{};
     std::string name{};
+    std::string fullName{};
     std::vector<ArgumentInfo> args{};
     std::string type{};
     bool alive{};
   };
 
   LookupTable() {
-    types_["integer"][""] = TypeInfo{TypeCategory::SIMPLE, "integer", "integer", true};
-    types_["boolean"][""] = TypeInfo{TypeCategory::SIMPLE, "boolean", "boolean", true};
-    types_["char"][""] = TypeInfo{TypeCategory::SIMPLE, "char", "char", true};
-    types_["string"][""] = TypeInfo{TypeCategory::SIMPLE, "string", "string", true};
+    types_["integer"][""] = TypeInfo{TypeCategory::SIMPLE, "integer", "integer", "integer", true};
+    types_["boolean"][""] = TypeInfo{TypeCategory::SIMPLE, "boolean", "boolean", "boolean", true};
+    types_["char"][""] = TypeInfo{TypeCategory::SIMPLE, "char", "char", "char", true};
+    types_["string"][""] = TypeInfo{TypeCategory::SIMPLE, "string", "string", "string", true};
   }
 
   LookupTable(const LookupTable&) = default;
@@ -57,19 +60,7 @@ class LookupTable {
 
   ~LookupTable() = default;
 
-  void pushScope(const std::string& name) {
-#ifdef CONTEXT_DEBUG
-    std::cout << "Push scope: " << name << std::endl;
-#endif
-    scopes_.push_back(name);
-  }
-
-  void popScope() {
-    const std::string currentScope = getCurrentScope();
-#ifdef CONTEXT_DEBUG
-    std::cout << "Pop top of scope: " << currentScope << std::endl;
-#endif
-
+  void undefineTypesVarsRoutines(const std::string& currentScope) {
     for (auto& [name, scopes] : types_) {
       for (auto& [scope, typeInfo] : scopes) {
         if (currentScope == scope) {
@@ -102,28 +93,16 @@ class LookupTable {
         }
       }
     }
-
-    scopes_.pop_back();
   }
 
-  std::string getCurrentScope() const {
-    std::string currentScope;
-    for (const auto& scope : scopes_) {
-      currentScope += "::" + scope;
-    }
-    return currentScope;
-  }
-
-  void defineType(TypeCategory category, const std::string& name, std::string type) {
-    const std::string currentScope = getCurrentScope();
+  void defineType(TypeCategory category, const std::string& name, std::string type, const std::string& currentScope) {
 #ifdef CONTEXT_DEBUG
     std::cout << "Define type: " << currentScope << " " << name << " " << static_cast<int>(category) << " " << type << std::endl;
 #endif
-    types_[name][currentScope] = TypeInfo{category, name, std::move(type), true};
+    types_[name][currentScope] = TypeInfo{category, name, currentScope + name, std::move(type), true};
   }
 
-  [[nodiscard]] bool isTypeDefined(const std::string& name, const std::string& scope = "") const {
-    const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
+  [[nodiscard]] bool isTypeDefined(const std::string& name, const std::string& currentScope) const {
     if (types_.find(name) != types_.end()) {
       for (const auto& [scopeName, typeInfo] : types_.at(name)) {
         if (currentScope.find(scopeName) == 0 && typeInfo.alive) {
@@ -134,8 +113,7 @@ class LookupTable {
     return false;
   }
 
-  [[nodiscard]] const TypeInfo& getType(const std::string& name, const std::string& scope = "") const {
-    const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
+  [[nodiscard]] const TypeInfo& getType(const std::string& name, const std::string& currentScope) const {
     if (types_.find(name) != types_.end()) {
       for (const auto& [scopeName, typeInfo] : types_.at(name)) {
         if (currentScope.find(scopeName) == 0) {
@@ -146,11 +124,11 @@ class LookupTable {
     throw std::runtime_error("Type not found");
   }
 
-  [[nodiscard]] std::vector<TypeInfo> getTypes(const std::function<bool(const std::string&, const TypeInfo&)>& indicator) const {
+  [[nodiscard]] std::vector<TypeInfo> getTypes(const std::function<bool(const std::string&, const TypeInfo&)>& indicator, const std::string& currentScope) const {
     std::vector<TypeInfo> result;
     for (const auto& [name, scopes] : types_) {
-      for (const auto& [scope, typeInfo] : scopes) {
-        if (indicator(name, typeInfo)) {
+      for (const auto& [scopeName, typeInfo] : scopes) {
+        if (currentScope.find(scopeName) == 0 && indicator(name, typeInfo)) {
           result.push_back(typeInfo);
         }
       }
@@ -158,8 +136,7 @@ class LookupTable {
     return result;
   }
 
-  void unDefineType(const std::string& name, const std::string& scope = "") {
-    const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
+  void unDefineType(const std::string& name, const std::string& currentScope) {
 #ifdef CONTEXT_DEBUG
     std::cout << "UnDefine type: " << currentScope << " " << name << std::endl;
 #endif
@@ -173,17 +150,15 @@ class LookupTable {
     }
   }
 
-  void defineVariable(VariableCategory category, const std::string& name, std::string type) {
-    const std::string currentScope = getCurrentScope();
+  void defineVariable(VariableCategory category, const std::string& name, std::string type, const std::string& currentScope) {
 #ifdef CONTEXT_DEBUG
     std::cout << "Define variable: " << currentScope << " " << name << " " << static_cast<int>(category) << " " << type
               << std::endl;
 #endif
-    variables_[name][currentScope] = VariableInfo{category, name, std::move(type), false, true};
+    variables_[name][currentScope] = VariableInfo{category, name, currentScope + name, std::move(type), false, true};
   }
 
-  void setVariableValue(const std::string& name, const std::string& scope = "") {
-    const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
+  void setVariableValue(const std::string& name, const std::string& /*value*/, const std::string& currentScope) {
 #ifdef CONTEXT_DEBUG
     std::cout << "Set variable value: " << currentScope << " " << name << std::endl;
 #endif
@@ -197,8 +172,7 @@ class LookupTable {
     }
   }
 
-  [[nodiscard]] bool isVariableDefined(const std::string& name, const std::string& scope = "") const {
-    const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
+  [[nodiscard]] bool isVariableDefined(const std::string& name, const std::string& currentScope) const {
     if (variables_.find(name) != variables_.end()) {
       for (const auto& [scopeName, variableInfo] : variables_.at(name)) {
         if (currentScope.find(scopeName) == 0 && variableInfo.alive) {
@@ -209,8 +183,7 @@ class LookupTable {
     return false;
   }
 
-  [[nodiscard]] bool isVariableInitialized(const std::string& name, const std::string& scope = "") const {
-    const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
+  [[nodiscard]] bool isVariableInitialized(const std::string& name, const std::string& currentScope) const {
     if (variables_.find(name) != variables_.end()) {
       for (const auto& [scopeName, variableInfo] : variables_.at(name)) {
         if (currentScope.find(scopeName) == 0) {
@@ -221,8 +194,7 @@ class LookupTable {
     return false;
   }
 
-  [[nodiscard]] bool isVariableConst(const std::string& name, const std::string& scope = "") const {
-    const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
+  [[nodiscard]] bool isVariableConst(const std::string& name, const std::string& currentScope) const {
     if (variables_.find(name) != variables_.end()) {
       for (const auto& [scopeName, variableInfo] : variables_.at(name)) {
         if (currentScope.find(scopeName) == 0) {
@@ -233,8 +205,7 @@ class LookupTable {
     return false;
   }
 
-  [[nodiscard]] const VariableInfo& getVariable(const std::string& name, const std::string& scope = "") const {
-    const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
+  [[nodiscard]] const VariableInfo& getVariable(const std::string& name, const std::string& currentScope) const {
     if (variables_.find(name) != variables_.end()) {
       for (const auto& [scopeName, variableInfo] : variables_.at(name)) {
         if (currentScope.find(scopeName) == 0) {
@@ -245,8 +216,7 @@ class LookupTable {
     throw std::runtime_error("Variable not found");
   }
 
-  void unDefineVariable(const std::string& name, const std::string& scope = "") {
-    const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
+  void unDefineVariable(const std::string& name, const std::string& currentScope) {
 #ifdef CONTEXT_DEBUG
     std::cout << "UnDefine variable: " << currentScope << " " << name << std::endl;
 #endif
@@ -261,20 +231,18 @@ class LookupTable {
   }
 
   void defineRoutine(RoutineCategory category, const std::string& name, const std::vector<ArgumentInfo>& args, std::string type,
-                     const std::string& scope = "") {
-    const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
+                     const std::string& currentScope) {
 #ifdef CONTEXT_DEBUG
     std::cout << "Define routine: " << currentScope << " " << name << " " << static_cast<int>(category) << " [";
     for (const auto& arg : args) {
-      std::cout << arg.first << " is " << arg.second << ",";
+      std::cout << arg.name << " is " << arg.type << ",";
     }
     std::cout << "] " << type << std::endl;
 #endif
-    routines_[name][currentScope] = RoutineInfo{category, name, args, std::move(type), true};
+    routines_[name][currentScope] = RoutineInfo{category, name, currentScope + name, args, std::move(type), true};
   }
 
-  [[nodiscard]] bool isRoutineDefined(const std::string& name, const std::string& scope = "") const {
-    const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
+  [[nodiscard]] bool isRoutineDefined(const std::string& name, const std::string& currentScope) const {
     if (routines_.find(name) != routines_.end()) {
       for (const auto& [scopeName, routineInfo] : routines_.at(name)) {
         if (currentScope.find(scopeName) == 0 && routineInfo.alive) {
@@ -285,8 +253,7 @@ class LookupTable {
     return false;
   }
 
-  [[nodiscard]] const RoutineInfo& getRoutine(const std::string& name, const std::string& scope = "") const {
-    const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
+  [[nodiscard]] const RoutineInfo& getRoutine(const std::string& name, const std::string& currentScope) const {
     if (routines_.find(name) != routines_.end()) {
       for (const auto& [scopeName, routineInfo] : routines_.at(name)) {
         if (currentScope.find(scopeName) == 0) {
@@ -297,8 +264,7 @@ class LookupTable {
     throw std::runtime_error("Routine not found");
   }
 
-  void unDefineRoutine(const std::string& name, const std::string& scope = "") {
-    const std::string currentScope = scope.empty() ? getCurrentScope() : scope;
+  void unDefineRoutine(const std::string& name, const std::string& currentScope) {
 #ifdef CONTEXT_DEBUG
     std::cout << "UnDefine routine: " << currentScope << " " << name << std::endl;
 #endif
@@ -313,7 +279,6 @@ class LookupTable {
   }
 
  private:
-  std::vector<std::string> scopes_;
   std::map<std::string, std::map<std::string, TypeInfo>> types_;
   std::map<std::string, std::map<std::string, VariableInfo>> variables_;
   std::map<std::string, std::map<std::string, RoutineInfo>> routines_;

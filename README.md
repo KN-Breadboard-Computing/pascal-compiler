@@ -323,12 +323,6 @@ TWeekDayArray = array[TDay] of Integer;
 ArrayElement := ArrayName[IndexExppression];
 ```
 
-### Char Array Assign
-```
-CharsArray = array[1..5] of Char;
-CharsArray = 'Hello';
-```
-
 ### Record
 ```
   TPerson = record

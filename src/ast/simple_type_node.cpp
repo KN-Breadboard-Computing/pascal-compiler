@@ -46,11 +46,7 @@ void BasicTypeNode::print(std::ostream& out, int tab) const {
 // RenameTypeNode
 std::string RenameTypeNode::flat() const {
   auto* const ctx = Context::getInstance();
-  if (!ctx->getLookupTable().isTypeDefined(identifier_->getName(), "")) {
-    throw std::runtime_error("unknown type `" + identifier_->getName() + "`");
-  }
-
-  return ctx->getLookupTable().getType(identifier_->getName(), "").type;
+  return ctx->getLookupTable().getType(identifier_->getName(), ctx->getCurrentScope()).type;
 }
 
 void RenameTypeNode::accept(AstVisitor* visitor) const {
@@ -126,7 +122,7 @@ std::string VarRangeTypeNode::flat() const {
   auto properEnums = ctx->getLookupTable().getTypes([&](const std::string&, const LookupTable::TypeInfo& tf) {
     return tf.alive && tf.type.find("enum%") == 0 && tf.type.find("%" + lowBound + "%") != std::string::npos &&
            tf.type.find("%" + upBound + "%") != std::string::npos;
-  });
+  }, ctx->getCurrentScope());
 
   if (properEnums.empty()) {
     throw std::runtime_error(lowBound + " and " + upBound + " are not in any enum");

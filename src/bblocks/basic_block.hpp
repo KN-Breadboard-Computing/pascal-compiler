@@ -46,6 +46,8 @@ class BasicBlock {
 
   void addInstruction(std::unique_ptr<BBInstruction> instruction) { instructions_.emplace_back(std::move(instruction)); }
   [[nodiscard]] const std::vector<std::unique_ptr<BBInstruction>>& getInstructions() const { return instructions_; }
+  [[nodiscard]] bool empty() const { return instructions_.empty(); }
+  [[nodiscard]] size_t size() const { return instructions_.size(); }
 
   friend std::ostream& operator<<(std::ostream& out, const BasicBlock& basicBlock) {
     for (const auto& instruction : basicBlock.instructions_) {

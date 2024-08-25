@@ -23,67 +23,69 @@ ProgramNode Repeats:
               IdentifierNode: i
             SpecialExpressionNode: CONST
               ConstantInteger<5>
-          AssignNode
-            SpecialExpressionNode: VARIABLE
-              IdentifierNode: j
-            SpecialExpressionNode: CONST
-              ConstantInteger<1>
-          RepeatNode:
-            MathExpressionNode: GREATER
-              SpecialExpressionNode: VARIABLE
-                IdentifierNode: j
-              SpecialExpressionNode: CONST
-                ConstantInteger<5>
-            BuiltinCallNode: WRITELN
-              ArgumentsListNode:
-                SpecialExpressionNode: VARIABLE
-                  IdentifierNode: i
-                SpecialExpressionNode: CONST
-                  ConstantString< * >
-                SpecialExpressionNode: VARIABLE
-                  IdentifierNode: j
-                SpecialExpressionNode: CONST
-                  ConstantString< = >
-                MathExpressionNode: MULTIPLICATION
-                  SpecialExpressionNode: VARIABLE
-                    IdentifierNode: i
-                  SpecialExpressionNode: VARIABLE
-                    IdentifierNode: j
+          CompoundStatementNode:
             AssignNode
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: j
-              MathExpressionNode: ADDITION
+              SpecialExpressionNode: CONST
+                ConstantInteger<1>
+            RepeatNode:
+              MathExpressionNode: GREATER
                 SpecialExpressionNode: VARIABLE
                   IdentifierNode: j
                 SpecialExpressionNode: CONST
-                  ConstantInteger<1>
-            IfNode:
-              Condition:
-                MathExpressionNode: GREATER
+                  ConstantInteger<5>
+              CompoundStatementNode:
+                BuiltinCallNode: WRITELN
+                  ArgumentsListNode:
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: i
+                    SpecialExpressionNode: CONST
+                      ConstantString< * >
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: j
+                    SpecialExpressionNode: CONST
+                      ConstantString< = >
+                    MathExpressionNode: MULTIPLICATION
+                      SpecialExpressionNode: VARIABLE
+                        IdentifierNode: i
+                      SpecialExpressionNode: VARIABLE
+                        IdentifierNode: j
+                AssignNode
                   SpecialExpressionNode: VARIABLE
                     IdentifierNode: j
-                  SpecialExpressionNode: CONST
-                    ConstantInteger<5>
-              ThenStatement:
-                BreakNode
-            IfNode:
-              Condition:
-                MathExpressionNode: EQUAL
-                  SpecialExpressionNode: VARIABLE
-                    IdentifierNode: j
-                  SpecialExpressionNode: CONST
-                    ConstantInteger<3>
-              ThenStatement:
-                ContinueNode
-          BuiltinCallNode: WRITELN
-            Arguments: nullptr
-          AssignNode
-            SpecialExpressionNode: VARIABLE
-              IdentifierNode: i
-            MathExpressionNode: ADDITION
+                  MathExpressionNode: ADDITION
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: j
+                    SpecialExpressionNode: CONST
+                      ConstantInteger<1>
+                IfNode:
+                  Condition:
+                    MathExpressionNode: GREATER
+                      SpecialExpressionNode: VARIABLE
+                        IdentifierNode: j
+                      SpecialExpressionNode: CONST
+                        ConstantInteger<5>
+                  ThenStatement:
+                    BreakNode
+                IfNode:
+                  Condition:
+                    MathExpressionNode: EQUAL
+                      SpecialExpressionNode: VARIABLE
+                        IdentifierNode: j
+                      SpecialExpressionNode: CONST
+                        ConstantInteger<3>
+                  ThenStatement:
+                    ContinueNode
+            BuiltinCallNode: WRITELN
+              Arguments: nullptr
+            AssignNode
               SpecialExpressionNode: VARIABLE
                 IdentifierNode: i
-              SpecialExpressionNode: CONST
-                ConstantInteger<1>
+              MathExpressionNode: ADDITION
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: i
+                SpecialExpressionNode: CONST
+                  ConstantInteger<1>
         BuiltinCallNode: READLN
           Arguments: nullptr

@@ -133,6 +133,9 @@ bool saveVariables(std::vector<ast::IdentifierNode*>* varNames, const std::strin
 bool saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward);
 
 bool isBasicType(const std::string& type);
+bool isBasicOrEnumType(const std::string& type);
+bool isBasicOrEnumOrArrayOrRecordType(const std::string& type);
+bool isRangeType(const std::string& type);
 bool isInEnum(const std::string& enumElement, const std::string& enumType);
 bool isInAnyEnum(const std::string& enumElement);
 bool isEnumSubRangeType(const std::string& enumElementPos, const std::string& enumType,
@@ -149,7 +152,7 @@ bool variableIsReassignedE(const std::string& varName, ast::ExpressionNode* expr
 std::string getArrayElementType(const std::string& arrayType);
 std::string getRecordFieldType(const std::string& recordType, const std::string& field);
 
-#line 153 "out/parser.cpp"
+#line 156 "out/parser.cpp"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -714,25 +717,25 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   235,   235,   246,   258,   270,   284,   294,   304,   312,
-     325,   338,   351,   366,   384,   403,   422,   443,   487,   499,
-     512,   525,   540,   571,   580,   590,   599,   610,   618,   628,
-     636,   646,   655,   666,   686,   709,   717,   727,   736,   747,
-     779,   814,   822,   830,   839,   850,   858,   866,   874,   884,
-     892,   902,   911,   922,   942,   965,   973,   981,   991,  1014,
-    1023,  1034,  1041,  1051,  1077,  1085,  1093,  1101,  1109,  1117,
-    1125,  1135,  1144,  1155,  1166,  1176,  1184,  1195,  1203,  1214,
-    1222,  1231,  1243,  1251,  1260,  1272,  1287,  1297,  1312,  1322,
-    1330,  1338,  1352,  1360,  1368,  1376,  1384,  1392,  1402,  1410,
-    1418,  1426,  1434,  1442,  1450,  1458,  1466,  1474,  1482,  1492,
-    1514,  1524,  1539,  1557,  1572,  1590,  1598,  1608,  1616,  1626,
-    1641,  1649,  1666,  1721,  1776,  1785,  1796,  1805,  1816,  1824,
-    1834,  1842,  1852,  1871,  1894,  1919,  1939,  1959,  1982,  1990,
-    2012,  2020,  2043,  2080,  2112,  2149,  2183,  2192,  2203,  2218,
-    2233,  2248,  2263,  2278,  2294,  2303,  2318,  2333,  2348,  2358,
-    2373,  2388,  2403,  2418,  2428,  2444,  2452,  2462,  2470,  2485,
-    2500,  2523,  2546,  2569,  2592,  2615,  2638,  2661,  2684,  2709,
-    2738,  2759,  2780,  2796
+       0,   238,   238,   249,   261,   273,   287,   297,   307,   315,
+     328,   341,   354,   369,   388,   408,   428,   450,   507,   520,
+     534,   548,   564,   595,   604,   614,   623,   634,   655,   678,
+     686,   696,   705,   716,   742,   771,   779,   789,   798,   809,
+     841,   876,   884,   892,   901,   912,   920,   928,   936,   946,
+     954,   964,   973,   984,  1004,  1027,  1035,  1043,  1053,  1076,
+    1085,  1096,  1103,  1113,  1193,  1201,  1209,  1217,  1225,  1233,
+    1241,  1251,  1260,  1271,  1282,  1292,  1300,  1311,  1319,  1330,
+    1338,  1347,  1359,  1367,  1376,  1388,  1403,  1413,  1428,  1438,
+    1446,  1454,  1468,  1476,  1484,  1492,  1500,  1508,  1518,  1526,
+    1534,  1542,  1550,  1558,  1566,  1574,  1582,  1590,  1598,  1608,
+    1631,  1641,  1656,  1674,  1689,  1707,  1715,  1725,  1733,  1743,
+    1758,  1766,  1783,  1838,  1893,  1902,  1913,  1922,  1933,  1941,
+    1951,  1959,  1969,  1988,  2011,  2036,  2056,  2076,  2099,  2107,
+    2129,  2137,  2160,  2197,  2229,  2266,  2300,  2309,  2320,  2335,
+    2350,  2365,  2380,  2395,  2411,  2420,  2435,  2450,  2465,  2475,
+    2490,  2505,  2520,  2535,  2545,  2562,  2570,  2580,  2588,  2603,
+    2618,  2641,  2664,  2687,  2710,  2733,  2756,  2779,  2802,  2827,
+    2857,  2878,  2899,  2915
 };
 #endif
 
@@ -1667,7 +1670,7 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: PROGRAM IDENT_NAME SEMICOLON routine DOT  */
-#line 235 "src/yacc.y"
+#line 238 "src/yacc.y"
                                              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse program 1: " << (*(yyvsp[-3].token).stringValue) << std::endl;
@@ -1678,11 +1681,11 @@ yyreduce:
         (yyval.programNode) = new ast::ProgramNode(std::move(name), (yyvsp[-1].routineNode));
         resultAst = (yyval.programNode);
     }
-#line 1682 "out/parser.cpp"
+#line 1685 "out/parser.cpp"
     break;
 
   case 3: /* program: PROGRAM IDENT_NAME SEMICOLON routine  */
-#line 246 "src/yacc.y"
+#line 249 "src/yacc.y"
                                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse program 2: " << (*(yyvsp[-2].token).stringValue) << std::endl;
@@ -1694,11 +1697,11 @@ yyreduce:
         resultAst = (yyval.programNode);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of end dot");
     }
-#line 1698 "out/parser.cpp"
+#line 1701 "out/parser.cpp"
     break;
 
   case 4: /* program: PROGRAM IDENT_NAME routine DOT  */
-#line 258 "src/yacc.y"
+#line 261 "src/yacc.y"
                                    {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse program 3: " << (*(yyvsp[-2].token).stringValue) << std::endl;
@@ -1710,11 +1713,11 @@ yyreduce:
         resultAst = (yyval.programNode);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 1714 "out/parser.cpp"
+#line 1717 "out/parser.cpp"
     break;
 
   case 5: /* program: PROGRAM IDENT_NAME routine  */
-#line 270 "src/yacc.y"
+#line 273 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse program 4: " << (*(yyvsp[-1].token).stringValue) << std::endl;
@@ -1726,11 +1729,11 @@ yyreduce:
         resultAst = (yyval.programNode);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon and end dot");
     }
-#line 1730 "out/parser.cpp"
+#line 1733 "out/parser.cpp"
     break;
 
   case 6: /* routine: routine_head routine_body  */
-#line 284 "src/yacc.y"
+#line 287 "src/yacc.y"
                               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse routine" << std::endl;
@@ -1738,11 +1741,11 @@ yyreduce:
 
         (yyval.routineNode) = new ast::RoutineNode((yyvsp[-1].routineHeadNode), (yyvsp[0].routineBodyNode));
     }
-#line 1742 "out/parser.cpp"
+#line 1745 "out/parser.cpp"
     break;
 
   case 7: /* routine_head: const_part type_part var_part routine_part  */
-#line 294 "src/yacc.y"
+#line 297 "src/yacc.y"
                                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse routine head" << std::endl;
@@ -1750,11 +1753,11 @@ yyreduce:
 
         (yyval.routineHeadNode) = new ast::RoutineHeadNode((yyvsp[-3].constPartList), (yyvsp[-2].typePartList), (yyvsp[-1].varPartList), (yyvsp[0].routinePartList));
     }
-#line 1754 "out/parser.cpp"
+#line 1757 "out/parser.cpp"
     break;
 
   case 8: /* routine_part: %empty  */
-#line 304 "src/yacc.y"
+#line 307 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty routine part" << std::endl;
@@ -1762,11 +1765,11 @@ yyreduce:
 
         (yyval.routinePartList) = new std::vector<ast::RoutineDeclarationNode*>();
     }
-#line 1766 "out/parser.cpp"
+#line 1769 "out/parser.cpp"
     break;
 
   case 9: /* routine_part: routine_part fun_decl  */
-#line 312 "src/yacc.y"
+#line 315 "src/yacc.y"
                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse routine part with fun decl 1 " << (yyvsp[0].routineDeclarationNode)->getName() << std::endl;
@@ -1779,11 +1782,11 @@ yyreduce:
         (yyval.routinePartList) = (yyvsp[-1].routinePartList);
         (yyval.routinePartList)->push_back((yyvsp[0].routineDeclarationNode));
     }
-#line 1783 "out/parser.cpp"
+#line 1786 "out/parser.cpp"
     break;
 
   case 10: /* routine_part: routine_part proc_decl  */
-#line 325 "src/yacc.y"
+#line 328 "src/yacc.y"
                            {
        #ifdef YACC_DEBUG
            std::cout << "Yacc debug: Parse routine part with proc decl 1 " << (yyvsp[0].routineDeclarationNode)->getName() << std::endl;
@@ -1796,11 +1799,11 @@ yyreduce:
        (yyval.routinePartList) = (yyvsp[-1].routinePartList);
        (yyval.routinePartList)->push_back((yyvsp[0].routineDeclarationNode));
     }
-#line 1800 "out/parser.cpp"
+#line 1803 "out/parser.cpp"
     break;
 
   case 11: /* routine_part: fun_decl  */
-#line 338 "src/yacc.y"
+#line 341 "src/yacc.y"
              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse routine part with fun decl 2 " << (yyvsp[0].routineDeclarationNode)->getName() << std::endl;
@@ -1813,11 +1816,11 @@ yyreduce:
         (yyval.routinePartList) = new std::vector<ast::RoutineDeclarationNode*>();
         (yyval.routinePartList)->push_back((yyvsp[0].routineDeclarationNode));
     }
-#line 1817 "out/parser.cpp"
+#line 1820 "out/parser.cpp"
     break;
 
   case 12: /* routine_part: proc_decl  */
-#line 351 "src/yacc.y"
+#line 354 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse routine part with proc decl 2 " << (yyvsp[0].routineDeclarationNode)->getName() << std::endl;
@@ -1830,11 +1833,11 @@ yyreduce:
         (yyval.routinePartList) = new std::vector<ast::RoutineDeclarationNode*>();
         (yyval.routinePartList)->push_back((yyvsp[0].routineDeclarationNode));
     }
-#line 1834 "out/parser.cpp"
+#line 1837 "out/parser.cpp"
     break;
 
   case 13: /* fun_decl: fun_head SEMICOLON routine SEMICOLON  */
-#line 366 "src/yacc.y"
+#line 369 "src/yacc.y"
                                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun decl 1" << std::endl;
@@ -1846,17 +1849,18 @@ yyreduce:
             YYERROR;
         }
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         (yyval.routineDeclarationNode) = (yyvsp[-3].routineDeclarationNode);
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[-1].routineNode)));
         (yyval.routineDeclarationNode)->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
     }
-#line 1856 "out/parser.cpp"
+#line 1860 "out/parser.cpp"
     break;
 
   case 14: /* fun_decl: fun_head SEMICOLON routine  */
-#line 384 "src/yacc.y"
+#line 388 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun decl 2" << std::endl;
@@ -1868,18 +1872,19 @@ yyreduce:
             YYERROR;
         }
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         (yyval.routineDeclarationNode) = (yyvsp[-2].routineDeclarationNode);
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[0].routineNode)));
         (yyval.routineDeclarationNode)->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 1879 "out/parser.cpp"
+#line 1884 "out/parser.cpp"
     break;
 
   case 15: /* fun_decl: fun_head routine SEMICOLON  */
-#line 403 "src/yacc.y"
+#line 408 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun decl 3" << std::endl;
@@ -1891,18 +1896,19 @@ yyreduce:
             YYERROR;
         }
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         (yyval.routineDeclarationNode) = (yyvsp[-2].routineDeclarationNode);
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[-1].routineNode)));
         (yyval.routineDeclarationNode)->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 1902 "out/parser.cpp"
+#line 1908 "out/parser.cpp"
     break;
 
   case 16: /* fun_decl: fun_head routine  */
-#line 422 "src/yacc.y"
+#line 428 "src/yacc.y"
                      {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun decl 4" << std::endl;
@@ -1914,24 +1920,38 @@ yyreduce:
             YYERROR;
         }
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         (yyval.routineDeclarationNode) = (yyvsp[-1].routineDeclarationNode);
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[0].routineNode)));
         (yyval.routineDeclarationNode)->setRoutineType(ast::RoutineDeclarationNode::RoutineType::FUNCTION);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 1925 "out/parser.cpp"
+#line 1932 "out/parser.cpp"
     break;
 
   case 17: /* fun_head: FUNCTION IDENT_NAME params COLON simple_type  */
-#line 443 "src/yacc.y"
+#line 450 "src/yacc.y"
                                                  {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse fun head " << (*(yyvsp[-3].token).stringValue) << std::endl;
         #endif
 
-        ctx->getLookupTable().pushScope(*(yyvsp[-3].token).stringValue);
+        ctx->pushScope(*(yyvsp[-3].token).stringValue);
+
+        try {
+            if(!isBasicOrEnumOrArrayOrRecordType((yyvsp[0].simpleTypeNode)->flat())) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid return type");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
+            YYERROR;
+        }
 
         std::string funType;
         try { funType = (yyvsp[0].simpleTypeNode)->flat(); }
@@ -1967,84 +1987,88 @@ yyreduce:
             YYERROR;
         }
     }
-#line 1971 "out/parser.cpp"
+#line 1991 "out/parser.cpp"
     break;
 
   case 18: /* proc_decl: proc_head SEMICOLON routine SEMICOLON  */
-#line 487 "src/yacc.y"
+#line 507 "src/yacc.y"
                                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse proc decl" << std::endl;
         #endif
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         (yyval.routineDeclarationNode) = (yyvsp[-3].routineDeclarationNode);
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[-1].routineNode)));
         (yyval.routineDeclarationNode)->setRoutineType(ast::RoutineDeclarationNode::RoutineType::PROCEDURE);
     }
-#line 1987 "out/parser.cpp"
+#line 2008 "out/parser.cpp"
     break;
 
   case 19: /* proc_decl: proc_head routine SEMICOLON  */
-#line 499 "src/yacc.y"
+#line 520 "src/yacc.y"
                                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse proc decl" << std::endl;
         #endif
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         (yyval.routineDeclarationNode) = (yyvsp[-2].routineDeclarationNode);
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[-1].routineNode)));
         (yyval.routineDeclarationNode)->setRoutineType(ast::RoutineDeclarationNode::RoutineType::PROCEDURE);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 2004 "out/parser.cpp"
+#line 2026 "out/parser.cpp"
     break;
 
   case 20: /* proc_decl: proc_head SEMICOLON routine  */
-#line 512 "src/yacc.y"
+#line 534 "src/yacc.y"
                                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse proc decl" << std::endl;
         #endif
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         (yyval.routineDeclarationNode) = (yyvsp[-2].routineDeclarationNode);
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[0].routineNode)));
         (yyval.routineDeclarationNode)->setRoutineType(ast::RoutineDeclarationNode::RoutineType::PROCEDURE);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 2021 "out/parser.cpp"
+#line 2044 "out/parser.cpp"
     break;
 
   case 21: /* proc_decl: proc_head routine  */
-#line 525 "src/yacc.y"
+#line 548 "src/yacc.y"
                       {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse proc decl" << std::endl;
         #endif
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         (yyval.routineDeclarationNode) = (yyvsp[-1].routineDeclarationNode);
         (yyval.routineDeclarationNode)->setRoutine(std::unique_ptr<ast::RoutineNode>((yyvsp[0].routineNode)));
         (yyval.routineDeclarationNode)->setRoutineType(ast::RoutineDeclarationNode::RoutineType::PROCEDURE);
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 2038 "out/parser.cpp"
+#line 2062 "out/parser.cpp"
     break;
 
   case 22: /* proc_head: PROCEDURE IDENT_NAME params  */
-#line 540 "src/yacc.y"
+#line 564 "src/yacc.y"
                                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse proc head " << (*(yyvsp[-1].token).stringValue) << std::endl;
         #endif
 
-        ctx->getLookupTable().pushScope(*(yyvsp[-1].token).stringValue);
+        ctx->pushScope(*(yyvsp[-1].token).stringValue);
 
         for(const auto& param : *(yyvsp[0].paramsNode)->getParams()) {
             std::string paramType;
@@ -2067,11 +2091,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 2071 "out/parser.cpp"
+#line 2095 "out/parser.cpp"
     break;
 
   case 23: /* params: %empty  */
-#line 571 "src/yacc.y"
+#line 595 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty params" << std::endl;
@@ -2080,11 +2104,11 @@ yyreduce:
         std::vector<ast::ParamsGroupNode *>* emptyParamsList = new std::vector<ast::ParamsGroupNode*>();
         (yyval.paramsNode) = new ast::ParamsNode(emptyParamsList);
     }
-#line 2084 "out/parser.cpp"
+#line 2108 "out/parser.cpp"
     break;
 
   case 24: /* params: LP params_decl RP  */
-#line 580 "src/yacc.y"
+#line 604 "src/yacc.y"
                       {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse params" << std::endl;
@@ -2092,11 +2116,11 @@ yyreduce:
 
         (yyval.paramsNode) = new ast::ParamsNode((yyvsp[-1].paramsGroupList));
     }
-#line 2096 "out/parser.cpp"
+#line 2120 "out/parser.cpp"
     break;
 
   case 25: /* params_decl: params_decl SEMICOLON params_type  */
-#line 590 "src/yacc.y"
+#line 614 "src/yacc.y"
                                       {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse params decl 1" << std::endl;
@@ -2105,11 +2129,11 @@ yyreduce:
         (yyval.paramsGroupList) = (yyvsp[-2].paramsGroupList);
         (yyval.paramsGroupList)->push_back((yyvsp[0].paramsGroupNode));
     }
-#line 2109 "out/parser.cpp"
+#line 2133 "out/parser.cpp"
     break;
 
   case 26: /* params_decl: params_type  */
-#line 599 "src/yacc.y"
+#line 623 "src/yacc.y"
                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse params decl 2" << std::endl;
@@ -2118,35 +2142,61 @@ yyreduce:
         (yyval.paramsGroupList) = new std::vector<ast::ParamsGroupNode*>();
         (yyval.paramsGroupList)->push_back((yyvsp[0].paramsGroupNode));
     }
-#line 2122 "out/parser.cpp"
+#line 2146 "out/parser.cpp"
     break;
 
   case 27: /* params_type: VAR name_list COLON simple_type  */
-#line 610 "src/yacc.y"
+#line 634 "src/yacc.y"
                                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse params type 1" << std::endl;
         #endif
 
+        try {
+            if(!isBasicOrEnumOrArrayOrRecordType((yyvsp[0].simpleTypeNode)->flat())) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid parameter type");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid parameter type");
+            fatalError = true;
+            YYERROR;
+        }
+
         (yyval.paramsGroupNode) = new ast::ParamsGroupNode(ast::ParamsGroupNode::PassType::PASS_BY_REFERENCE, (yyvsp[-2].identifierList), (yyvsp[0].simpleTypeNode));
     }
-#line 2134 "out/parser.cpp"
+#line 2171 "out/parser.cpp"
     break;
 
   case 28: /* params_type: name_list COLON simple_type  */
-#line 618 "src/yacc.y"
+#line 655 "src/yacc.y"
                                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse params type 2" << std::endl;
         #endif
 
+        try {
+            if(!isBasicOrEnumOrArrayOrRecordType((yyvsp[0].simpleTypeNode)->flat())) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid parameter type");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid parameter type");
+            fatalError = true;
+            YYERROR;
+        }
+
         (yyval.paramsGroupNode) = new ast::ParamsGroupNode(ast::ParamsGroupNode::PassType::PASS_BY_VALUE, (yyvsp[-2].identifierList), (yyvsp[0].simpleTypeNode));
     }
-#line 2146 "out/parser.cpp"
+#line 2196 "out/parser.cpp"
     break;
 
   case 29: /* var_part: %empty  */
-#line 628 "src/yacc.y"
+#line 678 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty var part" << std::endl;
@@ -2154,11 +2204,11 @@ yyreduce:
 
         (yyval.varPartList) = new std::vector<std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>*>();
     }
-#line 2158 "out/parser.cpp"
+#line 2208 "out/parser.cpp"
     break;
 
   case 30: /* var_part: VAR var_decl_list  */
-#line 636 "src/yacc.y"
+#line 686 "src/yacc.y"
                       {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse var part" << std::endl;
@@ -2166,11 +2216,11 @@ yyreduce:
 
         (yyval.varPartList) = (yyvsp[0].varPartList);
     }
-#line 2170 "out/parser.cpp"
+#line 2220 "out/parser.cpp"
     break;
 
   case 31: /* var_decl_list: var_decl_list var_decl  */
-#line 646 "src/yacc.y"
+#line 696 "src/yacc.y"
                            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse var decl list 1" << std::endl;
@@ -2179,11 +2229,11 @@ yyreduce:
         (yyval.varPartList) = (yyvsp[-1].varPartList);
         (yyval.varPartList)->push_back((yyvsp[0].varPartListElement));
     }
-#line 2183 "out/parser.cpp"
+#line 2233 "out/parser.cpp"
     break;
 
   case 32: /* var_decl_list: var_decl  */
-#line 655 "src/yacc.y"
+#line 705 "src/yacc.y"
              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse var decl list 2" << std::endl;
@@ -2192,11 +2242,11 @@ yyreduce:
         (yyval.varPartList) = new std::vector<std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>*>();
         (yyval.varPartList)->push_back((yyvsp[0].varPartListElement));
     }
-#line 2196 "out/parser.cpp"
+#line 2246 "out/parser.cpp"
     break;
 
   case 33: /* var_decl: name_list COLON type_decl SEMICOLON  */
-#line 666 "src/yacc.y"
+#line 716 "src/yacc.y"
                                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse var decl 1" << std::endl;
@@ -2210,17 +2260,23 @@ yyreduce:
             YYERROR;
         }
 
+        if(isRangeType(varType)) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid variable type");
+            fatalError = true;
+            YYERROR;
+        }
+
         if(!saveVariables((yyvsp[-3].identifierList), varType)) {
             YYERROR;
         }
 
         (yyval.varPartListElement) = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>((yyvsp[-3].identifierList), (yyvsp[-1].typeNode));
     }
-#line 2220 "out/parser.cpp"
+#line 2276 "out/parser.cpp"
     break;
 
   case 34: /* var_decl: name_list COLON type_decl  */
-#line 686 "src/yacc.y"
+#line 742 "src/yacc.y"
                               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse var decl 2" << std::endl;
@@ -2234,6 +2290,12 @@ yyreduce:
             YYERROR;
         }
 
+        if(isRangeType(varType)) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid variable type");
+            fatalError = true;
+            YYERROR;
+        }
+
         if(!saveVariables((yyvsp[-2].identifierList), varType)) {
             YYERROR;
         }
@@ -2241,11 +2303,11 @@ yyreduce:
         (yyval.varPartListElement) = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>((yyvsp[-2].identifierList), (yyvsp[0].typeNode));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 2245 "out/parser.cpp"
+#line 2307 "out/parser.cpp"
     break;
 
   case 35: /* const_part: %empty  */
-#line 709 "src/yacc.y"
+#line 771 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty const part" << std::endl;
@@ -2253,11 +2315,11 @@ yyreduce:
 
         (yyval.constPartList) = new std::vector<std::pair<ast::IdentifierNode*, ast::ConstantNode*>*>();
     }
-#line 2257 "out/parser.cpp"
+#line 2319 "out/parser.cpp"
     break;
 
   case 36: /* const_part: CONST const_expr_list  */
-#line 717 "src/yacc.y"
+#line 779 "src/yacc.y"
                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const part" << std::endl;
@@ -2265,11 +2327,11 @@ yyreduce:
 
         (yyval.constPartList) = (yyvsp[0].constPartList);
     }
-#line 2269 "out/parser.cpp"
+#line 2331 "out/parser.cpp"
     break;
 
   case 37: /* const_expr_list: const_expr_list const_expr  */
-#line 727 "src/yacc.y"
+#line 789 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const expr list 1" << std::endl;
@@ -2278,11 +2340,11 @@ yyreduce:
         (yyval.constPartList) = (yyvsp[-1].constPartList);
         (yyval.constPartList)->push_back((yyvsp[0].constPartListElement));
     }
-#line 2282 "out/parser.cpp"
+#line 2344 "out/parser.cpp"
     break;
 
   case 38: /* const_expr_list: const_expr  */
-#line 736 "src/yacc.y"
+#line 798 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const expr list 2" << std::endl;
@@ -2291,11 +2353,11 @@ yyreduce:
         (yyval.constPartList) = new std::vector<std::pair<ast::IdentifierNode*, ast::ConstantNode*>*>();
         (yyval.constPartList)->push_back((yyvsp[0].constPartListElement));
     }
-#line 2295 "out/parser.cpp"
+#line 2357 "out/parser.cpp"
     break;
 
   case 39: /* const_expr: identifier EQUAL const_value SEMICOLON  */
-#line 747 "src/yacc.y"
+#line 809 "src/yacc.y"
                                            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const expr 1" << std::endl;
@@ -2327,11 +2389,11 @@ yyreduce:
 
         (yyval.constPartListElement) = new std::pair<ast::IdentifierNode*, ast::ConstantNode*>((yyvsp[-3].identifierNode), (yyvsp[-1].constantNode));
     }
-#line 2331 "out/parser.cpp"
+#line 2393 "out/parser.cpp"
     break;
 
   case 40: /* const_expr: identifier EQUAL const_value  */
-#line 779 "src/yacc.y"
+#line 841 "src/yacc.y"
                                  {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const expr 2" << std::endl;
@@ -2364,11 +2426,11 @@ yyreduce:
         (yyval.constPartListElement) = new std::pair<ast::IdentifierNode*, ast::ConstantNode*>((yyvsp[-2].identifierNode), (yyvsp[0].constantNode));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 2368 "out/parser.cpp"
+#line 2430 "out/parser.cpp"
     break;
 
   case 41: /* const_value: INTEGER  */
-#line 814 "src/yacc.y"
+#line 876 "src/yacc.y"
             {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const value - integer `" << (yyvsp[0].token).numericalValue << "`" << std::endl;
@@ -2376,11 +2438,11 @@ yyreduce:
 
         (yyval.constantNode) = new ast::IntegerConstantNode((yyvsp[0].token).numericalValue);
     }
-#line 2380 "out/parser.cpp"
+#line 2442 "out/parser.cpp"
     break;
 
   case 42: /* const_value: MINUS INTEGER  */
-#line 822 "src/yacc.y"
+#line 884 "src/yacc.y"
                   {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const value - signed integer `" << -(yyvsp[0].token).numericalValue << "`" << std::endl;
@@ -2388,11 +2450,11 @@ yyreduce:
 
         (yyval.constantNode) = new ast::IntegerConstantNode(-(yyvsp[0].token).numericalValue);
     }
-#line 2392 "out/parser.cpp"
+#line 2454 "out/parser.cpp"
     break;
 
   case 43: /* const_value: CHAR  */
-#line 831 "src/yacc.y"
+#line 893 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const value - char `" << static_cast<char>((yyvsp[0].token).numericalValue) << "`" << std::endl;
@@ -2400,11 +2462,11 @@ yyreduce:
 
         (yyval.constantNode) = new ast::CharConstantNode(static_cast<char>((yyvsp[0].token).numericalValue));
     }
-#line 2404 "out/parser.cpp"
+#line 2466 "out/parser.cpp"
     break;
 
   case 44: /* const_value: STRING  */
-#line 839 "src/yacc.y"
+#line 901 "src/yacc.y"
            {
         std::string str{*(yyvsp[0].token).stringValue};
         str = str.substr(1, str.size() - 2);
@@ -2415,11 +2477,11 @@ yyreduce:
 
         (yyval.constantNode) = new ast::StringConstantNode(std::move(str));
     }
-#line 2419 "out/parser.cpp"
+#line 2481 "out/parser.cpp"
     break;
 
   case 45: /* const_value: TRUE  */
-#line 850 "src/yacc.y"
+#line 912 "src/yacc.y"
          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const value - true" << std::endl;
@@ -2427,11 +2489,11 @@ yyreduce:
 
         (yyval.constantNode) = new ast::BooleanConstantNode(true);
     }
-#line 2431 "out/parser.cpp"
+#line 2493 "out/parser.cpp"
     break;
 
   case 46: /* const_value: FALSE  */
-#line 858 "src/yacc.y"
+#line 920 "src/yacc.y"
           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const value - false" << std::endl;
@@ -2439,11 +2501,11 @@ yyreduce:
 
         (yyval.constantNode) = new ast::BooleanConstantNode(false);
     }
-#line 2443 "out/parser.cpp"
+#line 2505 "out/parser.cpp"
     break;
 
   case 47: /* const_value: MAXINT  */
-#line 866 "src/yacc.y"
+#line 928 "src/yacc.y"
            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const value - maxint" << std::endl;
@@ -2451,11 +2513,11 @@ yyreduce:
 
         (yyval.constantNode) = new ast::IntegerConstantNode(255);
     }
-#line 2455 "out/parser.cpp"
+#line 2517 "out/parser.cpp"
     break;
 
   case 48: /* const_value: MINUS MAXINT  */
-#line 874 "src/yacc.y"
+#line 936 "src/yacc.y"
                  {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse const value - signed maxint" << std::endl;
@@ -2463,11 +2525,11 @@ yyreduce:
 
         (yyval.constantNode) = new ast::IntegerConstantNode(-255);
     }
-#line 2467 "out/parser.cpp"
+#line 2529 "out/parser.cpp"
     break;
 
   case 49: /* type_part: %empty  */
-#line 884 "src/yacc.y"
+#line 946 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty type part" << std::endl;
@@ -2475,11 +2537,11 @@ yyreduce:
 
         (yyval.typePartList) = new std::vector<std::pair<ast::IdentifierNode*, ast::TypeNode*>*>();
     }
-#line 2479 "out/parser.cpp"
+#line 2541 "out/parser.cpp"
     break;
 
   case 50: /* type_part: TYPE type_decl_list  */
-#line 892 "src/yacc.y"
+#line 954 "src/yacc.y"
                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse type part" << std::endl;
@@ -2487,11 +2549,11 @@ yyreduce:
 
         (yyval.typePartList) = (yyvsp[0].typePartList);
     }
-#line 2491 "out/parser.cpp"
+#line 2553 "out/parser.cpp"
     break;
 
   case 51: /* type_decl_list: type_decl_list type_def  */
-#line 902 "src/yacc.y"
+#line 964 "src/yacc.y"
                             {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse type decl list 1" << std::endl;
@@ -2500,11 +2562,11 @@ yyreduce:
         (yyval.typePartList) = (yyvsp[-1].typePartList);
         (yyval.typePartList)->push_back((yyvsp[0].typePartListElement));
     }
-#line 2504 "out/parser.cpp"
+#line 2566 "out/parser.cpp"
     break;
 
   case 52: /* type_decl_list: type_def  */
-#line 911 "src/yacc.y"
+#line 973 "src/yacc.y"
              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse type decl list 2" << std::endl;
@@ -2513,11 +2575,11 @@ yyreduce:
         (yyval.typePartList) = new std::vector<std::pair<ast::IdentifierNode*, ast::TypeNode*>*>();
         (yyval.typePartList)->push_back((yyvsp[0].typePartListElement));
     }
-#line 2517 "out/parser.cpp"
+#line 2579 "out/parser.cpp"
     break;
 
   case 53: /* type_def: identifier EQUAL type_decl SEMICOLON  */
-#line 922 "src/yacc.y"
+#line 984 "src/yacc.y"
                                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse type def 1" << std::endl;
@@ -2537,11 +2599,11 @@ yyreduce:
 
         (yyval.typePartListElement) = new std::pair<ast::IdentifierNode*, ast::TypeNode*>((yyvsp[-3].identifierNode), (yyvsp[-1].typeNode));
     }
-#line 2541 "out/parser.cpp"
+#line 2603 "out/parser.cpp"
     break;
 
   case 54: /* type_def: identifier EQUAL type_decl  */
-#line 942 "src/yacc.y"
+#line 1004 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse type def 2" << std::endl;
@@ -2562,11 +2624,11 @@ yyreduce:
         (yyval.typePartListElement) = new std::pair<ast::IdentifierNode*, ast::TypeNode*>((yyvsp[-2].identifierNode), (yyvsp[0].typeNode));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 2566 "out/parser.cpp"
+#line 2628 "out/parser.cpp"
     break;
 
   case 55: /* type_decl: simple_type  */
-#line 965 "src/yacc.y"
+#line 1027 "src/yacc.y"
                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type" << std::endl;
@@ -2574,11 +2636,11 @@ yyreduce:
 
         (yyval.typeNode) = (yyvsp[0].simpleTypeNode);
     }
-#line 2578 "out/parser.cpp"
+#line 2640 "out/parser.cpp"
     break;
 
   case 56: /* type_decl: array_type_decl  */
-#line 973 "src/yacc.y"
+#line 1035 "src/yacc.y"
                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse array type" << std::endl;
@@ -2586,11 +2648,11 @@ yyreduce:
 
         (yyval.typeNode) = (yyvsp[0].arrayTypeNode);
     }
-#line 2590 "out/parser.cpp"
+#line 2652 "out/parser.cpp"
     break;
 
   case 57: /* type_decl: record_type_decl  */
-#line 981 "src/yacc.y"
+#line 1043 "src/yacc.y"
                      {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse record type" << std::endl;
@@ -2598,11 +2660,11 @@ yyreduce:
 
         (yyval.typeNode) = (yyvsp[0].recordTypeNode);
     }
-#line 2602 "out/parser.cpp"
+#line 2664 "out/parser.cpp"
     break;
 
   case 58: /* record_type_decl: RECORD field_decl_list END  */
-#line 991 "src/yacc.y"
+#line 1053 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse record type" << std::endl;
@@ -2623,11 +2685,11 @@ yyreduce:
 
         (yyval.recordTypeNode) = new ast::RecordTypeNode((yyvsp[-1].fieldDeclList));
     }
-#line 2627 "out/parser.cpp"
+#line 2689 "out/parser.cpp"
     break;
 
   case 59: /* field_decl_list: field_decl_list field_decl  */
-#line 1014 "src/yacc.y"
+#line 1076 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse field decl list 1" << std::endl;
@@ -2636,11 +2698,11 @@ yyreduce:
         (yyval.fieldDeclList) = (yyvsp[-1].fieldDeclList);
         (yyval.fieldDeclList)->push_back((yyvsp[0].fieldDeclListElement));
     }
-#line 2640 "out/parser.cpp"
+#line 2702 "out/parser.cpp"
     break;
 
   case 60: /* field_decl_list: field_decl  */
-#line 1023 "src/yacc.y"
+#line 1085 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse field decl list 2" << std::endl;
@@ -2649,22 +2711,22 @@ yyreduce:
         (yyval.fieldDeclList) = new std::vector<std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>*>();
         (yyval.fieldDeclList)->push_back((yyvsp[0].fieldDeclListElement));
     }
-#line 2653 "out/parser.cpp"
+#line 2715 "out/parser.cpp"
     break;
 
   case 61: /* field_decl: name_list COLON type_decl SEMICOLON  */
-#line 1034 "src/yacc.y"
+#line 1096 "src/yacc.y"
                                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse field decl 1" << std::endl;
         #endif
         (yyval.fieldDeclListElement) = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>((yyvsp[-3].identifierList), (yyvsp[-1].typeNode));
     }
-#line 2664 "out/parser.cpp"
+#line 2726 "out/parser.cpp"
     break;
 
   case 62: /* field_decl: name_list COLON type_decl  */
-#line 1041 "src/yacc.y"
+#line 1103 "src/yacc.y"
                               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse field decl 2" << std::endl;
@@ -2672,27 +2734,81 @@ yyreduce:
         (yyval.fieldDeclListElement) = new std::pair<std::vector<ast::IdentifierNode*>*, ast::TypeNode*>((yyvsp[-2].identifierList), (yyvsp[0].typeNode));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 2676 "out/parser.cpp"
+#line 2738 "out/parser.cpp"
     break;
 
   case 63: /* array_type_decl: ARRAY LB simple_type RB OF type_decl  */
-#line 1051 "src/yacc.y"
+#line 1113 "src/yacc.y"
                                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse array type" << std::endl;
         #endif
 
+        try {
+            if(!isBasicOrEnumType((yyvsp[-3].simpleTypeNode)->flat()) && !isRangeType((yyvsp[-3].simpleTypeNode)->flat())) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid variable type");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
+            YYERROR;
+        }
+
+        try {
+            if(!isBasicOrEnumOrArrayOrRecordType((yyvsp[0].typeNode)->flat())) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid return type");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
+            YYERROR;
+        }
+
         if((yyvsp[-3].simpleTypeNode)->getRepresentation() == ast::SimpleTypeNode::Representation::CONST_RANGE) {
             ast::ConstRangeTypeNode* range = dynamic_cast<ast::ConstRangeTypeNode*>((yyvsp[-3].simpleTypeNode));
-            ast::ConstantNode::ConstantType leftType = range->getLowerBound()->getConstantType();
-            ast::ConstantNode::ConstantType rightType = range->getUpperBound()->getConstantType();
+            const std::string& leftType = range->getLowerBound()->flatType();
+            const std::string& rightType = range->getUpperBound()->flatType();
+            const std::string& leftVal = range->getLowerBound()->flat();
+            const std::string& rightVal = range->getUpperBound()->flat();
             if(leftType != rightType) {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", array range bounds must have the same type");
                 fatalError = true;
                 YYERROR;
             }
-            else if(leftType == ast::ConstantNode::STRING || rightType == ast::ConstantNode::STRING) {
+            else if(leftType == "string" || rightType == "string") {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", array range bounds cannot be string");
+                fatalError = true;
+                YYERROR;
+            }
+
+            if(isInteger(leftVal)) {
+                int int1 = std::atoi(leftVal.c_str());
+                int int2 = std::atoi(rightVal.c_str());
+                if(int2 < int1) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid array range bounds");
+                    fatalError = true;
+                    YYERROR;
+                }
+            }
+
+            if(isChar(leftVal)) {
+                int char1 = static_cast<int>(leftVal.at(0));
+                int char2 = static_cast<int>(rightVal.at(0));
+                if(char2 < char1) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid array range bounds");
+                    fatalError = true;
+                    YYERROR;
+                }
+            }
+
+            if(leftVal == "true" && rightVal == "false") {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid array range bounds");
                 fatalError = true;
                 YYERROR;
             }
@@ -2700,11 +2816,11 @@ yyreduce:
 
         (yyval.arrayTypeNode) = new ast::ArrayTypeNode((yyvsp[-3].simpleTypeNode), (yyvsp[0].typeNode));
     }
-#line 2704 "out/parser.cpp"
+#line 2820 "out/parser.cpp"
     break;
 
   case 64: /* simple_type: identifier  */
-#line 1077 "src/yacc.y"
+#line 1193 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - identifier" << std::endl;
@@ -2712,23 +2828,23 @@ yyreduce:
 
         (yyval.simpleTypeNode) = new ast::RenameTypeNode((yyvsp[0].identifierNode));
     }
-#line 2716 "out/parser.cpp"
+#line 2832 "out/parser.cpp"
     break;
 
   case 65: /* simple_type: LP name_list RP  */
-#line 1085 "src/yacc.y"
+#line 1201 "src/yacc.y"
                     {
         #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse simple type - parentheses" << std::endl;
+            std::cout << "Yacc debug: Parse simple type - enum" << std::endl;
         #endif
 
         (yyval.simpleTypeNode) = new ast::EnumerationTypeNode((yyvsp[-1].identifierList));
     }
-#line 2728 "out/parser.cpp"
+#line 2844 "out/parser.cpp"
     break;
 
   case 66: /* simple_type: const_value DOUBLEDOT const_value  */
-#line 1093 "src/yacc.y"
+#line 1209 "src/yacc.y"
                                       {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - range 1" << std::endl;
@@ -2736,11 +2852,11 @@ yyreduce:
 
         (yyval.simpleTypeNode) = new ast::ConstRangeTypeNode((yyvsp[-2].constantNode), (yyvsp[0].constantNode));
     }
-#line 2740 "out/parser.cpp"
+#line 2856 "out/parser.cpp"
     break;
 
   case 67: /* simple_type: identifier DOUBLEDOT identifier  */
-#line 1101 "src/yacc.y"
+#line 1217 "src/yacc.y"
                                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - range 4" << std::endl;
@@ -2748,11 +2864,11 @@ yyreduce:
 
         (yyval.simpleTypeNode) = new ast::VarRangeTypeNode((yyvsp[-2].identifierNode), (yyvsp[0].identifierNode));
     }
-#line 2752 "out/parser.cpp"
+#line 2868 "out/parser.cpp"
     break;
 
   case 68: /* simple_type: INT_TYPE  */
-#line 1109 "src/yacc.y"
+#line 1225 "src/yacc.y"
              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - int" << std::endl;
@@ -2760,11 +2876,11 @@ yyreduce:
 
         (yyval.simpleTypeNode) = new ast::BasicTypeNode(ast::BasicTypeNode::BasicType::INTEGER);
     }
-#line 2764 "out/parser.cpp"
+#line 2880 "out/parser.cpp"
     break;
 
   case 69: /* simple_type: BOOL_TYPE  */
-#line 1117 "src/yacc.y"
+#line 1233 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - bool" << std::endl;
@@ -2772,11 +2888,11 @@ yyreduce:
 
         (yyval.simpleTypeNode) = new ast::BasicTypeNode(ast::BasicTypeNode::BasicType::BOOLEAN);
     }
-#line 2776 "out/parser.cpp"
+#line 2892 "out/parser.cpp"
     break;
 
   case 70: /* simple_type: CHAR_TYPE  */
-#line 1125 "src/yacc.y"
+#line 1241 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple type - char" << std::endl;
@@ -2784,11 +2900,11 @@ yyreduce:
 
         (yyval.simpleTypeNode) = new ast::BasicTypeNode(ast::BasicTypeNode::BasicType::CHAR);
     }
-#line 2788 "out/parser.cpp"
+#line 2904 "out/parser.cpp"
     break;
 
   case 71: /* name_list: name_list COMMA identifier  */
-#line 1135 "src/yacc.y"
+#line 1251 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse name list 1" << std::endl;
@@ -2797,11 +2913,11 @@ yyreduce:
         (yyval.identifierList) = (yyvsp[-2].identifierList);
         (yyval.identifierList)->push_back((yyvsp[0].identifierNode));
     }
-#line 2801 "out/parser.cpp"
+#line 2917 "out/parser.cpp"
     break;
 
   case 72: /* name_list: identifier  */
-#line 1144 "src/yacc.y"
+#line 1260 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse name list 2" << std::endl;
@@ -2810,11 +2926,11 @@ yyreduce:
         (yyval.identifierList) = new std::vector<ast::IdentifierNode*>();
         (yyval.identifierList)->push_back((yyvsp[0].identifierNode));
     }
-#line 2814 "out/parser.cpp"
+#line 2930 "out/parser.cpp"
     break;
 
   case 73: /* identifier: IDENT_NAME  */
-#line 1155 "src/yacc.y"
+#line 1271 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse identifier `" << (*(yyvsp[0].token).stringValue) << "`" << std::endl;
@@ -2823,11 +2939,11 @@ yyreduce:
         std::string name{*(yyvsp[0].token).stringValue};
         (yyval.identifierNode) = new ast::IdentifierNode(std::move(name));
     }
-#line 2827 "out/parser.cpp"
+#line 2943 "out/parser.cpp"
     break;
 
   case 74: /* routine_body: compound_stmt  */
-#line 1166 "src/yacc.y"
+#line 1282 "src/yacc.y"
                   {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse routine body" << std::endl;
@@ -2835,11 +2951,11 @@ yyreduce:
 
         (yyval.routineBodyNode) = new ast::RoutineBodyNode((yyvsp[0].compoundStatementNode));
     }
-#line 2839 "out/parser.cpp"
+#line 2955 "out/parser.cpp"
     break;
 
   case 75: /* compound_stmt: BBEGIN stmt_list END  */
-#line 1176 "src/yacc.y"
+#line 1292 "src/yacc.y"
                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse compound statement 1" << std::endl;
@@ -2847,11 +2963,11 @@ yyreduce:
 
         (yyval.compoundStatementNode) = new ast::CompoundStatementNode((yyvsp[-1].statementNodeList));
     }
-#line 2851 "out/parser.cpp"
+#line 2967 "out/parser.cpp"
     break;
 
   case 76: /* compound_stmt: BBEGIN stmt_list  */
-#line 1184 "src/yacc.y"
+#line 1300 "src/yacc.y"
                      {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse compound statement 2" << std::endl;
@@ -2860,11 +2976,11 @@ yyreduce:
         (yyval.compoundStatementNode) = new ast::CompoundStatementNode((yyvsp[0].statementNodeList));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of end");
     }
-#line 2864 "out/parser.cpp"
+#line 2980 "out/parser.cpp"
     break;
 
   case 77: /* compound_loop_stmt: BBEGIN loop_stmt_list END  */
-#line 1195 "src/yacc.y"
+#line 1311 "src/yacc.y"
                               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse loop compound statement 1" << std::endl;
@@ -2872,11 +2988,11 @@ yyreduce:
 
         (yyval.compoundStatementNode) = new ast::CompoundStatementNode((yyvsp[-1].statementNodeList));
     }
-#line 2876 "out/parser.cpp"
+#line 2992 "out/parser.cpp"
     break;
 
   case 78: /* compound_loop_stmt: BBEGIN loop_stmt_list  */
-#line 1203 "src/yacc.y"
+#line 1319 "src/yacc.y"
                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse loop compound statement 2" << std::endl;
@@ -2885,11 +3001,11 @@ yyreduce:
         (yyval.compoundStatementNode) = new ast::CompoundStatementNode((yyvsp[0].statementNodeList));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of end");
     }
-#line 2889 "out/parser.cpp"
+#line 3005 "out/parser.cpp"
     break;
 
   case 79: /* stmt_list: %empty  */
-#line 1214 "src/yacc.y"
+#line 1330 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty statement list" << std::endl;
@@ -2897,11 +3013,11 @@ yyreduce:
 
         (yyval.statementNodeList) = new std::vector<ast::StatementNode*>();
     }
-#line 2901 "out/parser.cpp"
+#line 3017 "out/parser.cpp"
     break;
 
   case 80: /* stmt_list: stmt_list stmt SEMICOLON  */
-#line 1222 "src/yacc.y"
+#line 1338 "src/yacc.y"
                              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse statement list 1" << std::endl;
@@ -2910,11 +3026,11 @@ yyreduce:
         (yyval.statementNodeList) = (yyvsp[-2].statementNodeList);
         (yyval.statementNodeList)->push_back((yyvsp[-1].statementNode));
     }
-#line 2914 "out/parser.cpp"
+#line 3030 "out/parser.cpp"
     break;
 
   case 81: /* stmt_list: stmt_list stmt  */
-#line 1231 "src/yacc.y"
+#line 1347 "src/yacc.y"
                    {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse statement list 2" << std::endl;
@@ -2924,11 +3040,11 @@ yyreduce:
         (yyval.statementNodeList)->push_back((yyvsp[0].statementNode));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 2928 "out/parser.cpp"
+#line 3044 "out/parser.cpp"
     break;
 
   case 82: /* loop_stmt_list: %empty  */
-#line 1243 "src/yacc.y"
+#line 1359 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty loop statement list" << std::endl;
@@ -2936,11 +3052,11 @@ yyreduce:
 
         (yyval.statementNodeList) = new std::vector<ast::StatementNode*>();
     }
-#line 2940 "out/parser.cpp"
+#line 3056 "out/parser.cpp"
     break;
 
   case 83: /* loop_stmt_list: loop_stmt_list loop_stmt SEMICOLON  */
-#line 1251 "src/yacc.y"
+#line 1367 "src/yacc.y"
                                        {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse loop statement list 1" << std::endl;
@@ -2949,11 +3065,11 @@ yyreduce:
         (yyval.statementNodeList) = (yyvsp[-2].statementNodeList);
         (yyval.statementNodeList)->push_back((yyvsp[-1].statementNode));
     }
-#line 2953 "out/parser.cpp"
+#line 3069 "out/parser.cpp"
     break;
 
   case 84: /* loop_stmt_list: loop_stmt_list loop_stmt  */
-#line 1260 "src/yacc.y"
+#line 1376 "src/yacc.y"
                              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse loop statement list 2" << std::endl;
@@ -2963,11 +3079,11 @@ yyreduce:
         (yyval.statementNodeList)->push_back((yyvsp[0].statementNode));
         parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", lack of semicolon");
     }
-#line 2967 "out/parser.cpp"
+#line 3083 "out/parser.cpp"
     break;
 
   case 85: /* stmt: INTEGER COLON no_label_stmt  */
-#line 1272 "src/yacc.y"
+#line 1388 "src/yacc.y"
                                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse statement with label " << (yyvsp[-2].token).numericalValue << std::endl;
@@ -2982,11 +3098,11 @@ yyreduce:
         (yyval.statementNode) = (yyvsp[0].statementNode);
         (yyval.statementNode)->setLabel((yyvsp[-2].token).numericalValue);
     }
-#line 2986 "out/parser.cpp"
+#line 3102 "out/parser.cpp"
     break;
 
   case 86: /* stmt: no_label_stmt  */
-#line 1287 "src/yacc.y"
+#line 1403 "src/yacc.y"
                   {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse statement without label" << std::endl;
@@ -2994,11 +3110,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].statementNode);
     }
-#line 2998 "out/parser.cpp"
+#line 3114 "out/parser.cpp"
     break;
 
   case 87: /* loop_stmt: INTEGER COLON no_label_loop_stmt  */
-#line 1297 "src/yacc.y"
+#line 1413 "src/yacc.y"
                                      {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse loop statement with label " << (yyvsp[-2].token).numericalValue << std::endl;
@@ -3013,11 +3129,11 @@ yyreduce:
         (yyval.statementNode) = (yyvsp[0].statementNode);
         (yyval.statementNode)->setLabel((yyvsp[-2].token).numericalValue);
     }
-#line 3017 "out/parser.cpp"
+#line 3133 "out/parser.cpp"
     break;
 
   case 88: /* loop_stmt: no_label_loop_stmt  */
-#line 1312 "src/yacc.y"
+#line 1428 "src/yacc.y"
                        {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse loop statement without label" << std::endl;
@@ -3025,11 +3141,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].statementNode);
     }
-#line 3029 "out/parser.cpp"
+#line 3145 "out/parser.cpp"
     break;
 
   case 89: /* no_label_stmt: assign_stmt  */
-#line 1322 "src/yacc.y"
+#line 1438 "src/yacc.y"
                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - assign" << std::endl;
@@ -3037,11 +3153,11 @@ yyreduce:
 
         (yyval.statementNode)=(yyvsp[0].assignNode);
     }
-#line 3041 "out/parser.cpp"
+#line 3157 "out/parser.cpp"
     break;
 
   case 90: /* no_label_stmt: compound_stmt  */
-#line 1330 "src/yacc.y"
+#line 1446 "src/yacc.y"
                   {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - compound" << std::endl;
@@ -3049,11 +3165,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].compoundStatementNode);
     }
-#line 3053 "out/parser.cpp"
+#line 3169 "out/parser.cpp"
     break;
 
   case 91: /* no_label_stmt: goto_stmt  */
-#line 1338 "src/yacc.y"
+#line 1454 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - goto" << std::endl;
@@ -3067,11 +3183,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].gotoNode);
     }
-#line 3071 "out/parser.cpp"
+#line 3187 "out/parser.cpp"
     break;
 
   case 92: /* no_label_stmt: if_stmt  */
-#line 1352 "src/yacc.y"
+#line 1468 "src/yacc.y"
             {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - if" << std::endl;
@@ -3079,11 +3195,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].ifNode);
     }
-#line 3083 "out/parser.cpp"
+#line 3199 "out/parser.cpp"
     break;
 
   case 93: /* no_label_stmt: repeat_stmt  */
-#line 1360 "src/yacc.y"
+#line 1476 "src/yacc.y"
                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - repeat" << std::endl;
@@ -3091,11 +3207,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].repeatNode);
     }
-#line 3095 "out/parser.cpp"
+#line 3211 "out/parser.cpp"
     break;
 
   case 94: /* no_label_stmt: while_stmt  */
-#line 1368 "src/yacc.y"
+#line 1484 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - while" << std::endl;
@@ -3103,11 +3219,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].whileNode);
     }
-#line 3107 "out/parser.cpp"
+#line 3223 "out/parser.cpp"
     break;
 
   case 95: /* no_label_stmt: case_stmt  */
-#line 1376 "src/yacc.y"
+#line 1492 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - case" << std::endl;
@@ -3115,11 +3231,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].caseNode);
     }
-#line 3119 "out/parser.cpp"
+#line 3235 "out/parser.cpp"
     break;
 
   case 96: /* no_label_stmt: for_stmt  */
-#line 1384 "src/yacc.y"
+#line 1500 "src/yacc.y"
              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - for" << std::endl;
@@ -3127,11 +3243,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].forNode);
     }
-#line 3131 "out/parser.cpp"
+#line 3247 "out/parser.cpp"
     break;
 
   case 97: /* no_label_stmt: proc_stmt  */
-#line 1392 "src/yacc.y"
+#line 1508 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label statement - proc" << std::endl;
@@ -3139,11 +3255,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].callNode);
     }
-#line 3143 "out/parser.cpp"
+#line 3259 "out/parser.cpp"
     break;
 
   case 98: /* no_label_loop_stmt: assign_stmt  */
-#line 1402 "src/yacc.y"
+#line 1518 "src/yacc.y"
                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label loop statement - assign" << std::endl;
@@ -3151,11 +3267,11 @@ yyreduce:
 
         (yyval.statementNode)=(yyvsp[0].assignNode);
     }
-#line 3155 "out/parser.cpp"
+#line 3271 "out/parser.cpp"
     break;
 
   case 99: /* no_label_loop_stmt: compound_loop_stmt  */
-#line 1410 "src/yacc.y"
+#line 1526 "src/yacc.y"
                        {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label loop statement - compound" << std::endl;
@@ -3163,11 +3279,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].compoundStatementNode);
     }
-#line 3167 "out/parser.cpp"
+#line 3283 "out/parser.cpp"
     break;
 
   case 100: /* no_label_loop_stmt: goto_stmt  */
-#line 1418 "src/yacc.y"
+#line 1534 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label loop statement - goto" << std::endl;
@@ -3175,11 +3291,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].gotoNode);
     }
-#line 3179 "out/parser.cpp"
+#line 3295 "out/parser.cpp"
     break;
 
   case 101: /* no_label_loop_stmt: if_loop_stmt  */
-#line 1426 "src/yacc.y"
+#line 1542 "src/yacc.y"
                  {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label loop statement - if" << std::endl;
@@ -3187,11 +3303,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].ifNode);
     }
-#line 3191 "out/parser.cpp"
+#line 3307 "out/parser.cpp"
     break;
 
   case 102: /* no_label_loop_stmt: repeat_stmt  */
-#line 1434 "src/yacc.y"
+#line 1550 "src/yacc.y"
                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label loop statement - repeat" << std::endl;
@@ -3199,11 +3315,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].repeatNode);
     }
-#line 3203 "out/parser.cpp"
+#line 3319 "out/parser.cpp"
     break;
 
   case 103: /* no_label_loop_stmt: while_stmt  */
-#line 1442 "src/yacc.y"
+#line 1558 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label loop statement - while" << std::endl;
@@ -3211,11 +3327,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].whileNode);
     }
-#line 3215 "out/parser.cpp"
+#line 3331 "out/parser.cpp"
     break;
 
   case 104: /* no_label_loop_stmt: case_loop_stmt  */
-#line 1450 "src/yacc.y"
+#line 1566 "src/yacc.y"
                    {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label loop statement - case" << std::endl;
@@ -3223,11 +3339,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].caseNode);
     }
-#line 3227 "out/parser.cpp"
+#line 3343 "out/parser.cpp"
     break;
 
   case 105: /* no_label_loop_stmt: for_stmt  */
-#line 1458 "src/yacc.y"
+#line 1574 "src/yacc.y"
              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label loop statement - for" << std::endl;
@@ -3235,11 +3351,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].forNode);
     }
-#line 3239 "out/parser.cpp"
+#line 3355 "out/parser.cpp"
     break;
 
   case 106: /* no_label_loop_stmt: proc_stmt  */
-#line 1466 "src/yacc.y"
+#line 1582 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label loop statement - proc" << std::endl;
@@ -3247,11 +3363,11 @@ yyreduce:
 
         (yyval.statementNode) = (yyvsp[0].callNode);
     }
-#line 3251 "out/parser.cpp"
+#line 3367 "out/parser.cpp"
     break;
 
   case 107: /* no_label_loop_stmt: BREAK  */
-#line 1474 "src/yacc.y"
+#line 1590 "src/yacc.y"
           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label loop statement - break" << std::endl;
@@ -3259,11 +3375,11 @@ yyreduce:
 
         (yyval.statementNode) = new ast::BreakNode();
     }
-#line 3263 "out/parser.cpp"
+#line 3379 "out/parser.cpp"
     break;
 
   case 108: /* no_label_loop_stmt: CONTINUE  */
-#line 1482 "src/yacc.y"
+#line 1598 "src/yacc.y"
              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse no label loop statement - continue" << std::endl;
@@ -3271,11 +3387,11 @@ yyreduce:
 
         (yyval.statementNode) = new ast::ContinueNode();
     }
-#line 3275 "out/parser.cpp"
+#line 3391 "out/parser.cpp"
     break;
 
   case 109: /* assign_stmt: lvalue ASSIGN expression  */
-#line 1492 "src/yacc.y"
+#line 1608 "src/yacc.y"
                              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse assign statement" << std::endl;
@@ -3288,6 +3404,7 @@ yyreduce:
         }
         else if((yyvsp[-2].expressionNode)->getInferredType() != (yyvsp[0].expressionNode)->getInferredType()) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", both sides should be equal type");
+            std::cout << (yyvsp[-2].expressionNode)->getInferredType() << "  " << (yyvsp[0].expressionNode)->getInferredType() << std::endl;
             fatalError = true;
             YYERROR;
         }
@@ -3295,11 +3412,11 @@ yyreduce:
             (yyval.assignNode) = new ast::AssignNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode));
         }
     }
-#line 3299 "out/parser.cpp"
+#line 3416 "out/parser.cpp"
     break;
 
   case 110: /* goto_stmt: GOTO INTEGER  */
-#line 1514 "src/yacc.y"
+#line 1631 "src/yacc.y"
                  {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse goto statement to " << (yyvsp[0].token).numericalValue << std::endl;
@@ -3307,11 +3424,11 @@ yyreduce:
 
         (yyval.gotoNode) = new ast::GotoNode((yyvsp[0].token).numericalValue);
     }
-#line 3311 "out/parser.cpp"
+#line 3428 "out/parser.cpp"
     break;
 
   case 111: /* if_stmt: IF expression THEN stmt else_clause  */
-#line 1524 "src/yacc.y"
+#line 1641 "src/yacc.y"
                                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse if statement 1" << std::endl;
@@ -3326,11 +3443,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 3330 "out/parser.cpp"
+#line 3447 "out/parser.cpp"
     break;
 
   case 112: /* if_stmt: IF expression stmt else_clause  */
-#line 1539 "src/yacc.y"
+#line 1656 "src/yacc.y"
                                    {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse if statement 2" << std::endl;
@@ -3346,11 +3463,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 3350 "out/parser.cpp"
+#line 3467 "out/parser.cpp"
     break;
 
   case 113: /* if_loop_stmt: IF expression THEN loop_stmt else_loop_clause  */
-#line 1557 "src/yacc.y"
+#line 1674 "src/yacc.y"
                                                   {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse if loop statement 1" << std::endl;
@@ -3365,11 +3482,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 3369 "out/parser.cpp"
+#line 3486 "out/parser.cpp"
     break;
 
   case 114: /* if_loop_stmt: IF expression loop_stmt else_loop_clause  */
-#line 1572 "src/yacc.y"
+#line 1689 "src/yacc.y"
                                              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse if loop statement 2" << std::endl;
@@ -3385,11 +3502,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 3389 "out/parser.cpp"
+#line 3506 "out/parser.cpp"
     break;
 
   case 115: /* else_clause: %empty  */
-#line 1590 "src/yacc.y"
+#line 1707 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty else clause" << std::endl;
@@ -3397,11 +3514,11 @@ yyreduce:
 
         (yyval.ifNode) = new ast::IfNode(nullptr, nullptr);
     }
-#line 3401 "out/parser.cpp"
+#line 3518 "out/parser.cpp"
     break;
 
   case 116: /* else_clause: ELSE stmt  */
-#line 1598 "src/yacc.y"
+#line 1715 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse else clause" << std::endl;
@@ -3409,11 +3526,11 @@ yyreduce:
 
         (yyval.ifNode) = new ast::IfNode(nullptr, nullptr, (yyvsp[0].statementNode));
     }
-#line 3413 "out/parser.cpp"
+#line 3530 "out/parser.cpp"
     break;
 
   case 117: /* else_loop_clause: %empty  */
-#line 1608 "src/yacc.y"
+#line 1725 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty else loop clause" << std::endl;
@@ -3421,11 +3538,11 @@ yyreduce:
 
         (yyval.ifNode) = new ast::IfNode(nullptr, nullptr);
     }
-#line 3425 "out/parser.cpp"
+#line 3542 "out/parser.cpp"
     break;
 
   case 118: /* else_loop_clause: ELSE loop_stmt  */
-#line 1616 "src/yacc.y"
+#line 1733 "src/yacc.y"
                    {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse else loop clause" << std::endl;
@@ -3433,11 +3550,11 @@ yyreduce:
 
         (yyval.ifNode) = new ast::IfNode(nullptr, nullptr, (yyvsp[0].statementNode));
     }
-#line 3437 "out/parser.cpp"
+#line 3554 "out/parser.cpp"
     break;
 
   case 119: /* repeat_stmt: REPEAT loop_stmt_list UNTIL expression  */
-#line 1626 "src/yacc.y"
+#line 1743 "src/yacc.y"
                                            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse repeat statement" << std::endl;
@@ -3452,21 +3569,21 @@ yyreduce:
             YYERROR;
         }
     }
-#line 3456 "out/parser.cpp"
+#line 3573 "out/parser.cpp"
     break;
 
   case 120: /* repeat_stmt: %empty  */
-#line 1641 "src/yacc.y"
+#line 1758 "src/yacc.y"
     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse empty repeat statement" << std::endl;
         #endif
     }
-#line 3466 "out/parser.cpp"
+#line 3583 "out/parser.cpp"
     break;
 
   case 121: /* while_stmt: WHILE expression DO loop_stmt  */
-#line 1649 "src/yacc.y"
+#line 1766 "src/yacc.y"
                                   {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse while statement" << std::endl;
@@ -3481,17 +3598,17 @@ yyreduce:
             YYERROR;
         }
     }
-#line 3485 "out/parser.cpp"
+#line 3602 "out/parser.cpp"
     break;
 
   case 122: /* case_stmt: CASE expression OF case_expr_list END  */
-#line 1666 "src/yacc.y"
+#line 1783 "src/yacc.y"
                                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case statement" << std::endl;
         #endif
 
-        if(!isBasicType((yyvsp[-3].expressionNode)->getInferredType()) && (yyvsp[-3].expressionNode)->getInferredType().substr(0, 5) != "enum%") {
+        if(!isBasicOrEnumType((yyvsp[-3].expressionNode)->getInferredType())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", case expression must be integer, char, boolean or enum type");
             fatalError = true;
             YYERROR;
@@ -3538,17 +3655,17 @@ yyreduce:
 
         (yyval.caseNode) = new ast::CaseNode((yyvsp[-3].expressionNode), (yyvsp[-1].caseExprList));
     }
-#line 3542 "out/parser.cpp"
+#line 3659 "out/parser.cpp"
     break;
 
   case 123: /* case_loop_stmt: CASE expression OF case_loop_expr_list END  */
-#line 1721 "src/yacc.y"
+#line 1838 "src/yacc.y"
                                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case loop statement" << std::endl;
         #endif
 
-        if(!isBasicType((yyvsp[-3].expressionNode)->getInferredType()) && (yyvsp[-3].expressionNode)->getInferredType().substr(0, 5) != "enum%") {
+        if(!isBasicOrEnumType((yyvsp[-3].expressionNode)->getInferredType())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", case expression must be integer, char, boolean or enum type");
             fatalError = true;
             YYERROR;
@@ -3595,11 +3712,11 @@ yyreduce:
 
         (yyval.caseNode) = new ast::CaseNode((yyvsp[-3].expressionNode), (yyvsp[-1].caseExprList));
     }
-#line 3599 "out/parser.cpp"
+#line 3716 "out/parser.cpp"
     break;
 
   case 124: /* case_expr_list: case_expr_list case_expr  */
-#line 1776 "src/yacc.y"
+#line 1893 "src/yacc.y"
                              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case expr list 1" << std::endl;
@@ -3608,11 +3725,11 @@ yyreduce:
         (yyval.caseExprList) = (yyvsp[-1].caseExprList);
         (yyval.caseExprList)->push_back((yyvsp[0].caseExpr));
     }
-#line 3612 "out/parser.cpp"
+#line 3729 "out/parser.cpp"
     break;
 
   case 125: /* case_expr_list: case_expr  */
-#line 1785 "src/yacc.y"
+#line 1902 "src/yacc.y"
               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case expr list 2" << std::endl;
@@ -3621,11 +3738,11 @@ yyreduce:
         (yyval.caseExprList) = new std::vector<std::pair<ast::ExpressionNode*, ast::StatementNode*>*>();
         (yyval.caseExprList)->push_back((yyvsp[0].caseExpr));
     }
-#line 3625 "out/parser.cpp"
+#line 3742 "out/parser.cpp"
     break;
 
   case 126: /* case_loop_expr_list: case_loop_expr_list case_loop_expr  */
-#line 1796 "src/yacc.y"
+#line 1913 "src/yacc.y"
                                        {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case loop expr list 1" << std::endl;
@@ -3634,11 +3751,11 @@ yyreduce:
         (yyval.caseExprList) = (yyvsp[-1].caseExprList);
         (yyval.caseExprList)->push_back((yyvsp[0].caseExpr));
     }
-#line 3638 "out/parser.cpp"
+#line 3755 "out/parser.cpp"
     break;
 
   case 127: /* case_loop_expr_list: case_loop_expr  */
-#line 1805 "src/yacc.y"
+#line 1922 "src/yacc.y"
                    {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case loop expr list 2" << std::endl;
@@ -3647,11 +3764,11 @@ yyreduce:
         (yyval.caseExprList) = new std::vector<std::pair<ast::ExpressionNode*, ast::StatementNode*>*>();
         (yyval.caseExprList)->push_back((yyvsp[0].caseExpr));
     }
-#line 3651 "out/parser.cpp"
+#line 3768 "out/parser.cpp"
     break;
 
   case 128: /* case_expr: expression COLON stmt SEMICOLON  */
-#line 1816 "src/yacc.y"
+#line 1933 "src/yacc.y"
                                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case expr 1" << std::endl;
@@ -3659,11 +3776,11 @@ yyreduce:
 
         (yyval.caseExpr) = new std::pair<ast::ExpressionNode*, ast::StatementNode*>((yyvsp[-3].expressionNode), (yyvsp[-1].statementNode));
     }
-#line 3663 "out/parser.cpp"
+#line 3780 "out/parser.cpp"
     break;
 
   case 129: /* case_expr: OTHERWISE stmt SEMICOLON  */
-#line 1824 "src/yacc.y"
+#line 1941 "src/yacc.y"
                              {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case expr 3" << std::endl;
@@ -3671,11 +3788,11 @@ yyreduce:
 
         (yyval.caseExpr) = new std::pair<ast::ExpressionNode*, ast::StatementNode*>(nullptr, (yyvsp[-1].statementNode));
     }
-#line 3675 "out/parser.cpp"
+#line 3792 "out/parser.cpp"
     break;
 
   case 130: /* case_loop_expr: expression COLON loop_stmt SEMICOLON  */
-#line 1834 "src/yacc.y"
+#line 1951 "src/yacc.y"
                                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case loop expr 1" << std::endl;
@@ -3683,11 +3800,11 @@ yyreduce:
 
         (yyval.caseExpr) = new std::pair<ast::ExpressionNode*, ast::StatementNode*>((yyvsp[-3].expressionNode), (yyvsp[-1].statementNode));
     }
-#line 3687 "out/parser.cpp"
+#line 3804 "out/parser.cpp"
     break;
 
   case 131: /* case_loop_expr: OTHERWISE loop_stmt SEMICOLON  */
-#line 1842 "src/yacc.y"
+#line 1959 "src/yacc.y"
                                   {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse case loop expr 3" << std::endl;
@@ -3695,11 +3812,11 @@ yyreduce:
 
         (yyval.caseExpr) = new std::pair<ast::ExpressionNode*, ast::StatementNode*>(nullptr, (yyvsp[-1].statementNode));
     }
-#line 3699 "out/parser.cpp"
+#line 3816 "out/parser.cpp"
     break;
 
   case 132: /* for_stmt: for_head loop_stmt  */
-#line 1852 "src/yacc.y"
+#line 1969 "src/yacc.y"
                        {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse for statement" << std::endl;
@@ -3714,13 +3831,13 @@ yyreduce:
         (yyval.forNode) = (yyvsp[-1].forNode);
         (yyval.forNode)->setStatements(std::unique_ptr<ast::StatementNode>((yyvsp[0].statementNode)));
 
-        ctx->getLookupTable().unDefineVariable((yyvsp[-1].forNode)->getIterator()->getName());
+        ctx->getLookupTable().unDefineVariable((yyvsp[-1].forNode)->getIterator()->getName(), ctx->getCurrentScope());
     }
-#line 3720 "out/parser.cpp"
+#line 3837 "out/parser.cpp"
     break;
 
   case 133: /* for_head: FOR identifier ASSIGN expression TO expression DO  */
-#line 1871 "src/yacc.y"
+#line 1988 "src/yacc.y"
                                                       {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse for head 1" << std::endl;
@@ -3731,7 +3848,7 @@ yyreduce:
             fatalError = true;
             YYERROR;
         }
-        else if(!isBasicType((yyvsp[-3].expressionNode)->getInferredType()) && (yyvsp[-3].expressionNode)->getInferredType().substr(0, 5) != "enum%") {
+        else if(!isBasicOrEnumType((yyvsp[-3].expressionNode)->getInferredType())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", for begin and end values must be integer, char, boolean or enum type");
             fatalError = true;
             YYERROR;
@@ -3743,11 +3860,11 @@ yyreduce:
             (yyval.forNode) = new ast::ForNode((yyvsp[-5].identifierNode), (yyvsp[-3].expressionNode), (yyvsp[-1].expressionNode), nullptr, ast::ForNode::Direction::INCREMENT);
         }
     }
-#line 3747 "out/parser.cpp"
+#line 3864 "out/parser.cpp"
     break;
 
   case 134: /* for_head: FOR identifier ASSIGN expression DOWNTO expression DO  */
-#line 1894 "src/yacc.y"
+#line 2011 "src/yacc.y"
                                                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse for head 2" << std::endl;
@@ -3758,7 +3875,7 @@ yyreduce:
             fatalError = true;
             YYERROR;
         }
-        else if(!isBasicType((yyvsp[-3].expressionNode)->getInferredType()) && (yyvsp[-3].expressionNode)->getInferredType().substr(0, 5) != "enum%") {
+        else if(!isBasicOrEnumType((yyvsp[-3].expressionNode)->getInferredType())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", for begin and end values must be integer, char, boolean or enum type");
             fatalError = true;
             YYERROR;
@@ -3770,22 +3887,22 @@ yyreduce:
             (yyval.forNode) = new ast::ForNode((yyvsp[-5].identifierNode), (yyvsp[-3].expressionNode), (yyvsp[-1].expressionNode), nullptr, ast::ForNode::Direction::DECREMENT);
         }
     }
-#line 3774 "out/parser.cpp"
+#line 3891 "out/parser.cpp"
     break;
 
   case 135: /* proc_stmt: identifier  */
-#line 1919 "src/yacc.y"
+#line 2036 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse procedure statement" << std::endl;
         #endif
 
-        if(!ctx->getLookupTable().isRoutineDefined((yyvsp[0].identifierNode)->getName(), "")) {
+        if(!ctx->getLookupTable().isRoutineDefined((yyvsp[0].identifierNode)->getName(), ctx->getCurrentScope())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", routine `" + (yyvsp[0].identifierNode)->getName() + "` is not defined");
             fatalError = true;
             YYERROR;
         }
-        else if(!ctx->getLookupTable().getRoutine((yyvsp[0].identifierNode)->getName(), "").args.empty()) {
+        else if(!ctx->getLookupTable().getRoutine((yyvsp[0].identifierNode)->getName(), ctx->getCurrentScope()).args.empty()) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", missing arguments");
             fatalError = true;
             YYERROR;
@@ -3794,22 +3911,22 @@ yyreduce:
             (yyval.callNode) = new ast::UserDefineCallNode((yyvsp[0].identifierNode), nullptr);
         }
     }
-#line 3798 "out/parser.cpp"
+#line 3915 "out/parser.cpp"
     break;
 
   case 136: /* proc_stmt: identifier LP args_list RP  */
-#line 1939 "src/yacc.y"
+#line 2056 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse procedure statement with args" << std::endl;
         #endif
 
-        if(!ctx->getLookupTable().isRoutineDefined((yyvsp[-3].identifierNode)->getName(), "")) {
+        if(!ctx->getLookupTable().isRoutineDefined((yyvsp[-3].identifierNode)->getName(), ctx->getCurrentScope())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", routine `" + (yyvsp[-3].identifierNode)->getName() + "` is not defined");
             fatalError = true;
             YYERROR;
         }
-        else if(!isFunctionArgumentsCompatible(ctx->getLookupTable().getRoutine((yyvsp[-3].identifierNode)->getName(), "").args, (yyvsp[-1].argsList)->getArguments())) {
+        else if(!isFunctionArgumentsCompatible(ctx->getLookupTable().getRoutine((yyvsp[-3].identifierNode)->getName(), ctx->getCurrentScope()).args, (yyvsp[-1].argsList)->getArguments())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", passed incompatible arguments");
             fatalError = true;
             YYERROR;
@@ -3818,11 +3935,11 @@ yyreduce:
             (yyval.callNode) = new ast::UserDefineCallNode((yyvsp[-3].identifierNode), (yyvsp[-1].argsList));
         }
     }
-#line 3822 "out/parser.cpp"
+#line 3939 "out/parser.cpp"
     break;
 
   case 137: /* proc_stmt: READ LP factor RP  */
-#line 1959 "src/yacc.y"
+#line 2076 "src/yacc.y"
                       {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse read statement" << std::endl;
@@ -3844,11 +3961,11 @@ yyreduce:
             (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::READ, args);
         }
     }
-#line 3848 "out/parser.cpp"
+#line 3965 "out/parser.cpp"
     break;
 
   case 138: /* proc_stmt: READLN  */
-#line 1982 "src/yacc.y"
+#line 2099 "src/yacc.y"
            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse readln statement" << std::endl;
@@ -3856,11 +3973,11 @@ yyreduce:
 
         (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::READLN, nullptr);
     }
-#line 3860 "out/parser.cpp"
+#line 3977 "out/parser.cpp"
     break;
 
   case 139: /* proc_stmt: WRITE LP args_list RP  */
-#line 1990 "src/yacc.y"
+#line 2107 "src/yacc.y"
                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse write statement" << std::endl;
@@ -3882,11 +3999,11 @@ yyreduce:
             (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITE, (yyvsp[-1].argsList));
         }
     }
-#line 3886 "out/parser.cpp"
+#line 4003 "out/parser.cpp"
     break;
 
   case 140: /* proc_stmt: WRITELN  */
-#line 2012 "src/yacc.y"
+#line 2129 "src/yacc.y"
             {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse writeln statement" << std::endl;
@@ -3894,11 +4011,11 @@ yyreduce:
 
         (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITELN, nullptr);
     }
-#line 3898 "out/parser.cpp"
+#line 4015 "out/parser.cpp"
     break;
 
   case 141: /* proc_stmt: WRITELN LP args_list RP  */
-#line 2020 "src/yacc.y"
+#line 2137 "src/yacc.y"
                             {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse writeln statement with args" << std::endl;
@@ -3921,11 +4038,11 @@ yyreduce:
             (yyval.callNode) = new ast::BuiltinCallNode(ast::BuiltinCallNode::FunctionName::WRITELN, (yyvsp[-1].argsList));
         }
     }
-#line 3925 "out/parser.cpp"
+#line 4042 "out/parser.cpp"
     break;
 
   case 142: /* proc_stmt: MEMORYREAD LP args_list RP  */
-#line 2043 "src/yacc.y"
+#line 2160 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse memory read statement" << std::endl;
@@ -3962,11 +4079,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 3966 "out/parser.cpp"
+#line 4083 "out/parser.cpp"
     break;
 
   case 143: /* proc_stmt: MEMORYWRITE LP args_list RP  */
-#line 2080 "src/yacc.y"
+#line 2197 "src/yacc.y"
                                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse memory write statement" << std::endl;
@@ -3998,11 +4115,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4002 "out/parser.cpp"
+#line 4119 "out/parser.cpp"
     break;
 
   case 144: /* proc_stmt: STACKREAD LP args_list RP  */
-#line 2112 "src/yacc.y"
+#line 2229 "src/yacc.y"
                               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse stack read statement" << std::endl;
@@ -4039,11 +4156,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4043 "out/parser.cpp"
+#line 4160 "out/parser.cpp"
     break;
 
   case 145: /* proc_stmt: STACKWRITE LP args_list RP  */
-#line 2149 "src/yacc.y"
+#line 2266 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse stack write statement" << std::endl;
@@ -4075,11 +4192,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4079 "out/parser.cpp"
+#line 4196 "out/parser.cpp"
     break;
 
   case 146: /* args_list: args_list COMMA expression  */
-#line 2183 "src/yacc.y"
+#line 2300 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse args list 1" << std::endl;
@@ -4088,11 +4205,11 @@ yyreduce:
         (yyval.argsList) = (yyvsp[-2].argsList);
         (yyval.argsList)->addArgument((yyvsp[0].expressionNode));
     }
-#line 4092 "out/parser.cpp"
+#line 4209 "out/parser.cpp"
     break;
 
   case 147: /* args_list: expression  */
-#line 2192 "src/yacc.y"
+#line 2309 "src/yacc.y"
                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse args list 2" << std::endl;
@@ -4101,11 +4218,11 @@ yyreduce:
         (yyval.argsList) = new ast::ArgumentsListNode();
         (yyval.argsList)->addArgument((yyvsp[0].expressionNode));
     }
-#line 4105 "out/parser.cpp"
+#line 4222 "out/parser.cpp"
     break;
 
   case 148: /* expression: expression GE expr  */
-#line 2203 "src/yacc.y"
+#line 2320 "src/yacc.y"
                        {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with greater or equal" << std::endl;
@@ -4120,11 +4237,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4124 "out/parser.cpp"
+#line 4241 "out/parser.cpp"
     break;
 
   case 149: /* expression: expression GT expr  */
-#line 2218 "src/yacc.y"
+#line 2335 "src/yacc.y"
                        {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with greater" << std::endl;
@@ -4139,11 +4256,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4143 "out/parser.cpp"
+#line 4260 "out/parser.cpp"
     break;
 
   case 150: /* expression: expression LE expr  */
-#line 2233 "src/yacc.y"
+#line 2350 "src/yacc.y"
                        {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with less or equal" << std::endl;
@@ -4158,11 +4275,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4162 "out/parser.cpp"
+#line 4279 "out/parser.cpp"
     break;
 
   case 151: /* expression: expression LT expr  */
-#line 2248 "src/yacc.y"
+#line 2365 "src/yacc.y"
                        {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with less" << std::endl;
@@ -4177,11 +4294,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4181 "out/parser.cpp"
+#line 4298 "out/parser.cpp"
     break;
 
   case 152: /* expression: expression EQUAL expr  */
-#line 2263 "src/yacc.y"
+#line 2380 "src/yacc.y"
                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with equal" << std::endl;
@@ -4196,11 +4313,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4200 "out/parser.cpp"
+#line 4317 "out/parser.cpp"
     break;
 
   case 153: /* expression: expression UNEQUAL expr  */
-#line 2278 "src/yacc.y"
+#line 2395 "src/yacc.y"
                             {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with not equal" << std::endl;
@@ -4216,22 +4333,22 @@ yyreduce:
         }
 
     }
-#line 4220 "out/parser.cpp"
+#line 4337 "out/parser.cpp"
     break;
 
   case 154: /* expression: expr  */
-#line 2294 "src/yacc.y"
+#line 2411 "src/yacc.y"
          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple expression" << std::endl;
         #endif
         (yyval.expressionNode) = (yyvsp[0].expressionNode);
     }
-#line 4231 "out/parser.cpp"
+#line 4348 "out/parser.cpp"
     break;
 
   case 155: /* expr: expr PLUS term  */
-#line 2303 "src/yacc.y"
+#line 2420 "src/yacc.y"
                    {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with addition" << std::endl;
@@ -4246,11 +4363,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4250 "out/parser.cpp"
+#line 4367 "out/parser.cpp"
     break;
 
   case 156: /* expr: expr MINUS term  */
-#line 2318 "src/yacc.y"
+#line 2435 "src/yacc.y"
                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with subtraction" << std::endl;
@@ -4265,11 +4382,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4269 "out/parser.cpp"
+#line 4386 "out/parser.cpp"
     break;
 
   case 157: /* expr: expr OR term  */
-#line 2333 "src/yacc.y"
+#line 2450 "src/yacc.y"
                  {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse expression with or" << std::endl;
@@ -4284,11 +4401,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4288 "out/parser.cpp"
+#line 4405 "out/parser.cpp"
     break;
 
   case 158: /* expr: term  */
-#line 2348 "src/yacc.y"
+#line 2465 "src/yacc.y"
          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple term" << std::endl;
@@ -4296,11 +4413,11 @@ yyreduce:
 
         (yyval.expressionNode) = (yyvsp[0].expressionNode);
     }
-#line 4300 "out/parser.cpp"
+#line 4417 "out/parser.cpp"
     break;
 
   case 159: /* term: term MUL factor  */
-#line 2358 "src/yacc.y"
+#line 2475 "src/yacc.y"
                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with multiplication" << std::endl;
@@ -4315,11 +4432,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4319 "out/parser.cpp"
+#line 4436 "out/parser.cpp"
     break;
 
   case 160: /* term: term DIV factor  */
-#line 2373 "src/yacc.y"
+#line 2490 "src/yacc.y"
                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with division" << std::endl;
@@ -4334,11 +4451,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4338 "out/parser.cpp"
+#line 4455 "out/parser.cpp"
     break;
 
   case 161: /* term: term MOD factor  */
-#line 2388 "src/yacc.y"
+#line 2505 "src/yacc.y"
                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with modulus" << std::endl;
@@ -4353,11 +4470,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4357 "out/parser.cpp"
+#line 4474 "out/parser.cpp"
     break;
 
   case 162: /* term: term AND factor  */
-#line 2403 "src/yacc.y"
+#line 2520 "src/yacc.y"
                     {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse term with and" << std::endl;
@@ -4372,11 +4489,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4376 "out/parser.cpp"
+#line 4493 "out/parser.cpp"
     break;
 
   case 163: /* term: factor  */
-#line 2418 "src/yacc.y"
+#line 2535 "src/yacc.y"
            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse simple factor" << std::endl;
@@ -4384,30 +4501,31 @@ yyreduce:
 
         (yyval.expressionNode) = (yyvsp[0].expressionNode);
     }
-#line 4388 "out/parser.cpp"
+#line 4505 "out/parser.cpp"
     break;
 
   case 164: /* factor: identifier LP args_list RP  */
-#line 2428 "src/yacc.y"
+#line 2545 "src/yacc.y"
                                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - function call" << std::endl;
         #endif
 
-        if(!ctx->getLookupTable().isRoutineDefined((yyvsp[-3].identifierNode)->getName(), "")) {
+        if(!ctx->getLookupTable().isRoutineDefined((yyvsp[-3].identifierNode)->getName(), ctx->getCurrentScope())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", routine " + (yyvsp[-3].identifierNode)->getName() + " is not defined");
             fatalError = true;
             YYERROR;
         }
         else {
-            (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-3].identifierNode), (yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::CALL, ctx->getLookupTable().getRoutine((yyvsp[-3].identifierNode)->getName(), "").type);
+            (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-3].identifierNode), (yyvsp[-1].argsList), ast::SpecialExpressionNode::FunctionName::CALL,
+                ctx->getLookupTable().getRoutine((yyvsp[-3].identifierNode)->getName(), ctx->getCurrentScope()).type);
         }
     }
-#line 4407 "out/parser.cpp"
+#line 4525 "out/parser.cpp"
     break;
 
   case 165: /* factor: lvalue  */
-#line 2444 "src/yacc.y"
+#line 2562 "src/yacc.y"
            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - lvalue" << std::endl;
@@ -4415,11 +4533,11 @@ yyreduce:
 
         (yyval.expressionNode) = (yyvsp[0].expressionNode);
     }
-#line 4419 "out/parser.cpp"
+#line 4537 "out/parser.cpp"
     break;
 
   case 166: /* factor: const_value  */
-#line 2452 "src/yacc.y"
+#line 2570 "src/yacc.y"
                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - const value" << std::endl;
@@ -4429,11 +4547,11 @@ yyreduce:
 
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[0].constantNode), ast::SpecialExpressionNode::FunctionName::CONST, constant->flatType());
     }
-#line 4433 "out/parser.cpp"
+#line 4551 "out/parser.cpp"
     break;
 
   case 167: /* factor: LP expression RP  */
-#line 2462 "src/yacc.y"
+#line 2580 "src/yacc.y"
                      {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - parentheses" << std::endl;
@@ -4441,11 +4559,11 @@ yyreduce:
 
         (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-1].expressionNode), ast::SpecialExpressionNode::FunctionName::PARENTHESIS, (yyvsp[-1].expressionNode)->getInferredType());
     }
-#line 4445 "out/parser.cpp"
+#line 4563 "out/parser.cpp"
     break;
 
   case 168: /* factor: NOT factor  */
-#line 2470 "src/yacc.y"
+#line 2588 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - not" << std::endl;
@@ -4460,11 +4578,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4464 "out/parser.cpp"
+#line 4582 "out/parser.cpp"
     break;
 
   case 169: /* factor: MINUS factor  */
-#line 2485 "src/yacc.y"
+#line 2603 "src/yacc.y"
                  {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - negation" << std::endl;
@@ -4479,11 +4597,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4483 "out/parser.cpp"
+#line 4601 "out/parser.cpp"
     break;
 
   case 170: /* factor: ABS LP args_list RP  */
-#line 2500 "src/yacc.y"
+#line 2618 "src/yacc.y"
                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - abs" << std::endl;
@@ -4506,11 +4624,11 @@ yyreduce:
             }
         }
     }
-#line 4510 "out/parser.cpp"
+#line 4628 "out/parser.cpp"
     break;
 
   case 171: /* factor: CHR LP args_list RP  */
-#line 2523 "src/yacc.y"
+#line 2641 "src/yacc.y"
                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - chr" << std::endl;
@@ -4533,11 +4651,11 @@ yyreduce:
             }
         }
     }
-#line 4537 "out/parser.cpp"
+#line 4655 "out/parser.cpp"
     break;
 
   case 172: /* factor: ODD LP args_list RP  */
-#line 2546 "src/yacc.y"
+#line 2664 "src/yacc.y"
                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - odd" << std::endl;
@@ -4560,11 +4678,11 @@ yyreduce:
             }
         }
     }
-#line 4564 "out/parser.cpp"
+#line 4682 "out/parser.cpp"
     break;
 
   case 173: /* factor: ORD LP args_list RP  */
-#line 2569 "src/yacc.y"
+#line 2687 "src/yacc.y"
                         {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - ord" << std::endl;
@@ -4587,11 +4705,11 @@ yyreduce:
             }
         }
     }
-#line 4591 "out/parser.cpp"
+#line 4709 "out/parser.cpp"
     break;
 
   case 174: /* factor: PRED LP args_list RP  */
-#line 2592 "src/yacc.y"
+#line 2710 "src/yacc.y"
                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - pred" << std::endl;
@@ -4614,11 +4732,11 @@ yyreduce:
             }
         }
     }
-#line 4618 "out/parser.cpp"
+#line 4736 "out/parser.cpp"
     break;
 
   case 175: /* factor: SUCC LP args_list RP  */
-#line 2615 "src/yacc.y"
+#line 2733 "src/yacc.y"
                          {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - succ" << std::endl;
@@ -4641,11 +4759,11 @@ yyreduce:
             }
         }
     }
-#line 4645 "out/parser.cpp"
+#line 4763 "out/parser.cpp"
     break;
 
   case 176: /* factor: TOINT LP args_list RP  */
-#line 2638 "src/yacc.y"
+#line 2756 "src/yacc.y"
                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - toint" << std::endl;
@@ -4668,11 +4786,11 @@ yyreduce:
             }
         }
     }
-#line 4672 "out/parser.cpp"
+#line 4790 "out/parser.cpp"
     break;
 
   case 177: /* factor: TOCHAR LP args_list RP  */
-#line 2661 "src/yacc.y"
+#line 2779 "src/yacc.y"
                            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - tochar" << std::endl;
@@ -4695,11 +4813,11 @@ yyreduce:
             }
         }
     }
-#line 4699 "out/parser.cpp"
+#line 4817 "out/parser.cpp"
     break;
 
   case 178: /* factor: TOBOOL LP args_list RP  */
-#line 2684 "src/yacc.y"
+#line 2802 "src/yacc.y"
                            {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse factor - tobool" << std::endl;
@@ -4722,24 +4840,25 @@ yyreduce:
             }
         }
     }
-#line 4726 "out/parser.cpp"
+#line 4844 "out/parser.cpp"
     break;
 
   case 179: /* lvalue: identifier  */
-#line 2709 "src/yacc.y"
+#line 2827 "src/yacc.y"
                {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse lvalue - variable" << std::endl;
         #endif
 
-        if(ctx->getLookupTable().isVariableDefined((yyvsp[0].identifierNode)->getName(), "")) {
-            (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[0].identifierNode), ast::SpecialExpressionNode::FunctionName::VARIABLE, ctx->getLookupTable().getVariable((yyvsp[0].identifierNode)->getName(), "").type);
+        if(ctx->getLookupTable().isVariableDefined((yyvsp[0].identifierNode)->getName(), ctx->getCurrentScope())) {
+            (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[0].identifierNode), ast::SpecialExpressionNode::FunctionName::VARIABLE,
+                ctx->getLookupTable().getVariable((yyvsp[0].identifierNode)->getName(), ctx->getCurrentScope()).type);
         }
         else if(isInAnyEnum((yyvsp[0].identifierNode)->getName())) {
             auto properEnums = ctx->getLookupTable().getTypes(
             [&](const std::string&, const LookupTable::TypeInfo& tf) {
                 return tf.alive && tf.type.find("enum%") == 0 && tf.type.find("%" + (yyvsp[0].identifierNode)->getName() + "%") != std::string::npos;
-            });
+            }, ctx->getCurrentScope());
 
             if(properEnums.size() != 1) {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", variable " + (yyvsp[0].identifierNode)->getName() + " is in more than one enum");
@@ -4755,36 +4874,36 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4759 "out/parser.cpp"
+#line 4878 "out/parser.cpp"
     break;
 
   case 180: /* lvalue: identifier LB expression RB  */
-#line 2738 "src/yacc.y"
+#line 2857 "src/yacc.y"
                                 {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse lvalue - simple array access" << std::endl;
         #endif
 
-        if(!ctx->getLookupTable().isVariableDefined((yyvsp[-3].identifierNode)->getName(), "")) {
+        if(!ctx->getLookupTable().isVariableDefined((yyvsp[-3].identifierNode)->getName(), ctx->getCurrentScope())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", variable " + (yyvsp[-3].identifierNode)->getName() + " is not defined");
             fatalError = true;
             YYERROR;
         }
-        else if(!isArrayIndexCompatible(ctx->getLookupTable().getVariable((yyvsp[-3].identifierNode)->getName(), "").type, (yyvsp[-1].expressionNode))) {
+        else if(!isArrayIndexCompatible(ctx->getLookupTable().getVariable((yyvsp[-3].identifierNode)->getName(), ctx->getCurrentScope()).type, (yyvsp[-1].expressionNode))) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", incorrect index type");
             fatalError = true;
             YYERROR;
         }
         else {
             (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-3].identifierNode), ast::SpecialExpressionNode::FunctionName::ARRAY_ACCESS,
-                getArrayElementType(ctx->getLookupTable().getVariable((yyvsp[-3].identifierNode)->getName(), "").type));
+                getArrayElementType(ctx->getLookupTable().getVariable((yyvsp[-3].identifierNode)->getName(), ctx->getCurrentScope()).type));
         }
     }
-#line 4784 "out/parser.cpp"
+#line 4903 "out/parser.cpp"
     break;
 
   case 181: /* lvalue: lvalue LB expression RB  */
-#line 2759 "src/yacc.y"
+#line 2878 "src/yacc.y"
                             {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse lvalue - complex array access" << std::endl;
@@ -4805,19 +4924,19 @@ yyreduce:
                 getArrayElementType((yyvsp[-3].expressionNode)->getInferredType()));
         }
     }
-#line 4809 "out/parser.cpp"
+#line 4928 "out/parser.cpp"
     break;
 
   case 182: /* lvalue: identifier DOT identifier  */
-#line 2780 "src/yacc.y"
+#line 2899 "src/yacc.y"
                               {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse lvalue - simple record field" << std::endl;
         #endif
 
-        if(ctx->getLookupTable().isVariableDefined((yyvsp[-2].identifierNode)->getName(), "") && isRecordFieldCompatible(ctx->getLookupTable().getVariable((yyvsp[-2].identifierNode)->getName(), "").type, (yyvsp[0].identifierNode))) {
+        if(ctx->getLookupTable().isVariableDefined((yyvsp[-2].identifierNode)->getName(), ctx->getCurrentScope()) && isRecordFieldCompatible(ctx->getLookupTable().getVariable((yyvsp[-2].identifierNode)->getName(), ctx->getCurrentScope()).type, (yyvsp[0].identifierNode))) {
             (yyval.expressionNode) = new ast::SpecialExpressionNode((yyvsp[-2].identifierNode), ast::SpecialExpressionNode::FunctionName::RECORD_ACCESS,
-                getRecordFieldType(ctx->getLookupTable().getVariable((yyvsp[-2].identifierNode)->getName(), "").type, (yyvsp[0].identifierNode)->getName()));
+                getRecordFieldType(ctx->getLookupTable().getVariable((yyvsp[-2].identifierNode)->getName(), ctx->getCurrentScope()).type, (yyvsp[0].identifierNode)->getName()));
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", variable " + (yyvsp[-2].identifierNode)->getName() + " is not defined");
@@ -4825,11 +4944,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4829 "out/parser.cpp"
+#line 4948 "out/parser.cpp"
     break;
 
   case 183: /* lvalue: lvalue DOT identifier  */
-#line 2796 "src/yacc.y"
+#line 2915 "src/yacc.y"
                           {
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse lvalue - complex record field" << std::endl;
@@ -4845,11 +4964,11 @@ yyreduce:
             YYERROR;
         }
     }
-#line 4849 "out/parser.cpp"
+#line 4968 "out/parser.cpp"
     break;
 
 
-#line 4853 "out/parser.cpp"
+#line 4972 "out/parser.cpp"
 
       default: break;
     }
@@ -5042,7 +5161,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 2812 "src/yacc.y"
+#line 2931 "src/yacc.y"
 
 
 void yyerror(const char *s) {
@@ -5059,8 +5178,12 @@ bool parse(const std::string& inputFileName, std::vector<std::string>& errors, s
         return false;
     }
 
+    ctx->pushScope("program");
+
     yyparse();
     fclose(yyin);
+
+    ctx->popScope();
 
     errors = std::move(parsingErrors);
     program = std::unique_ptr<ast::ProgramNode>(resultAst);
@@ -5081,7 +5204,9 @@ bool isBoolean(const std::string& expr) {
 }
 
 bool nameAlreadyUsed(std::string name) {
-    if(ctx->getLookupTable().isVariableDefined(name, "") || ctx->getLookupTable().isRoutineDefined(name, "") || ctx->getLookupTable().isTypeDefined(name, "")) {
+    if(ctx->getLookupTable().isVariableDefined(name, ctx->getCurrentScope()) ||
+       ctx->getLookupTable().isRoutineDefined(name, ctx->getCurrentScope()) ||
+       ctx->getLookupTable().isTypeDefined(name, ctx->getCurrentScope())) {
         return true;
     }
 
@@ -5098,7 +5223,7 @@ bool saveType(ast::IdentifierNode* typeName, const std::string& typeDef) {
         fatalError = true;
         return false;
     } else {
-        ctx->getLookupTable().defineType(LookupTable::TypeCategory::SIMPLE, typeName->getName(), typeDef);
+        ctx->getLookupTable().defineType(LookupTable::TypeCategory::SIMPLE, typeName->getName(), typeDef, ctx->getCurrentScope());
         return true;
     }
 }
@@ -5109,8 +5234,8 @@ bool saveConstant(ast::IdentifierNode* constName, const std::string& constValue,
         fatalError = true;
         return false;
     } else {
-        ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::CONSTANT, constName->getName(), typeDef);
-        ctx->getLookupTable().setVariableValue(constName->getName(), constValue);
+        ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::CONSTANT, constName->getName(), typeDef, ctx->getCurrentScope());
+        ctx->getLookupTable().setVariableValue(constName->getName(), constValue, ctx->getCurrentScope());
         return true;
     }
 }
@@ -5122,7 +5247,7 @@ bool saveVariables(std::vector<ast::IdentifierNode*>* varNames, const std::strin
             fatalError = true;
             return false;
         } else {
-            ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::VARIABLE, varName->getName(), typeDef);
+            ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::VARIABLE, varName->getName(), typeDef, ctx->getCurrentScope());
         }
     }
 
@@ -5165,7 +5290,7 @@ bool saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward) {
 
     if(routineDef->getRoutineType() == ast::RoutineDeclarationNode::RoutineType::PROCEDURE) {
         ctx->getLookupTable().defineRoutine(LookupTable::RoutineCategory::PROCEDURE, routineDef->getName(),
-            arguments, "void", "");
+            arguments, "void", ctx->getCurrentScope());
     }
     else {
         std::string returnType;
@@ -5177,7 +5302,7 @@ bool saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward) {
         }
 
         ctx->getLookupTable().defineRoutine(LookupTable::RoutineCategory::FUNCTION, routineDef->getName(),
-            arguments, returnType, "");
+            arguments, returnType, ctx->getCurrentScope());
     }
 
     return true;
@@ -5185,6 +5310,18 @@ bool saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward) {
 
 bool isBasicType(const std::string& type) {
     return type == "integer" || type == "boolean" || type == "char";
+}
+
+bool isBasicOrEnumType(const std::string& type) {
+    return isBasicType(type) || type.find("enum%") == 0;
+}
+
+bool isBasicOrEnumOrArrayOrRecordType(const std::string& type) {
+    return isBasicOrEnumType(type) || type.find("array@@") == 0 || type.find("record$$") == 0;
+}
+
+bool isRangeType(const std::string& type) {
+    return type.find("constrange%") == 0 || type.find("enumrange%") == 0;
 }
 
 bool isInEnum(const std::string& enumElement, const std::string& enumType) {
@@ -5195,7 +5332,7 @@ bool isInAnyEnum(const std::string& enumElement) {
     const std::vector<LookupTable::TypeInfo>& types = ctx->getLookupTable().getTypes(
         [&](const std::string&, const LookupTable::TypeInfo& tf) {
         return tf.alive && tf.type.find("enum%") == 0 && tf.type.find("%" + enumElement + "%") != std::string::npos;
-    });
+    }, ctx->getCurrentScope());
 
     return !types.empty();
 }
@@ -5223,7 +5360,7 @@ bool isLeftValueCompatible(ast::ExpressionNode* expr) {
 
     if(special->getFunctionName() == ast::SpecialExpressionNode::VARIABLE) {
         ast::IdentifierNode* var = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
-        return !ctx->getLookupTable().isVariableConst(var->getName(), "");
+        return !ctx->getLookupTable().isVariableConst(var->getName(), ctx->getCurrentScope());
     }
 
     return false;
@@ -5313,7 +5450,7 @@ bool isArrayIndexCompatible(const std::string& arrayType, ast::ExpressionNode* i
             ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(index);
             if(special->getFunctionName() == ast::SpecialExpressionNode::ENUM_ELEMENT) {
                 ast::IdentifierNode* enumElement = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
-                return isEnumSubRangeType(enumElement->getName(), ctx->getLookupTable().getType(enumName, "").type, beginEnum, endEnum);
+                return isEnumSubRangeType(enumElement->getName(), ctx->getLookupTable().getType(enumName, ctx->getCurrentScope()).type, beginEnum, endEnum);
             }
         }
 
@@ -5438,7 +5575,7 @@ bool variableIsReassignedS(const std::string& varName, ast::StatementNode* stmt)
 
             if(call->getCallObjectType() == ast::CallNode::CallObjectType::USER_DEFINED) {
                 ast::UserDefineCallNode* userCall = dynamic_cast<ast::UserDefineCallNode*>(call);
-                const std::vector<LookupTable::ArgumentInfo>& callArgs = ctx->getLookupTable().getRoutine(userCall->getName()->getName(), "").args;
+                const std::vector<LookupTable::ArgumentInfo>& callArgs = ctx->getLookupTable().getRoutine(userCall->getName()->getName(), ctx->getCurrentScope()).args;
                 std::vector<bool> passByReference;
                 for(size_t i = 0; i < callArgs.size(); i++) {
                     passByReference.push_back(callArgs[i].isReference);
@@ -5589,7 +5726,7 @@ bool variableIsReassignedE(const std::string& varName, ast::ExpressionNode* expr
         auto routineName = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get())->getName();
         auto args = dynamic_cast<ast::ArgumentsListNode*>(special->getArgument2().get())->getArguments();
 
-        const std::vector<LookupTable::ArgumentInfo>& callArgs = ctx->getLookupTable().getRoutine(routineName, "").args;
+        const std::vector<LookupTable::ArgumentInfo>& callArgs = ctx->getLookupTable().getRoutine(routineName, ctx->getCurrentScope()).args;
         std::vector<bool> passByReference;
         for(size_t i = 0; i < callArgs.size(); i++) {
             passByReference.push_back(callArgs[i].isReference);

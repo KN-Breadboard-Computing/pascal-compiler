@@ -45,17 +45,28 @@ class BBControlFlowGraph {
   [[nodiscard]] const std::string& getEntryLabel() const { return entryLabel_; }
   [[nodiscard]] const std::string& getExitLabel() const { return exitLabel_; }
   [[nodiscard]] const std::map<std::string, BasicBlock>& getBasicBlocks() const { return basicBlocks_; }
-  [[nodiscard]] BasicBlock& getBasicBlock(const std::string& blockLabel) { return basicBlocks_.at(blockLabel); }
+  [[nodiscard]] const BasicBlock& getBasicBlock(const std::string& blockLabel) const { return basicBlocks_.at(blockLabel); }
+  [[nodiscard]] BasicBlock& basicBlock(const std::string& blockLabel) { return basicBlocks_.at(blockLabel); }
   [[nodiscard]] const std::vector<std::string>& getOutLinks(const std::string& blockLabel) const {
     return srcDest_.at(blockLabel);
   }
   [[nodiscard]] const std::vector<std::string>& getInLinks(const std::string& blockLabel) const {
     return destSrc_.at(blockLabel);
   }
+  [[nodiscard]] const std::map<std::string, std::vector<std::string>>& getSrcDestLinks() const { return srcDest_; }
+  [[nodiscard]] const std::map<std::string, std::vector<std::string>>& getDestSrcLinks() const { return destSrc_; }
 
   void merge(const BBControlFlowGraph& cfg, const std::string& attachPoint, const std::string& cfgAttachPoint);
   void merge(const BBControlFlowGraph& cfg, const std::string& attachPoint);
   void merge(const BBControlFlowGraph& cfg);
+
+  void update(const std::map<std::string, std::vector<std::string>>& srcDest,
+              const std::map<std::string, std::vector<std::string>>& destSrc,
+              const std::map<std::string, BasicBlock>& basicBlocks) {
+    srcDest_ = std::move(srcDest);
+    destSrc_ = std::move(destSrc);
+    basicBlocks_ = std::move(basicBlocks);
+  }
 
   friend std::ostream& operator<<(std::ostream& out, const BBControlFlowGraph& cfg);
 

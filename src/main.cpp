@@ -44,5 +44,14 @@ int main(int argc, char* argv[]) {
     outputBbFile << name << ":\n" << cfg << std::endl;
   }
 
+  cfgGenerator.removeEmptyBasicBlocks();
+  const std::map<std::string, bblocks::BBControlFlowGraph> cfgs2{cfgGenerator.generate(program)};
+
+  for(const auto& [name, cfg]: cfgs2) {
+    outputBbFile << name << ":\n" << cfg << std::endl;
+  }
+
+  outputBbFile << std::endl << std::endl;
+
   return 0;
 }

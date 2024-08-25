@@ -38,11 +38,7 @@
 namespace bblocks {
 class BbCfgGenerator : public ast::AstVisitor {
  public:
-  BbCfgGenerator() {
-    typeBytes.insert({"integer", 1});
-    typeBytes.insert({"boolean", 1});
-    typeBytes.insert({"char", 1});
-  }
+  BbCfgGenerator() = default;
 
   BbCfgGenerator(const BbCfgGenerator&) = delete;
   BbCfgGenerator(BbCfgGenerator&&) = default;
@@ -86,15 +82,27 @@ class BbCfgGenerator : public ast::AstVisitor {
 
   [[nodiscard]] std::map<std::string, BBControlFlowGraph> generate(const std::unique_ptr<ast::ProgramNode>& program);
 
+  void removeEmptyBasicBlocks();
+
+  const std::map<std::string, size_t>& getEnumTranslator() const { return enumTranslator_; }
+  const std::map<std::string, size_t>& getTypeBytes() const { return typeBytes_; }
+  const std::map<std::string, size_t>& getProcedureOffsets() const { return procedureOffsets_; }
+
  private:
   void newControlFlowGraph(const std::string& label);
   void saveBasicBlock(const std::string& label, bool connectToLastBlock, bool setAsExit);
 
   void generateVariableMove(ast::ExpressionNode* dest, const std::string& src);
 
-  std::string currentScope_;
-  std::map<std::string, size_t> typeBytes;
-  std::map<std::string, std::map<std::string, int>> enumTranslator;
+  static bool isChar(const std::string& expr);
+  static bool isInteger(const std::string& expr);
+  static bool isBoolean(const std::string& expr);
+
+  size_t countIndexes(const std::string type);
+
+  std::map<std::string, size_t> enumTranslator_;
+  std::map<std::string, size_t> typeBytes_;
+  std::map<std::string, size_t> procedureOffsets_;
 
   BasicBlock currentBasicBlock_;
   std::stack<BBControlFlowGraph> controlFlowGraphs_;

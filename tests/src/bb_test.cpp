@@ -141,3 +141,45 @@ TEST(toBbConversion, if3) {
   const std::map<std::string, bblocks::BBControlFlowGraph> cfg{cfgGenerator.generate(program)};
   validateBasicBlocks(cfg, "tests/internal/expected_bb/if3.bb");
 }
+
+TEST(toBBConversion, types) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+  parse("tests/internal/input_bb/types.pas", errors, program);
+  bblocks::BbCfgGenerator cfgGenerator;
+  const std::map<std::string, bblocks::BBControlFlowGraph> cfg{cfgGenerator.generate(program)};
+
+  const std::map<std::string, size_t> expectedEnums{{"Mon", 0}, {"Tue", 1}, {"Wed", 2}, {"Thu", 3},
+                                                    {"Fri", 4}, {"Sat", 5}, {"Sun", 6}};
+  ASSERT_EQ(cfgGenerator.getEnumTranslator(), expectedEnums);
+
+  const std::map<std::string, size_t> expectedTypeBytes{
+      {"integer", 1},
+      {"char", 1},
+      {"boolean", 1},
+      {"enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%", 1},
+      {"record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@"
+       "integer@@)$$",
+       11},
+      {"record$$Father#(record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%"
+       "Thu%Fri%Sat%Sun%@integer@@)$$)$Mother#(record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#("
+       "array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$)$Children#(array@@constrange%1..10@record$$Name#(char)$Surname#("
+       "char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$@@)$$",
+       132},
+      {"array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@", 7},
+      {"array@@constrange%1..10@record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%"
+       "Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$@@",
+       110},
+      {"array@@enumrange%TDay%Wed..Sun@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@@", 5},
+      {"array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@record$$Father#(record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#("
+       "boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$)$Mother#(record$$Name#(char)$Surname#(char)$"
+       "Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$)$Children#(array@@"
+       "constrange%1..10@record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%"
+       "Thu%Fri%Sat%Sun%@integer@@)$$@@)$$@@",
+       924},
+      {"array@@integer@integer@@", 256},
+      {"array@@char@integer@@", 256},
+      {"array@@boolean@integer@@", 2},
+      {"array@@constrange%false..true@integer@@", 2}};
+  ASSERT_EQ(cfgGenerator.getTypeBytes(), expectedTypeBytes);
+}

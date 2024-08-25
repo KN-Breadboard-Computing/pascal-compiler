@@ -1,6 +1,10 @@
 #include "bb_cfg_generator.hpp"
 #include "../context/context.hpp"
 
+#include <algorithm>
+#include <map>
+#include <queue>
+#include <set>
 #include <stdexcept>
 
 namespace bblocks {
@@ -10,6 +14,7 @@ void BbCfgGenerator::visit(const ast::ArgumentsListNode* /*node*/) {}
 
 void BbCfgGenerator::visit(const ast::ArrayTypeNode* node) {
   node->getElementType()->accept(this);
+  typeBytes_[node->flat()] = typeBytes_[node->getElementType()->flat()] * countIndexes(node->getRange()->flat());
 }
 
 void BbCfgGenerator::visit(const ast::AssignNode* node) {
@@ -221,23 +226,11 @@ void BbCfgGenerator::visit(const ast::MathExpressionNode* node) {
 }
 
 void BbCfgGenerator::visit(const ast::SpecialExpressionNode* node) {
-  std::string argument1;
-  if (node->getArgument1() != nullptr) {
-    node->getArgument1()->accept(this);
-    argument1 = ctx->getLastTempVariable();
-  }
-
-  std::string argument2;
-  if (node->getArgument2() != nullptr) {
-    node->getArgument2()->accept(this);
-    argument2 = ctx->getLastTempVariable();
-  }
-
   switch (node->getFunctionName()) {
     case ast::SpecialExpressionNode::VARIABLE: {
-      ast::IdentifierNode* variable = dynamic_cast<ast::IdentifierNode*>(node->getArgument1().get());
+      const ast::IdentifierNode* var = dynamic_cast<const ast::IdentifierNode*>(node->getArgument1().get());
       currentBasicBlock_.addInstruction(std::make_unique<BBMoveVV>(
-          variable->getName(), ctx->generateTempVariable(), BBMoveVV::SourceType::VARIABLE, BBMoveVV::DestinationType::VARIABLE));
+          var->getName(), ctx->generateTempVariable(), BBMoveVV::SourceType::VARIABLE, BBMoveVV::DestinationType::VARIABLE));
       break;
     }
     case ast::SpecialExpressionNode::CALL: {
@@ -255,14 +248,16 @@ void BbCfgGenerator::visit(const ast::SpecialExpressionNode* node) {
           args.emplace_back(ctx->getLastTempVariable());
         }
       }
-      currentBasicBlock_.addInstruction(std::make_unique<BBCall>(function->getName(), args));
+
+      const std::string fullName = ctx->getLookupTable().getRoutine(function->getName(), ctx->getCurrentScope()).fullName;
+      currentBasicBlock_.addInstruction(std::make_unique<BBCall>(fullName, args));
       break;
     }
     case ast::SpecialExpressionNode::ARRAY_ACCESS: {
       break;
     }
     case ast::SpecialExpressionNode::CONST: {
-      ast::ConstantNode* constant = dynamic_cast<ast::ConstantNode*>(node->getArgument1().get());
+      const ast::ConstantNode* constant = dynamic_cast<const ast::ConstantNode*>(node->getArgument1().get());
       constant->accept(this);
       break;
     }
@@ -367,7 +362,7 @@ void BbCfgGenerator::visit(const ast::ForNode* node) {
   saveBasicBlock(exitLabel, true, true);
 
   controlFlowGraphs_.top()
-      .getBasicBlock(conditionStatement)
+      .basicBlock(conditionStatement)
       .addInstruction(std::make_unique<BBBranchV>(conditionVariable,
                                                   node->getDirection() == ast::ForNode::Direction::INCREMENT
                                                       ? BBBranchV::Condition::POSITIVE
@@ -426,14 +421,14 @@ void BbCfgGenerator::visit(const ast::IfNode* node) {
   if (node->getElseStatement() != nullptr) {
     controlFlowGraphs_.top().addBlocksLink(lastFalseStatement, exitLabel);
     controlFlowGraphs_.top()
-        .getBasicBlock(lastConditionStatement)
+        .basicBlock(lastConditionStatement)
         .addInstruction(std::make_unique<BBBranchV>(conditionVariable, BBBranchV::Condition::NONZERO, firstTrueStatement,
                                                     firstFalseStatement));
   }
   else {
     controlFlowGraphs_.top().addBlocksLink(lastConditionStatement, exitLabel);
     controlFlowGraphs_.top()
-        .getBasicBlock(lastConditionStatement)
+        .basicBlock(lastConditionStatement)
         .addInstruction(
             std::make_unique<BBBranchV>(conditionVariable, BBBranchV::Condition::NONZERO, firstTrueStatement, exitLabel));
   }
@@ -444,14 +439,20 @@ void BbCfgGenerator::visit(const ast::ParamsGroupNode* /*node*/) {}
 void BbCfgGenerator::visit(const ast::ParamsNode* /*node*/) {}
 
 void BbCfgGenerator::visit(const ast::ProgramNode* node) {
-  currentScope_ += ".program";
+  ctx->pushScope("program");
   node->getRoutine()->accept(this);
+  ctx->popScope();
+
+  functionControlFlowGraphs_.insert({"program", controlFlowGraphs_.top()});
 }
 
 void BbCfgGenerator::visit(const ast::RecordTypeNode* node) {
-  for(const auto* field: *node->getFields()) {
+  size_t recordSize{0};
+  for (const auto* field : *node->getFields()) {
     field->second->accept(this);
+    recordSize += typeBytes_[field->second->flat()] * field->first->size();
   }
+  typeBytes_[node->flat()] = recordSize;
 }
 
 void BbCfgGenerator::visit(const ast::RepeatNode* node) {
@@ -485,74 +486,79 @@ void BbCfgGenerator::visit(const ast::RepeatNode* node) {
   saveBasicBlock(exitLabel, true, true);
 
   controlFlowGraphs_.top()
-      .getBasicBlock(lastConditionStatement)
+      .basicBlock(lastConditionStatement)
       .addInstruction(
           std::make_unique<BBBranchV>(conditionVariable, BBBranchV::Condition::NONZERO, firstBodyStatement, exitLabel));
 }
 
 void BbCfgGenerator::visit(const ast::RoutineBodyNode* node) {
+  newControlFlowGraph(ctx->getCurrentScope() + ".entry");
   node->getStatements()->accept(this);
-}
-
-void BbCfgGenerator::visit(const ast::RoutineDeclarationNode* /*node*/) {}
-
-void BbCfgGenerator::visit(const ast::RoutineHeadNode* node) {
-  for (const auto* constant : *node->getConstantsPart()) {
-    int value;
-    switch (constant->second->getConstantType()) {
-      case ast::ConstantNode::UNSPECIFIED:
-        throw std::runtime_error("Type error");
-      case ast::ConstantNode::INTEGER:
-        value = dynamic_cast<ast::IntegerConstantNode*>(constant->second)->getValue();
-        break;
-      case ast::ConstantNode::CHAR:
-        value = static_cast<unsigned char>(dynamic_cast<ast::CharConstantNode*>(constant->second)->getValue());
-        break;
-      case ast::ConstantNode::BOOLEAN:
-        value = dynamic_cast<ast::BooleanConstantNode*>(constant->second)->getValue() ? 1 : 0;
-        break;
-      case ast::ConstantNode::STRING:
-        throw std::runtime_error("Type error");
-    }
-    currentBasicBlock_.addInstruction(std::make_unique<BBMoveNV>(value, constant->first->getName(), BBMoveNV::SourceType::NUMERIC,
-                                                                 BBMoveNV::DestinationType::VARIABLE));
-  }
-
-  for (const auto* type : *node->getTypesPart()) {
-    const std::string typeName = type->first->getName();
-    type->second->accept(this);
-  }
-
-  for (const auto* var : *node->getVariablesPart()) {}
-
-  for (const auto* routine : *node->getRoutinePart()) {
-    currentScope_ += routine->getName();
-    routine->accept(this);
-    currentScope_.resize(currentScope_.size() - routine->getName().size());
-  }
-}
-
-void BbCfgGenerator::visit(const ast::RoutineNode* node) {
-  newControlFlowGraph(currentScope_ + ".entry");
-  node->getHead()->accept(this);
-  node->getBody()->accept(this);
 
   currentBasicBlock_.addInstruction(std::make_unique<BBHalt>());
   const std::string haltLabel = ctx->generateBasicBlockLabel();
   saveBasicBlock(haltLabel, true, true);
+}
 
-  functionControlFlowGraphs_.insert({"program", controlFlowGraphs_.top()});
+void BbCfgGenerator::visit(const ast::RoutineDeclarationNode* node) {
+  node->getRoutine()->accept(this);
+}
+
+void BbCfgGenerator::visit(const ast::RoutineHeadNode* node) {
+  for (const auto* constant : *node->getConstantsPart()) {
+    constant->second->accept(this);
+    currentBasicBlock_.addInstruction(std::make_unique<BBMoveVV>(ctx->getLastTempVariable(), constant->first->getName(),
+                                                                 BBMoveVV::SourceType::VARIABLE,
+                                                                 BBMoveVV::DestinationType::VARIABLE));
+  }
+
+  for (const auto* type : *node->getTypesPart()) {
+    type->second->accept(this);
+  }
+
+  size_t procedureOffset{0};
+  for (const auto* var : *node->getVariablesPart()) {
+    var->second->accept(this);
+    procedureOffset += typeBytes_[var->second->flat()] * var->first->size();
+  }
+  procedureOffsets_[ctx->getCurrentScope()] = procedureOffset;
+
+  for (const auto* routine : *node->getRoutinePart()) {
+    ctx->pushScope(routine->getName());
+
+    controlFlowGraphs_.push(BBControlFlowGraph{});
+    routine->accept(this);
+    controlFlowGraphs_.pop();
+
+    const std::string fullName = ctx->getLookupTable().getRoutine(routine->getName(), ctx->getCurrentScope()).fullName;
+    functionControlFlowGraphs_[fullName] = controlFlowGraphs_.top();
+
+    ctx->popScope();
+  }
+}
+
+void BbCfgGenerator::visit(const ast::RoutineNode* node) {
+  node->getHead()->accept(this);
+  node->getBody()->accept(this);
 }
 
 void BbCfgGenerator::visit(const ast::ConstRangeTypeNode* /*node*/) {}
 
 void BbCfgGenerator::visit(const ast::EnumerationTypeNode* node) {
-
+  for (size_t i = 0; i < node->getIdentifiers()->size(); ++i) {
+    enumTranslator_[node->getIdentifiers()->at(i)->getName()] = i;
+  }
+  typeBytes_[node->flat()] = 1;
 }
 
-void BbCfgGenerator::visit(const ast::RenameTypeNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::RenameTypeNode* node) {
+  typeBytes_[node->flat()] =
+      typeBytes_[ctx->getLookupTable().getType(node->getIdentifier()->getName(), ctx->getCurrentScope()).type];
+}
 
-void BbCfgGenerator::visit(const ast::BasicTypeNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::BasicTypeNode* node) {
+  typeBytes_[node->flat()] = 1;
+}
 
 void BbCfgGenerator::visit(const ast::VarRangeTypeNode* /*node*/) {}
 
@@ -587,16 +593,77 @@ void BbCfgGenerator::visit(const ast::WhileNode* node) {
   saveBasicBlock(exitLabel, true, true);
 
   controlFlowGraphs_.top()
-      .getBasicBlock(lastConditionStatement)
+      .basicBlock(lastConditionStatement)
       .addInstruction(
           std::make_unique<BBBranchV>(conditionVariable, BBBranchV::Condition::NONZERO, firstBodyStatement, exitLabel));
 }
 
 std::map<std::string, BBControlFlowGraph> BbCfgGenerator::generate(const std::unique_ptr<ast::ProgramNode>& program) {
-  currentScope_ = "";
   visit(program.get());
-
   return functionControlFlowGraphs_;
+}
+
+void BbCfgGenerator::removeEmptyBasicBlocks() {
+  for (auto& [funName, fun] : functionControlFlowGraphs_) {
+    std::map<std::string, std::string> labelsTranslation;
+    for (const auto& [blockLabel, block] : fun.getBasicBlocks()) {
+      std::string label{blockLabel};
+      std::vector<std::string> renames;
+      while (fun.getBasicBlock(label).empty()) {
+        renames.push_back(label);
+        // assert fun.getOutLinks(label).size() == 1
+        label = fun.getOutLinks(label).front();
+      }
+
+      for (const auto& rename : renames) {
+        labelsTranslation[rename] = label;
+      }
+    }
+
+    std::map<std::string, std::vector<std::string>> updatedSrcDest;
+    for (auto srcDest = fun.getSrcDestLinks().cbegin(); srcDest != fun.getSrcDestLinks().cend(); ++srcDest) {
+      const std::string source =
+          labelsTranslation.find(srcDest->first) != labelsTranslation.end() ? labelsTranslation[srcDest->first] : srcDest->first;
+      updatedSrcDest.insert({source, {}});
+      for (auto dest = srcDest->second.cbegin(); dest != srcDest->second.cend(); ++dest) {
+        const std::string destination =
+            labelsTranslation.find(*dest) != labelsTranslation.end() ? labelsTranslation[*dest] : *dest;
+        if (std::find(updatedSrcDest[source].begin(), updatedSrcDest[source].end(), destination) ==
+                updatedSrcDest[source].end() &&
+            source != destination) {
+          updatedSrcDest[source].push_back(destination);
+        }
+      }
+    }
+
+    std::map<std::string, std::vector<std::string>> updatedDestSrc;
+    for (auto destSrc = fun.getDestSrcLinks().cbegin(); destSrc != fun.getDestSrcLinks().cend(); ++destSrc) {
+      const std::string destination =
+          labelsTranslation.find(destSrc->first) != labelsTranslation.end() ? labelsTranslation[destSrc->first] : destSrc->first;
+      updatedDestSrc.insert({destination, {}});
+
+      for (auto src = destSrc->second.begin(); src != destSrc->second.end(); ++src) {
+        const std::string source = labelsTranslation.find(*src) != labelsTranslation.end() ? labelsTranslation[*src] : *src;
+        if (std::find(updatedDestSrc[destination].begin(), updatedDestSrc[destination].end(), source) ==
+                updatedDestSrc[destination].end() &&
+            destination != source) {
+          updatedDestSrc[destination].push_back(source);
+        }
+      }
+    }
+
+    std::map<std::string, BasicBlock> updatedBlocks;
+    for (const auto& [blockLabel, block] : fun.getBasicBlocks()) {
+      if (!block.empty()) {
+        const std::string newLabel =
+            labelsTranslation.find(blockLabel) != labelsTranslation.end() ? labelsTranslation[blockLabel] : blockLabel;
+        updatedBlocks.insert({newLabel, block});
+      }
+    }
+
+    fun.update(std::move(updatedSrcDest), std::move(updatedDestSrc), std::move(updatedBlocks));
+    fun.setEntryLabel(labelsTranslation[fun.getEntryLabel()]);
+  }
 }
 
 void BbCfgGenerator::newControlFlowGraph(const std::string& label) {
@@ -624,7 +691,7 @@ void BbCfgGenerator::generateVariableMove(ast::ExpressionNode* dest, const std::
 
   ast::SpecialExpressionNode* varArrRec = dynamic_cast<ast::SpecialExpressionNode*>(dest);
   if (varArrRec->getFunctionName() == ast::SpecialExpressionNode::FunctionName::VARIABLE) {
-    ast::IdentifierNode* var = dynamic_cast<ast::IdentifierNode*>(varArrRec->getArgument1().get());
+    const ast::IdentifierNode* var = dynamic_cast<const ast::IdentifierNode*>(varArrRec->getArgument1().get());
     currentBasicBlock_.addInstruction(
         std::make_unique<BBMoveVV>(src, var->getName(), BBMoveVV::SourceType::VARIABLE, BBMoveVV::DestinationType::VARIABLE));
   }
@@ -634,4 +701,94 @@ void BbCfgGenerator::generateVariableMove(ast::ExpressionNode* dest, const std::
     throw std::runtime_error("Type error");
   }
 }
+
+bool BbCfgGenerator::isChar(const std::string& expr) {
+  return expr.size() == 1;
+}
+
+bool BbCfgGenerator::isInteger(const std::string& expr) {
+  return std::all_of(expr.begin(), expr.end(), ::isdigit) ||
+         (expr.size() > 1 && expr[0] == '-' && std::all_of(expr.begin() + 1, expr.end(), ::isdigit));
+}
+
+bool BbCfgGenerator::isBoolean(const std::string& expr) {
+  return expr == "true" || expr == "false";
+}
+
+size_t BbCfgGenerator::countIndexes(const std::string type) {
+  if (type == "integer" || type == "char") {
+    return 256;
+  }
+
+  if (type == "boolean") {
+    return 2;
+  }
+
+  if (type.find("enum%") == 0) {
+    return std::ranges::count(type, '%') - 1;
+  }
+
+  if (type.find("constrange%") == 0) {
+    std::string begin{};
+    std::string end{};
+    size_t pos;
+    for (pos = 11; pos < type.size(); pos++) {
+      if (type[pos] == '.') {
+        break;
+      }
+      begin += type[pos];
+    }
+
+    for (pos += 2; pos < type.size(); pos++) {
+      end += type[pos];
+    }
+
+    if (isInteger(begin) && isInteger(end)) {
+      int int1 = std::atoi(begin.c_str());
+      int int2 = std::atoi(end.c_str());
+      return int2 - int1 + 1;
+    }
+
+    if (isChar(begin) && isInteger(end)) {
+      int char1 = static_cast<int>(begin.at(0));
+      int char2 = static_cast<int>(end.at(0));
+      return char2 - char1 + 1;
+    }
+
+    if (isBoolean(begin) && isBoolean(end)) {
+      int bool1 = begin == "true" ? 1 : 0;
+      int bool2 = end == "true" ? 1 : 0;
+      return bool2 - bool1 + 1;
+    }
+
+    throw std::runtime_error("type error");
+  }
+
+  if (type.find("enumrange%") == 0) {
+    std::string enumName, beginEnum, endEnum;
+    size_t pos{10};
+    for (; pos < type.size(); pos++) {
+      if (type[pos] == '%') {
+        break;
+      }
+      enumName += type[pos];
+    }
+
+    pos++;
+    while (type[pos] != '.') {
+      beginEnum += type[pos];
+      pos++;
+    }
+
+    pos += 2;
+    for (; pos < type.size(); pos++) {
+      endEnum += type[pos];
+    }
+
+    return enumTranslator_[endEnum] - enumTranslator_[beginEnum] + 1;
+  }
+
+  throw std::runtime_error("type error");
+}
+
 }  // namespace bblocks

@@ -6,6 +6,8 @@ void BBControlFlowGraph::addBBlock(const std::string& label, BasicBlock basicBlo
   std::cout << "New basic block with label: " << label << std::endl;
 #endif
   basicBlocks_.insert({label, std::move(basicBlock)});
+  srcDest_.insert({label, {}});
+  destSrc_.insert({label, {}});
 }
 
 void BBControlFlowGraph::addBlocksLink(const std::string& fromLabel, const std::string& toLabel) {

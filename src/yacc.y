@@ -63,6 +63,9 @@ bool saveVariables(std::vector<ast::IdentifierNode*>* varNames, const std::strin
 bool saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward);
 
 bool isBasicType(const std::string& type);
+bool isBasicOrEnumType(const std::string& type);
+bool isBasicOrEnumOrArrayOrRecordType(const std::string& type);
+bool isRangeType(const std::string& type);
 bool isInEnum(const std::string& enumElement, const std::string& enumType);
 bool isInAnyEnum(const std::string& enumElement);
 bool isEnumSubRangeType(const std::string& enumElementPos, const std::string& enumType,
@@ -374,7 +377,8 @@ fun_decl :
             YYERROR;
         }
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         $$ = $1;
         $$->setRoutine(std::unique_ptr<ast::RoutineNode>($3));
@@ -392,7 +396,8 @@ fun_decl :
             YYERROR;
         }
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         $$ = $1;
         $$->setRoutine(std::unique_ptr<ast::RoutineNode>($3));
@@ -411,7 +416,8 @@ fun_decl :
             YYERROR;
         }
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         $$ = $1;
         $$->setRoutine(std::unique_ptr<ast::RoutineNode>($2));
@@ -430,7 +436,8 @@ fun_decl :
             YYERROR;
         }
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         $$ = $1;
         $$->setRoutine(std::unique_ptr<ast::RoutineNode>($2));
@@ -445,7 +452,20 @@ fun_head :
             std::cout << "Yacc debug: Parse fun head " << (*$2.stringValue) << std::endl;
         #endif
 
-        ctx->getLookupTable().pushScope(*$2.stringValue);
+        ctx->pushScope(*$2.stringValue);
+
+        try {
+            if(!isBasicOrEnumOrArrayOrRecordType($5->flat())) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid return type");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
+            YYERROR;
+        }
 
         std::string funType;
         try { funType = $5->flat(); }
@@ -489,7 +509,8 @@ proc_decl :
             std::cout << "Yacc debug: Parse proc decl" << std::endl;
         #endif
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         $$ = $1;
         $$->setRoutine(std::unique_ptr<ast::RoutineNode>($3));
@@ -501,7 +522,8 @@ proc_decl :
             std::cout << "Yacc debug: Parse proc decl" << std::endl;
         #endif
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         $$ = $1;
         $$->setRoutine(std::unique_ptr<ast::RoutineNode>($2));
@@ -514,7 +536,8 @@ proc_decl :
             std::cout << "Yacc debug: Parse proc decl" << std::endl;
         #endif
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         $$ = $1;
         $$->setRoutine(std::unique_ptr<ast::RoutineNode>($3));
@@ -527,7 +550,8 @@ proc_decl :
             std::cout << "Yacc debug: Parse proc decl" << std::endl;
         #endif
 
-        ctx->getLookupTable().popScope();
+        ctx->getLookupTable().undefineTypesVarsRoutines(ctx->getCurrentScope());
+        ctx->popScope();
 
         $$ = $1;
         $$->setRoutine(std::unique_ptr<ast::RoutineNode>($2));
@@ -542,7 +566,7 @@ proc_head :
             std::cout << "Yacc debug: Parse proc head " << (*$2.stringValue) << std::endl;
         #endif
 
-        ctx->getLookupTable().pushScope(*$2.stringValue);
+        ctx->pushScope(*$2.stringValue);
 
         for(const auto& param : *$3->getParams()) {
             std::string paramType;
@@ -612,6 +636,19 @@ params_type :
             std::cout << "Yacc debug: Parse params type 1" << std::endl;
         #endif
 
+        try {
+            if(!isBasicOrEnumOrArrayOrRecordType($4->flat())) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid parameter type");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid parameter type");
+            fatalError = true;
+            YYERROR;
+        }
+
         $$ = new ast::ParamsGroupNode(ast::ParamsGroupNode::PassType::PASS_BY_REFERENCE, $2, $4);
     }
 |
@@ -619,6 +656,19 @@ params_type :
         #ifdef YACC_DEBUG
             std::cout << "Yacc debug: Parse params type 2" << std::endl;
         #endif
+
+        try {
+            if(!isBasicOrEnumOrArrayOrRecordType($3->flat())) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid parameter type");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid parameter type");
+            fatalError = true;
+            YYERROR;
+        }
 
         $$ = new ast::ParamsGroupNode(ast::ParamsGroupNode::PassType::PASS_BY_VALUE, $1, $3);
     }
@@ -676,6 +726,12 @@ var_decl :
             YYERROR;
         }
 
+        if(isRangeType(varType)) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid variable type");
+            fatalError = true;
+            YYERROR;
+        }
+
         if(!saveVariables($1, varType)) {
             YYERROR;
         }
@@ -692,6 +748,12 @@ var_decl :
         try { varType = $3->flat(); }
         catch(std::runtime_error& err) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
+            YYERROR;
+        }
+
+        if(isRangeType(varType)) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid variable type");
             fatalError = true;
             YYERROR;
         }
@@ -1053,17 +1115,71 @@ array_type_decl :
             std::cout << "Yacc debug: Parse array type" << std::endl;
         #endif
 
+        try {
+            if(!isBasicOrEnumType($3->flat()) && !isRangeType($3->flat())) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid variable type");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
+            YYERROR;
+        }
+
+        try {
+            if(!isBasicOrEnumOrArrayOrRecordType($6->flat())) {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid return type");
+                fatalError = true;
+                YYERROR;
+            }
+        }
+        catch(std::runtime_error& err) {
+            parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", " + err.what());
+            fatalError = true;
+            YYERROR;
+        }
+
         if($3->getRepresentation() == ast::SimpleTypeNode::Representation::CONST_RANGE) {
             ast::ConstRangeTypeNode* range = dynamic_cast<ast::ConstRangeTypeNode*>($3);
-            ast::ConstantNode::ConstantType leftType = range->getLowerBound()->getConstantType();
-            ast::ConstantNode::ConstantType rightType = range->getUpperBound()->getConstantType();
+            const std::string& leftType = range->getLowerBound()->flatType();
+            const std::string& rightType = range->getUpperBound()->flatType();
+            const std::string& leftVal = range->getLowerBound()->flat();
+            const std::string& rightVal = range->getUpperBound()->flat();
             if(leftType != rightType) {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", array range bounds must have the same type");
                 fatalError = true;
                 YYERROR;
             }
-            else if(leftType == ast::ConstantNode::STRING || rightType == ast::ConstantNode::STRING) {
+            else if(leftType == "string" || rightType == "string") {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", array range bounds cannot be string");
+                fatalError = true;
+                YYERROR;
+            }
+
+            if(isInteger(leftVal)) {
+                int int1 = std::atoi(leftVal.c_str());
+                int int2 = std::atoi(rightVal.c_str());
+                if(int2 < int1) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid array range bounds");
+                    fatalError = true;
+                    YYERROR;
+                }
+            }
+
+            if(isChar(leftVal)) {
+                int char1 = static_cast<int>(leftVal.at(0));
+                int char2 = static_cast<int>(rightVal.at(0));
+                if(char2 < char1) {
+                    parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid array range bounds");
+                    fatalError = true;
+                    YYERROR;
+                }
+            }
+
+            if(leftVal == "true" && rightVal == "false") {
+                parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", invalid array range bounds");
                 fatalError = true;
                 YYERROR;
             }
@@ -1084,7 +1200,7 @@ simple_type :
 |
     LP name_list RP {
         #ifdef YACC_DEBUG
-            std::cout << "Yacc debug: Parse simple type - parentheses" << std::endl;
+            std::cout << "Yacc debug: Parse simple type - enum" << std::endl;
         #endif
 
         $$ = new ast::EnumerationTypeNode($2);
@@ -1501,6 +1617,7 @@ assign_stmt :
         }
         else if($1->getInferredType() != $3->getInferredType()) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", both sides should be equal type");
+            std::cout << $1->getInferredType() << "  " << $3->getInferredType() << std::endl;
             fatalError = true;
             YYERROR;
         }
@@ -1668,7 +1785,7 @@ case_stmt :
             std::cout << "Yacc debug: Parse case statement" << std::endl;
         #endif
 
-        if(!isBasicType($2->getInferredType()) && $2->getInferredType().substr(0, 5) != "enum%") {
+        if(!isBasicOrEnumType($2->getInferredType())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", case expression must be integer, char, boolean or enum type");
             fatalError = true;
             YYERROR;
@@ -1723,7 +1840,7 @@ case_loop_stmt :
             std::cout << "Yacc debug: Parse case loop statement" << std::endl;
         #endif
 
-        if(!isBasicType($2->getInferredType()) && $2->getInferredType().substr(0, 5) != "enum%") {
+        if(!isBasicOrEnumType($2->getInferredType())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", case expression must be integer, char, boolean or enum type");
             fatalError = true;
             YYERROR;
@@ -1863,7 +1980,7 @@ for_stmt :
         $$ = $1;
         $$->setStatements(std::unique_ptr<ast::StatementNode>($2));
 
-        ctx->getLookupTable().unDefineVariable($1->getIterator()->getName());
+        ctx->getLookupTable().unDefineVariable($1->getIterator()->getName(), ctx->getCurrentScope());
     }
 ;
 
@@ -1878,7 +1995,7 @@ for_head :
             fatalError = true;
             YYERROR;
         }
-        else if(!isBasicType($4->getInferredType()) && $4->getInferredType().substr(0, 5) != "enum%") {
+        else if(!isBasicOrEnumType($4->getInferredType())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", for begin and end values must be integer, char, boolean or enum type");
             fatalError = true;
             YYERROR;
@@ -1901,7 +2018,7 @@ for_head :
             fatalError = true;
             YYERROR;
         }
-        else if(!isBasicType($4->getInferredType()) && $4->getInferredType().substr(0, 5) != "enum%") {
+        else if(!isBasicOrEnumType($4->getInferredType())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", for begin and end values must be integer, char, boolean or enum type");
             fatalError = true;
             YYERROR;
@@ -1921,12 +2038,12 @@ proc_stmt :
             std::cout << "Yacc debug: Parse procedure statement" << std::endl;
         #endif
 
-        if(!ctx->getLookupTable().isRoutineDefined($1->getName(), "")) {
+        if(!ctx->getLookupTable().isRoutineDefined($1->getName(), ctx->getCurrentScope())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", routine `" + $1->getName() + "` is not defined");
             fatalError = true;
             YYERROR;
         }
-        else if(!ctx->getLookupTable().getRoutine($1->getName(), "").args.empty()) {
+        else if(!ctx->getLookupTable().getRoutine($1->getName(), ctx->getCurrentScope()).args.empty()) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", missing arguments");
             fatalError = true;
             YYERROR;
@@ -1941,12 +2058,12 @@ proc_stmt :
             std::cout << "Yacc debug: Parse procedure statement with args" << std::endl;
         #endif
 
-        if(!ctx->getLookupTable().isRoutineDefined($1->getName(), "")) {
+        if(!ctx->getLookupTable().isRoutineDefined($1->getName(), ctx->getCurrentScope())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", routine `" + $1->getName() + "` is not defined");
             fatalError = true;
             YYERROR;
         }
-        else if(!isFunctionArgumentsCompatible(ctx->getLookupTable().getRoutine($1->getName(), "").args, $3->getArguments())) {
+        else if(!isFunctionArgumentsCompatible(ctx->getLookupTable().getRoutine($1->getName(), ctx->getCurrentScope()).args, $3->getArguments())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", passed incompatible arguments");
             fatalError = true;
             YYERROR;
@@ -2430,13 +2547,14 @@ factor :
             std::cout << "Yacc debug: Parse factor - function call" << std::endl;
         #endif
 
-        if(!ctx->getLookupTable().isRoutineDefined($1->getName(), "")) {
+        if(!ctx->getLookupTable().isRoutineDefined($1->getName(), ctx->getCurrentScope())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", routine " + $1->getName() + " is not defined");
             fatalError = true;
             YYERROR;
         }
         else {
-            $$ = new ast::SpecialExpressionNode($1, $3, ast::SpecialExpressionNode::FunctionName::CALL, ctx->getLookupTable().getRoutine($1->getName(), "").type);
+            $$ = new ast::SpecialExpressionNode($1, $3, ast::SpecialExpressionNode::FunctionName::CALL,
+                ctx->getLookupTable().getRoutine($1->getName(), ctx->getCurrentScope()).type);
         }
     }
 
@@ -2711,14 +2829,15 @@ lvalue :
             std::cout << "Yacc debug: Parse lvalue - variable" << std::endl;
         #endif
 
-        if(ctx->getLookupTable().isVariableDefined($1->getName(), "")) {
-            $$ = new ast::SpecialExpressionNode($1, ast::SpecialExpressionNode::FunctionName::VARIABLE, ctx->getLookupTable().getVariable($1->getName(), "").type);
+        if(ctx->getLookupTable().isVariableDefined($1->getName(), ctx->getCurrentScope())) {
+            $$ = new ast::SpecialExpressionNode($1, ast::SpecialExpressionNode::FunctionName::VARIABLE,
+                ctx->getLookupTable().getVariable($1->getName(), ctx->getCurrentScope()).type);
         }
         else if(isInAnyEnum($1->getName())) {
             auto properEnums = ctx->getLookupTable().getTypes(
             [&](const std::string&, const LookupTable::TypeInfo& tf) {
                 return tf.alive && tf.type.find("enum%") == 0 && tf.type.find("%" + $1->getName() + "%") != std::string::npos;
-            });
+            }, ctx->getCurrentScope());
 
             if(properEnums.size() != 1) {
                 parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", variable " + $1->getName() + " is in more than one enum");
@@ -2740,19 +2859,19 @@ lvalue :
             std::cout << "Yacc debug: Parse lvalue - simple array access" << std::endl;
         #endif
 
-        if(!ctx->getLookupTable().isVariableDefined($1->getName(), "")) {
+        if(!ctx->getLookupTable().isVariableDefined($1->getName(), ctx->getCurrentScope())) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", variable " + $1->getName() + " is not defined");
             fatalError = true;
             YYERROR;
         }
-        else if(!isArrayIndexCompatible(ctx->getLookupTable().getVariable($1->getName(), "").type, $3)) {
+        else if(!isArrayIndexCompatible(ctx->getLookupTable().getVariable($1->getName(), ctx->getCurrentScope()).type, $3)) {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", incorrect index type");
             fatalError = true;
             YYERROR;
         }
         else {
             $$ = new ast::SpecialExpressionNode($1, ast::SpecialExpressionNode::FunctionName::ARRAY_ACCESS,
-                getArrayElementType(ctx->getLookupTable().getVariable($1->getName(), "").type));
+                getArrayElementType(ctx->getLookupTable().getVariable($1->getName(), ctx->getCurrentScope()).type));
         }
     }
 |
@@ -2782,9 +2901,9 @@ lvalue :
             std::cout << "Yacc debug: Parse lvalue - simple record field" << std::endl;
         #endif
 
-        if(ctx->getLookupTable().isVariableDefined($1->getName(), "") && isRecordFieldCompatible(ctx->getLookupTable().getVariable($1->getName(), "").type, $3)) {
+        if(ctx->getLookupTable().isVariableDefined($1->getName(), ctx->getCurrentScope()) && isRecordFieldCompatible(ctx->getLookupTable().getVariable($1->getName(), ctx->getCurrentScope()).type, $3)) {
             $$ = new ast::SpecialExpressionNode($1, ast::SpecialExpressionNode::FunctionName::RECORD_ACCESS,
-                getRecordFieldType(ctx->getLookupTable().getVariable($1->getName(), "").type, $3->getName()));
+                getRecordFieldType(ctx->getLookupTable().getVariable($1->getName(), ctx->getCurrentScope()).type, $3->getName()));
         }
         else {
             parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", variable " + $1->getName() + " is not defined");
@@ -2825,8 +2944,12 @@ bool parse(const std::string& inputFileName, std::vector<std::string>& errors, s
         return false;
     }
 
+    ctx->pushScope("program");
+
     yyparse();
     fclose(yyin);
+
+    ctx->popScope();
 
     errors = std::move(parsingErrors);
     program = std::unique_ptr<ast::ProgramNode>(resultAst);
@@ -2847,7 +2970,9 @@ bool isBoolean(const std::string& expr) {
 }
 
 bool nameAlreadyUsed(std::string name) {
-    if(ctx->getLookupTable().isVariableDefined(name, "") || ctx->getLookupTable().isRoutineDefined(name, "") || ctx->getLookupTable().isTypeDefined(name, "")) {
+    if(ctx->getLookupTable().isVariableDefined(name, ctx->getCurrentScope()) ||
+       ctx->getLookupTable().isRoutineDefined(name, ctx->getCurrentScope()) ||
+       ctx->getLookupTable().isTypeDefined(name, ctx->getCurrentScope())) {
         return true;
     }
 
@@ -2864,7 +2989,7 @@ bool saveType(ast::IdentifierNode* typeName, const std::string& typeDef) {
         fatalError = true;
         return false;
     } else {
-        ctx->getLookupTable().defineType(LookupTable::TypeCategory::SIMPLE, typeName->getName(), typeDef);
+        ctx->getLookupTable().defineType(LookupTable::TypeCategory::SIMPLE, typeName->getName(), typeDef, ctx->getCurrentScope());
         return true;
     }
 }
@@ -2875,8 +3000,8 @@ bool saveConstant(ast::IdentifierNode* constName, const std::string& constValue,
         fatalError = true;
         return false;
     } else {
-        ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::CONSTANT, constName->getName(), typeDef);
-        ctx->getLookupTable().setVariableValue(constName->getName(), constValue);
+        ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::CONSTANT, constName->getName(), typeDef, ctx->getCurrentScope());
+        ctx->getLookupTable().setVariableValue(constName->getName(), constValue, ctx->getCurrentScope());
         return true;
     }
 }
@@ -2888,7 +3013,7 @@ bool saveVariables(std::vector<ast::IdentifierNode*>* varNames, const std::strin
             fatalError = true;
             return false;
         } else {
-            ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::VARIABLE, varName->getName(), typeDef);
+            ctx->getLookupTable().defineVariable(LookupTable::VariableCategory::VARIABLE, varName->getName(), typeDef, ctx->getCurrentScope());
         }
     }
 
@@ -2931,7 +3056,7 @@ bool saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward) {
 
     if(routineDef->getRoutineType() == ast::RoutineDeclarationNode::RoutineType::PROCEDURE) {
         ctx->getLookupTable().defineRoutine(LookupTable::RoutineCategory::PROCEDURE, routineDef->getName(),
-            arguments, "void", "");
+            arguments, "void", ctx->getCurrentScope());
     }
     else {
         std::string returnType;
@@ -2943,7 +3068,7 @@ bool saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward) {
         }
 
         ctx->getLookupTable().defineRoutine(LookupTable::RoutineCategory::FUNCTION, routineDef->getName(),
-            arguments, returnType, "");
+            arguments, returnType, ctx->getCurrentScope());
     }
 
     return true;
@@ -2951,6 +3076,18 @@ bool saveRoutine(ast::RoutineDeclarationNode* routineDef, bool isForward) {
 
 bool isBasicType(const std::string& type) {
     return type == "integer" || type == "boolean" || type == "char";
+}
+
+bool isBasicOrEnumType(const std::string& type) {
+    return isBasicType(type) || type.find("enum%") == 0;
+}
+
+bool isBasicOrEnumOrArrayOrRecordType(const std::string& type) {
+    return isBasicOrEnumType(type) || type.find("array@@") == 0 || type.find("record$$") == 0;
+}
+
+bool isRangeType(const std::string& type) {
+    return type.find("constrange%") == 0 || type.find("enumrange%") == 0;
 }
 
 bool isInEnum(const std::string& enumElement, const std::string& enumType) {
@@ -2961,7 +3098,7 @@ bool isInAnyEnum(const std::string& enumElement) {
     const std::vector<LookupTable::TypeInfo>& types = ctx->getLookupTable().getTypes(
         [&](const std::string&, const LookupTable::TypeInfo& tf) {
         return tf.alive && tf.type.find("enum%") == 0 && tf.type.find("%" + enumElement + "%") != std::string::npos;
-    });
+    }, ctx->getCurrentScope());
 
     return !types.empty();
 }
@@ -2989,7 +3126,7 @@ bool isLeftValueCompatible(ast::ExpressionNode* expr) {
 
     if(special->getFunctionName() == ast::SpecialExpressionNode::VARIABLE) {
         ast::IdentifierNode* var = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
-        return !ctx->getLookupTable().isVariableConst(var->getName(), "");
+        return !ctx->getLookupTable().isVariableConst(var->getName(), ctx->getCurrentScope());
     }
 
     return false;
@@ -3079,7 +3216,7 @@ bool isArrayIndexCompatible(const std::string& arrayType, ast::ExpressionNode* i
             ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(index);
             if(special->getFunctionName() == ast::SpecialExpressionNode::ENUM_ELEMENT) {
                 ast::IdentifierNode* enumElement = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get());
-                return isEnumSubRangeType(enumElement->getName(), ctx->getLookupTable().getType(enumName, "").type, beginEnum, endEnum);
+                return isEnumSubRangeType(enumElement->getName(), ctx->getLookupTable().getType(enumName, ctx->getCurrentScope()).type, beginEnum, endEnum);
             }
         }
 
@@ -3204,7 +3341,7 @@ bool variableIsReassignedS(const std::string& varName, ast::StatementNode* stmt)
 
             if(call->getCallObjectType() == ast::CallNode::CallObjectType::USER_DEFINED) {
                 ast::UserDefineCallNode* userCall = dynamic_cast<ast::UserDefineCallNode*>(call);
-                const std::vector<LookupTable::ArgumentInfo>& callArgs = ctx->getLookupTable().getRoutine(userCall->getName()->getName(), "").args;
+                const std::vector<LookupTable::ArgumentInfo>& callArgs = ctx->getLookupTable().getRoutine(userCall->getName()->getName(), ctx->getCurrentScope()).args;
                 std::vector<bool> passByReference;
                 for(size_t i = 0; i < callArgs.size(); i++) {
                     passByReference.push_back(callArgs[i].isReference);
@@ -3355,7 +3492,7 @@ bool variableIsReassignedE(const std::string& varName, ast::ExpressionNode* expr
         auto routineName = dynamic_cast<ast::IdentifierNode*>(special->getArgument1().get())->getName();
         auto args = dynamic_cast<ast::ArgumentsListNode*>(special->getArgument2().get())->getArguments();
 
-        const std::vector<LookupTable::ArgumentInfo>& callArgs = ctx->getLookupTable().getRoutine(routineName, "").args;
+        const std::vector<LookupTable::ArgumentInfo>& callArgs = ctx->getLookupTable().getRoutine(routineName, ctx->getCurrentScope()).args;
         std::vector<bool> passByReference;
         for(size_t i = 0; i < callArgs.size(); i++) {
             passByReference.push_back(callArgs[i].isReference);
