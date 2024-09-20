@@ -10,19 +10,32 @@
 namespace bblocks {
 Context* ctx = Context::getInstance();
 
-void BbCfgGenerator::visit(const ast::ArgumentsListNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::ArgumentsListNode* /*node*/) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Arguments List Node" << std::endl;
+#endif
+}
 
 void BbCfgGenerator::visit(const ast::ArrayTypeNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Array Type Node" << std::endl;
+#endif
   node->getElementType()->accept(this);
   typeBytes_[node->flat()] = typeBytes_[node->getElementType()->flat()] * countIndexes(node->getRange()->flat());
 }
 
 void BbCfgGenerator::visit(const ast::AssignNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Assign Node" << std::endl;
+#endif
   node->getRhs()->accept(this);
   generateVariableMove(node->getLhs().get(), ctx->getLastTempVariable());
 }
 
 void BbCfgGenerator::visit(const ast::BuiltinCallNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Builtin Call Node" << std::endl;
+#endif
   const ast::BuiltinCallNode::FunctionName funName = node->getFunctionName();
   switch (funName) {
     case ast::BuiltinCallNode::READ: {
@@ -78,39 +91,53 @@ void BbCfgGenerator::visit(const ast::BuiltinCallNode* node) {
   }
 }
 
-void BbCfgGenerator::visit(const ast::UserDefineCallNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::UserDefineCallNode* /*node*/) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: User Call Node" << std::endl;
+#endif
+}
 
-void BbCfgGenerator::visit(const ast::CaseNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::CaseNode* /*node*/) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Case Node" << std::endl;
+#endif
+}
 
 void BbCfgGenerator::visit(const ast::CompoundStatementNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Compound Statement Node" << std::endl;
+#endif
   for (auto* const statement : *node->getStatements()) {
     statement->accept(this);
   }
 }
 
 void BbCfgGenerator::visit(const ast::ConstantNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Constant Node" << std::endl;
+#endif
   switch (node->getConstantType()) {
     case ast::ConstantNode::UNSPECIFIED:
       throw std::runtime_error("Type error");
     case ast::ConstantNode::INTEGER: {
       const ast::IntegerConstantNode* integerConstant = dynamic_cast<const ast::IntegerConstantNode*>(node);
       currentBasicBlock_.addInstruction(std::make_unique<BBMoveNV>(integerConstant->getValue(), ctx->generateTempVariable(),
-                                                                   BBMoveNV::SourceType::NUMERIC,
-                                                                   BBMoveNV::DestinationType::VARIABLE));
+                                                                   BBInstruction::SourceType::CONSTANT,
+                                                                   BBInstruction::DestinationType::REGISTER));
       break;
     }
     case ast::ConstantNode::CHAR: {
       const ast::CharConstantNode* charConstant = dynamic_cast<const ast::CharConstantNode*>(node);
       currentBasicBlock_.addInstruction(std::make_unique<BBMoveNV>(charConstant->getValue(), ctx->generateTempVariable(),
-                                                                   BBMoveNV::SourceType::NUMERIC,
-                                                                   BBMoveNV::DestinationType::VARIABLE));
+                                                                   BBInstruction::SourceType::CONSTANT,
+                                                                   BBInstruction::DestinationType::REGISTER));
       break;
     }
     case ast::ConstantNode::BOOLEAN: {
       const ast::BooleanConstantNode* boolConstant = dynamic_cast<const ast::BooleanConstantNode*>(node);
       currentBasicBlock_.addInstruction(std::make_unique<BBMoveNV>(boolConstant->getValue(), ctx->generateTempVariable(),
-                                                                   BBMoveNV::SourceType::NUMERIC,
-                                                                   BBMoveNV::DestinationType::VARIABLE));
+                                                                   BBInstruction::SourceType::CONSTANT,
+                                                                   BBInstruction::DestinationType::REGISTER));
       break;
     }
     case ast::ConstantNode::STRING:
@@ -119,6 +146,9 @@ void BbCfgGenerator::visit(const ast::ConstantNode* node) {
 }
 
 void BbCfgGenerator::visit(const ast::MathExpressionNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Math Expression Node" << std::endl;
+#endif
   std::string leftOperand;
   if (node->getLeft() != nullptr) {
     node->getLeft()->accept(this);
@@ -134,103 +164,107 @@ void BbCfgGenerator::visit(const ast::MathExpressionNode* node) {
   switch (node->getFunctionName()) {
     case ast::MathExpressionNode::ADDITION: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
-          leftOperand, rightOperand, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::ADD,
-          BBBinaryOperationVVV::DestinationType::VARIABLE));
+          leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::ADD));
       break;
     }
     case ast::MathExpressionNode::SUBTRACTION: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
-          leftOperand, rightOperand, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::SUB,
-          BBBinaryOperationVVV::DestinationType::VARIABLE));
+          leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::SUB));
       break;
     }
     case ast::MathExpressionNode::MULTIPLICATION: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
-          leftOperand, rightOperand, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::MUL,
-          BBBinaryOperationVVV::DestinationType::VARIABLE));
+          leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::MUL));
       break;
     }
     case ast::MathExpressionNode::DIVISION: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
-          leftOperand, rightOperand, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::DIV,
-          BBBinaryOperationVVV::DestinationType::VARIABLE));
+          leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::DIV));
       break;
     }
     case ast::MathExpressionNode::MODULUS: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
-          leftOperand, rightOperand, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::MOD,
-          BBBinaryOperationVVV::DestinationType::VARIABLE));
+          leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::MOD));
       break;
     }
     case ast::MathExpressionNode::NEGATION: {
-      currentBasicBlock_.addInstruction(std::make_unique<BBUnaryOperationVV>(leftOperand, ctx->generateTempVariable(),
-                                                                             BBUnaryOperationVV::OperationType::NEG,
-                                                                             BBUnaryOperationVV::DestinationType::VARIABLE));
+      currentBasicBlock_.addInstruction(
+          std::make_unique<BBUnaryOperationVV>(leftOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+                                               BBInstruction::DestinationType::REGISTER, BBUnaryOperationEnum::NEG));
       break;
     }
     case ast::MathExpressionNode::AND: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
-          leftOperand, rightOperand, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::AND,
-          BBBinaryOperationVVV::DestinationType::VARIABLE));
+          leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::AND));
       break;
     }
     case ast::MathExpressionNode::OR: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
-          leftOperand, rightOperand, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::OR,
-          BBBinaryOperationVVV::DestinationType::VARIABLE));
+          leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::OR));
       break;
     }
     case ast::MathExpressionNode::NOT: {
-      currentBasicBlock_.addInstruction(std::make_unique<BBUnaryOperationVV>(leftOperand, ctx->generateTempVariable(),
-                                                                             BBUnaryOperationVV::OperationType::NOT,
-                                                                             BBUnaryOperationVV::DestinationType::VARIABLE));
+      currentBasicBlock_.addInstruction(
+          std::make_unique<BBUnaryOperationVV>(leftOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+                                               BBInstruction::DestinationType::REGISTER, BBUnaryOperationEnum::NOT));
       break;
     }
     case ast::MathExpressionNode::EQUAL: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
-          leftOperand, rightOperand, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::EQ,
-          BBBinaryOperationVVV::DestinationType::VARIABLE));
+          leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::EQ));
       break;
     }
     case ast::MathExpressionNode::NOT_EQUAL: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
-          leftOperand, rightOperand, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::NE,
-          BBBinaryOperationVVV::DestinationType::VARIABLE));
+          leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::NE));
       break;
     }
     case ast::MathExpressionNode::LESS: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
-          leftOperand, rightOperand, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::LT,
-          BBBinaryOperationVVV::DestinationType::VARIABLE));
+          leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::LT));
       break;
     }
     case ast::MathExpressionNode::LESS_EQUAL: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
-          leftOperand, rightOperand, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::LE,
-          BBBinaryOperationVVV::DestinationType::VARIABLE));
+          leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::LE));
       break;
     }
     case ast::MathExpressionNode::GREATER: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
-          leftOperand, rightOperand, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::GT,
-          BBBinaryOperationVVV::DestinationType::VARIABLE));
+          leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::GT));
       break;
     }
     case ast::MathExpressionNode::GREATER_EQUAL: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
-          leftOperand, rightOperand, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::GE,
-          BBBinaryOperationVVV::DestinationType::VARIABLE));
+          leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::GE));
       break;
     }
   }
 }
 
 void BbCfgGenerator::visit(const ast::SpecialExpressionNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Special Expression Node" << std::endl;
+#endif
   switch (node->getFunctionName()) {
     case ast::SpecialExpressionNode::VARIABLE: {
       const ast::IdentifierNode* var = dynamic_cast<const ast::IdentifierNode*>(node->getArgument1().get());
-      currentBasicBlock_.addInstruction(std::make_unique<BBMoveVV>(
-          var->getName(), ctx->generateTempVariable(), BBMoveVV::SourceType::VARIABLE, BBMoveVV::DestinationType::VARIABLE));
+      currentBasicBlock_.addInstruction(std::make_unique<BBMoveVV>(var->getName(), ctx->generateTempVariable(),
+                                                                   BBInstruction::SourceType::REGISTER,
+                                                                   BBInstruction::DestinationType::REGISTER));
       break;
     }
     case ast::SpecialExpressionNode::CALL: {
@@ -268,11 +302,11 @@ void BbCfgGenerator::visit(const ast::SpecialExpressionNode* node) {
     case ast::SpecialExpressionNode::ABS: {
       node->getArgument1()->accept(this);
       currentBasicBlock_.addInstruction(std::make_unique<BBUnaryOperationVV>(
-          ctx->getLastTempVariable(), ctx->generateTempVariable(), BBUnaryOperationVV::OperationType::SHL,
-          BBUnaryOperationVV::DestinationType::VARIABLE));
+          ctx->getLastTempVariable(), ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::DestinationType::REGISTER, BBUnaryOperationEnum::SHL));
       currentBasicBlock_.addInstruction(std::make_unique<BBUnaryOperationVV>(
-          ctx->getLastTempVariable(), ctx->generateTempVariable(), BBUnaryOperationVV::OperationType::SHR,
-          BBUnaryOperationVV::DestinationType::VARIABLE));
+          ctx->getLastTempVariable(), ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::DestinationType::REGISTER, BBUnaryOperationEnum::SHR));
     }
     case ast::SpecialExpressionNode::ODD: {
       break;
@@ -280,15 +314,15 @@ void BbCfgGenerator::visit(const ast::SpecialExpressionNode* node) {
     case ast::SpecialExpressionNode::PRED: {
       node->getArgument1()->accept(this);
       currentBasicBlock_.addInstruction(std::make_unique<BBUnaryOperationVV>(
-          ctx->getLastTempVariable(), ctx->generateTempVariable(), BBUnaryOperationVV::OperationType::DEC,
-          BBUnaryOperationVV::DestinationType::VARIABLE));
+          ctx->getLastTempVariable(), ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::DestinationType::REGISTER, BBUnaryOperationEnum::DEC));
       break;
     }
     case ast::SpecialExpressionNode::SUCC: {
       node->getArgument1()->accept(this);
       currentBasicBlock_.addInstruction(std::make_unique<BBUnaryOperationVV>(
-          ctx->getLastTempVariable(), ctx->generateTempVariable(), BBUnaryOperationVV::OperationType::INC,
-          BBUnaryOperationVV::DestinationType::VARIABLE));
+          ctx->getLastTempVariable(), ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+          BBInstruction::DestinationType::REGISTER, BBUnaryOperationEnum::INC));
       break;
     }
     case ast::SpecialExpressionNode::PARENTHESIS:
@@ -303,11 +337,22 @@ void BbCfgGenerator::visit(const ast::SpecialExpressionNode* node) {
   }
 }
 
-void BbCfgGenerator::visit(const ast::BreakNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::BreakNode* /*node*/) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Break Node" << std::endl;
+#endif
+}
 
-void BbCfgGenerator::visit(const ast::ContinueNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::ContinueNode* /*node*/) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Continue Node" << std::endl;
+#endif
+}
 
 void BbCfgGenerator::visit(const ast::ForNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: For Node" << std::endl;
+#endif
   const std::string statementsBeforeFor = ctx->generateBasicBlockLabel();
   saveBasicBlock(statementsBeforeFor, true, true);
 
@@ -316,8 +361,9 @@ void BbCfgGenerator::visit(const ast::ForNode* node) {
   newControlFlowGraph(firstBeginStatement);
   node->getStart()->accept(this);
   const std::string beginVariable = ctx->getLastTempVariable();
-  currentBasicBlock_.addInstruction(std::make_unique<BBMoveVV>(
-      beginVariable, node->getIterator()->getName(), BBMoveVV::SourceType::VARIABLE, BBMoveVV::DestinationType::VARIABLE));
+  currentBasicBlock_.addInstruction(std::make_unique<BBMoveVV>(beginVariable, node->getIterator()->getName(),
+                                                               BBInstruction::SourceType::REGISTER,
+                                                               BBInstruction::DestinationType::REGISTER));
   saveBasicBlock(lastBeginStatement, true, true);
   const BBControlFlowGraph begin{std::move(controlFlowGraphs_.top())};
   controlFlowGraphs_.pop();
@@ -336,8 +382,8 @@ void BbCfgGenerator::visit(const ast::ForNode* node) {
   controlFlowGraphs_.top().setExitLabel(lastEndStatement);
 
   currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
-      node->getIterator()->getName(), endVariable, ctx->generateTempVariable(), BBBinaryOperationVVV::OperationType::SUB,
-      BBBinaryOperationVVV::DestinationType::VARIABLE));
+      node->getIterator()->getName(), endVariable, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
+      BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::SUB));
   const std::string conditionVariable = ctx->getLastTempVariable();
   const std::string conditionStatement = ctx->generateBasicBlockLabel();
   saveBasicBlock(conditionStatement, true, true);
@@ -347,10 +393,9 @@ void BbCfgGenerator::visit(const ast::ForNode* node) {
   newControlFlowGraph(firstBodyStatement);
   node->getStatements()->accept(this);
   currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVNV>(
-      node->getIterator()->getName(), 1, node->getIterator()->getName(),
-      node->getDirection() == ast::ForNode::INCREMENT ? BBBinaryOperationVNV::OperationType::ADD
-                                                      : BBBinaryOperationVNV::OperationType::SUB,
-      BBBinaryOperationVNV::DestinationType::VARIABLE));
+      node->getIterator()->getName(), 1, node->getIterator()->getName(), BBInstruction::SourceType::REGISTER,
+      BBInstruction::SourceType::CONSTANT, BBInstruction::DestinationType::REGISTER,
+      node->getDirection() == ast::ForNode::INCREMENT ? BBBinaryOperationEnum::ADD : BBBinaryOperationEnum::SUB));
   saveBasicBlock(lastBodyStatement, true, true);
   const BBControlFlowGraph body{std::move(controlFlowGraphs_.top())};
   controlFlowGraphs_.pop();
@@ -363,18 +408,28 @@ void BbCfgGenerator::visit(const ast::ForNode* node) {
 
   controlFlowGraphs_.top()
       .basicBlock(conditionStatement)
-      .addInstruction(std::make_unique<BBBranchV>(conditionVariable,
-                                                  node->getDirection() == ast::ForNode::Direction::INCREMENT
-                                                      ? BBBranchV::Condition::POSITIVE
-                                                      : BBBranchV::Condition::NEGATIVE,
-                                                  firstBodyStatement, exitLabel));
+      .addInstruction(std::make_unique<BBBranchV>(
+          conditionVariable, BBInstruction::SourceType::REGISTER,
+          node->getDirection() == ast::ForNode::Direction::INCREMENT ? BBBranchCondition::POSITIVE : BBBranchCondition::NEGATIVE,
+          firstBodyStatement, exitLabel));
 }
 
-void BbCfgGenerator::visit(const ast::GotoNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::GotoNode* /*node*/) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Goto Node" << std::endl;
+#endif
+}
 
-void BbCfgGenerator::visit(const ast::IdentifierNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::IdentifierNode* /*node*/) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Identifier Node" << std::endl;
+#endif
+}
 
 void BbCfgGenerator::visit(const ast::IfNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: If Node" << std::endl;
+#endif
   const std::string statementsBeforeIf = ctx->generateBasicBlockLabel();
   saveBasicBlock(statementsBeforeIf, true, true);
 
@@ -422,31 +477,49 @@ void BbCfgGenerator::visit(const ast::IfNode* node) {
     controlFlowGraphs_.top().addBlocksLink(lastFalseStatement, exitLabel);
     controlFlowGraphs_.top()
         .basicBlock(lastConditionStatement)
-        .addInstruction(std::make_unique<BBBranchV>(conditionVariable, BBBranchV::Condition::NONZERO, firstTrueStatement,
-                                                    firstFalseStatement));
+        .addInstruction(std::make_unique<BBBranchV>(conditionVariable, BBInstruction::SourceType::REGISTER,
+                                                    BBBranchCondition::NONZERO, firstTrueStatement, firstFalseStatement));
   }
   else {
     controlFlowGraphs_.top().addBlocksLink(lastConditionStatement, exitLabel);
     controlFlowGraphs_.top()
         .basicBlock(lastConditionStatement)
-        .addInstruction(
-            std::make_unique<BBBranchV>(conditionVariable, BBBranchV::Condition::NONZERO, firstTrueStatement, exitLabel));
+        .addInstruction(std::make_unique<BBBranchV>(conditionVariable, BBInstruction::SourceType::REGISTER,
+                                                    BBBranchCondition::NONZERO, firstTrueStatement, exitLabel));
   }
 }
 
-void BbCfgGenerator::visit(const ast::ParamsGroupNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::ParamsGroupNode* /*node*/) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Params Group Node" << std::endl;
+#endif
+}
 
-void BbCfgGenerator::visit(const ast::ParamsNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::ParamsNode* /*node*/) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Params Node" << std::endl;
+#endif
+}
 
 void BbCfgGenerator::visit(const ast::ProgramNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Program Node" << std::endl;
+  std::cout << "Cfg debug: next scope: program" << std::endl;
+#endif
   ctx->pushScope("program");
+
+  newControlFlowGraph(ctx->getCurrentScope() + ".entry");
   node->getRoutine()->accept(this);
+
   ctx->popScope();
 
   functionControlFlowGraphs_.insert({"program", controlFlowGraphs_.top()});
 }
 
 void BbCfgGenerator::visit(const ast::RecordTypeNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Record Type Node" << std::endl;
+#endif
   size_t recordSize{0};
   for (const auto* field : *node->getFields()) {
     field->second->accept(this);
@@ -456,6 +529,9 @@ void BbCfgGenerator::visit(const ast::RecordTypeNode* node) {
 }
 
 void BbCfgGenerator::visit(const ast::RepeatNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Repeat Node" << std::endl;
+#endif
   const std::string statementsBeforeRepeat = ctx->generateBasicBlockLabel();
   saveBasicBlock(statementsBeforeRepeat, true, true);
 
@@ -487,29 +563,42 @@ void BbCfgGenerator::visit(const ast::RepeatNode* node) {
 
   controlFlowGraphs_.top()
       .basicBlock(lastConditionStatement)
-      .addInstruction(
-          std::make_unique<BBBranchV>(conditionVariable, BBBranchV::Condition::NONZERO, firstBodyStatement, exitLabel));
+      .addInstruction(std::make_unique<BBBranchV>(conditionVariable, BBInstruction::SourceType::REGISTER,
+                                                  BBBranchCondition::NONZERO, firstBodyStatement, exitLabel));
 }
 
 void BbCfgGenerator::visit(const ast::RoutineBodyNode* node) {
-  newControlFlowGraph(ctx->getCurrentScope() + ".entry");
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Routine Body Node" << std::endl;
+#endif
   node->getStatements()->accept(this);
 
-  currentBasicBlock_.addInstruction(std::make_unique<BBHalt>());
-  const std::string haltLabel = ctx->generateBasicBlockLabel();
-  saveBasicBlock(haltLabel, true, true);
+  if (ctx->getTopScope() == "program") {
+    currentBasicBlock_.addInstruction(std::make_unique<BBHalt>());
+  }
+  else {
+    currentBasicBlock_.addInstruction(std::make_unique<BBRet>());
+  }
+  const std::string endLabel = ctx->generateBasicBlockLabel();
+  saveBasicBlock(endLabel, true, true);
 }
 
 void BbCfgGenerator::visit(const ast::RoutineDeclarationNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Routine Declaration Node" << std::endl;
+#endif
   node->getRoutine()->accept(this);
 }
 
 void BbCfgGenerator::visit(const ast::RoutineHeadNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Routine Head Node" << std::endl;
+#endif
   for (const auto* constant : *node->getConstantsPart()) {
     constant->second->accept(this);
     currentBasicBlock_.addInstruction(std::make_unique<BBMoveVV>(ctx->getLastTempVariable(), constant->first->getName(),
-                                                                 BBMoveVV::SourceType::VARIABLE,
-                                                                 BBMoveVV::DestinationType::VARIABLE));
+                                                                 BBInstruction::SourceType::REGISTER,
+                                                                 BBInstruction::DestinationType::REGISTER));
   }
 
   for (const auto* type : *node->getTypesPart()) {
@@ -524,27 +613,42 @@ void BbCfgGenerator::visit(const ast::RoutineHeadNode* node) {
   procedureOffsets_[ctx->getCurrentScope()] = procedureOffset;
 
   for (const auto* routine : *node->getRoutinePart()) {
+#ifdef CFG_DEBUG
+    std::cout << "Cfg debug: next scope: " << routine->getName() << std::endl;
+#endif
     ctx->pushScope(routine->getName());
-
-    controlFlowGraphs_.push(BBControlFlowGraph{});
+    newControlFlowGraph(ctx->getCurrentScope() + ".entry");
     routine->accept(this);
-    controlFlowGraphs_.pop();
 
     const std::string fullName = ctx->getLookupTable().getRoutine(routine->getName(), ctx->getCurrentScope()).fullName;
     functionControlFlowGraphs_[fullName] = controlFlowGraphs_.top();
+
+    if (ctx->getTopScope() != "program") {
+      controlFlowGraphs_.pop();
+    }
 
     ctx->popScope();
   }
 }
 
 void BbCfgGenerator::visit(const ast::RoutineNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Routine Node" << std::endl;
+#endif
   node->getHead()->accept(this);
   node->getBody()->accept(this);
 }
 
-void BbCfgGenerator::visit(const ast::ConstRangeTypeNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::ConstRangeTypeNode* /*node*/) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Const Range Type Node" << std::endl;
+#endif
+}
 
 void BbCfgGenerator::visit(const ast::EnumerationTypeNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Enumeration Type Node" << std::endl;
+#endif
   for (size_t i = 0; i < node->getIdentifiers()->size(); ++i) {
     enumTranslator_[node->getIdentifiers()->at(i)->getName()] = i;
   }
@@ -552,17 +656,30 @@ void BbCfgGenerator::visit(const ast::EnumerationTypeNode* node) {
 }
 
 void BbCfgGenerator::visit(const ast::RenameTypeNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Rename Type Node" << std::endl;
+#endif
   typeBytes_[node->flat()] =
       typeBytes_[ctx->getLookupTable().getType(node->getIdentifier()->getName(), ctx->getCurrentScope()).type];
 }
 
 void BbCfgGenerator::visit(const ast::BasicTypeNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Basic Type Node" << std::endl;
+#endif
   typeBytes_[node->flat()] = 1;
 }
 
-void BbCfgGenerator::visit(const ast::VarRangeTypeNode* /*node*/) {}
+void BbCfgGenerator::visit(const ast::VarRangeTypeNode* /*node*/) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Var Range Type Node" << std::endl;
+#endif
+}
 
 void BbCfgGenerator::visit(const ast::WhileNode* node) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: While Node" << std::endl;
+#endif
   const std::string statementsBeforeWhile = ctx->generateBasicBlockLabel();
   saveBasicBlock(statementsBeforeWhile, true, true);
 
@@ -594,13 +711,18 @@ void BbCfgGenerator::visit(const ast::WhileNode* node) {
 
   controlFlowGraphs_.top()
       .basicBlock(lastConditionStatement)
-      .addInstruction(
-          std::make_unique<BBBranchV>(conditionVariable, BBBranchV::Condition::NONZERO, firstBodyStatement, exitLabel));
+      .addInstruction(std::make_unique<BBBranchV>(conditionVariable, BBInstruction::SourceType::REGISTER,
+                                                  BBBranchCondition::NONZERO, firstBodyStatement, exitLabel));
 }
 
-std::map<std::string, BBControlFlowGraph> BbCfgGenerator::generate(const std::unique_ptr<ast::ProgramNode>& program) {
+void BbCfgGenerator::generate(const std::unique_ptr<ast::ProgramNode>& program) {
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Generating started" << std::endl;
+#endif
   visit(program.get());
-  return functionControlFlowGraphs_;
+#ifdef CFG_DEBUG
+  std::cout << "Cfg debug: Generating done" << std::endl;
+#endif
 }
 
 void BbCfgGenerator::removeEmptyBasicBlocks() {
@@ -662,7 +784,97 @@ void BbCfgGenerator::removeEmptyBasicBlocks() {
     }
 
     fun.update(std::move(updatedSrcDest), std::move(updatedDestSrc), std::move(updatedBlocks));
-    fun.setEntryLabel(labelsTranslation[fun.getEntryLabel()]);
+
+    if (labelsTranslation.find(fun.getEntryLabel()) != labelsTranslation.end()) {
+      fun.setEntryLabel(labelsTranslation[fun.getEntryLabel()]);
+    }
+
+    if (labelsTranslation.find(fun.getExitLabel()) != labelsTranslation.end()) {
+      fun.setExitLabel(labelsTranslation[fun.getExitLabel()]);
+    }
+  }
+}
+
+void BbCfgGenerator::removeSingleAssigmentVariables() {
+  for (auto& [funName, fun] : functionControlFlowGraphs_) {
+    std::map<std::string, size_t> variableDefs;
+    std::map<std::string, size_t> variableDefsInMove;
+    std::map<std::string, size_t> variableUses;
+    std::map<std::string, size_t> variableUsesInMove;
+    for (const auto& [blockLabel, block] : fun.basicBlocks()) {
+      for (const auto& instruction : block.getInstructions()) {
+        const bool isMove = instruction->getType() == BBInstruction::Type::MOVE;
+        instruction->visitDefVariables([&variableDefs, &variableDefsInMove, isMove](const std::string& var) {
+          if (variableDefs.find(var) == variableDefs.end()) {
+            variableDefs[var] = 0;
+            variableDefsInMove[var] = 0;
+          }
+          variableDefs[var]++;
+          if (isMove) {
+            variableDefsInMove[var]++;
+          }
+        });
+        instruction->visitUseVariables([&variableUses, &variableUsesInMove, isMove](const std::string& var) {
+          if (variableUses.find(var) == variableUses.end()) {
+            variableUses[var] = 0;
+            variableUsesInMove[var] = 0;
+          }
+          variableUses[var]++;
+          if (isMove) {
+            variableUsesInMove[var]++;
+          }
+        });
+      }
+    }
+
+    std::cout << "Def-Use analysis for function " << funName << std::endl;
+    for (const auto& [var, defs] : variableDefs) {
+      const auto uses = variableUses.find(var) == variableUses.end() ? 0 : variableUses[var];
+      const auto defsInMove = variableDefsInMove.find(var) == variableDefsInMove.end() ? 0 : variableDefsInMove[var];
+      const auto usesInMove = variableUsesInMove.find(var) == variableUsesInMove.end() ? 0 : variableUsesInMove[var];
+
+      if (uses == 0) {
+        std::cout << "Variable " << var << " is never used" << std::endl;
+      }
+      else if (defsInMove == 1) {
+        std::cout << "Variable " << var << " is single assignment" << std::endl;
+      }
+      else {
+        std::cout << "Variable " << var << " is not single assignment. Uses: " << uses << ", in moves: " << usesInMove
+                  << ", defs: " << defs << ", in moves: " << defsInMove << std::endl;
+      }
+    }
+
+    std::map<std::string, std::string> variableReplacements;
+
+    std::queue<std::string> blocksToProcess;
+    blocksToProcess.push(fun.getEntryLabel());
+    while (!blocksToProcess.empty()) {
+      const std::string blockLabel = blocksToProcess.front();
+      blocksToProcess.pop();
+      auto& block = fun.basicBlock(blockLabel);
+      for (auto& instruction : block.getInstructions()) {
+        instruction->visitDefVariables([&variableDefsInMove, &variableReplacements](const std::string& var) {
+          if (variableDefsInMove[var] == 1) {
+            variableReplacements[var] = var;
+          }
+        });
+        instruction->visitUseVariables([&variableReplacements](const std::string& var) {
+          if (variableReplacements.find(var) != variableReplacements.end()) {
+            variableReplacements.erase(var);
+          }
+        });
+        instruction->visitVariables([&variableReplacements](std::string& var) {
+          if (variableReplacements.find(var) != variableReplacements.end()) {
+            var = variableReplacements[var];
+          }
+        });
+      }
+
+      for (const auto& outLink : fun.getOutLinks(blockLabel)) {
+        blocksToProcess.push(outLink);
+      }
+    }
   }
 }
 
@@ -692,8 +904,8 @@ void BbCfgGenerator::generateVariableMove(ast::ExpressionNode* dest, const std::
   ast::SpecialExpressionNode* varArrRec = dynamic_cast<ast::SpecialExpressionNode*>(dest);
   if (varArrRec->getFunctionName() == ast::SpecialExpressionNode::FunctionName::VARIABLE) {
     const ast::IdentifierNode* var = dynamic_cast<const ast::IdentifierNode*>(varArrRec->getArgument1().get());
-    currentBasicBlock_.addInstruction(
-        std::make_unique<BBMoveVV>(src, var->getName(), BBMoveVV::SourceType::VARIABLE, BBMoveVV::DestinationType::VARIABLE));
+    currentBasicBlock_.addInstruction(std::make_unique<BBMoveVV>(src, var->getName(), BBInstruction::SourceType::REGISTER,
+                                                                 BBInstruction::DestinationType::REGISTER));
   }
   else if (varArrRec->getFunctionName() == ast::SpecialExpressionNode::FunctionName::ARRAY_ACCESS) {}
   else if (varArrRec->getFunctionName() == ast::SpecialExpressionNode::FunctionName::RECORD_ACCESS) {}

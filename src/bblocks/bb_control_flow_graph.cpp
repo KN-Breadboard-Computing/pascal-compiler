@@ -1,5 +1,8 @@
 #include "bb_control_flow_graph.hpp"
 
+#include <queue>
+#include <set>
+
 namespace bblocks {
 void BBControlFlowGraph::addBBlock(const std::string& label, BasicBlock basicBlock) {
 #ifdef BB_DEBUG
@@ -55,15 +58,27 @@ void BBControlFlowGraph::merge(const BBControlFlowGraph& cfg) {
 }
 
 std::ostream& operator<<(std::ostream& out, const BBControlFlowGraph& cfg) {
-  for (const auto& basicBlock : cfg.basicBlocks_) {
-    out << basicBlock.first;
-    if (cfg.srcDest_.find(basicBlock.first) != cfg.srcDest_.end()) {
+  std::queue<std::string> labels;
+  std::set<std::string> visited;
+
+  labels.push(cfg.getEntryLabel());
+  visited.insert(cfg.getEntryLabel());
+
+  while (!labels.empty()) {
+    const auto label = labels.front();
+    labels.pop();
+    out << label;
+    if (cfg.srcDest_.find(label) != cfg.srcDest_.end()) {
       out << " -> ";
-      for (const auto& neighbour : cfg.srcDest_.at(basicBlock.first)) {
+      for (const auto& neighbour : cfg.srcDest_.at(label)) {
         out << neighbour << " ";
+        if (visited.find(neighbour) == visited.end()) {
+          labels.push(neighbour);
+          visited.insert(neighbour);
+        }
       }
     }
-    out << "{" << std::endl << basicBlock.second << "}" << std::endl << std::endl;
+    out << "{" << std::endl << cfg.basicBlocks_.at(label) << "}" << std::endl << std::endl;
   }
 
   return out;

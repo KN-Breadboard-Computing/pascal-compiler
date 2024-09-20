@@ -6,19 +6,20 @@
 namespace bblocks {
 template <typename SrcT, typename DestT>
 concept MoveArgs = requires {
-  {std::is_same_v<SrcT, VariableType> || std::is_same_v<SrcT, NumericType> || std::is_same_v<SrcT, AddressType>};
-  {std::is_same_v<DestT, VariableType> || std::is_same_v<DestT, AddressType>};
+  {std::is_same_v<SrcT, VariableType> || std::is_same_v<SrcT, NumericType>};
+  {std::is_same_v<DestT, VariableType> || std::is_same_v<DestT, NumericType>};
 };
 
 template <typename SrcT, typename DestT>
 requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
  public:
-  enum class SourceType { VARIABLE, NUMERIC, ADDRESS };
-  enum class DestinationType { VARIABLE, ADDRESS };
-
-  BBMove() = default;
+  BBMove() : BBInstruction(Type::MOVE) {}
   BBMove(SrcT source, DestT destination, SourceType sourceType, DestinationType destinationType)
-      : source_{source}, destination_{destination}, sourceType_{sourceType}, destinationType_{destinationType} {}
+      : BBInstruction(Type::MOVE),
+        source_{source},
+        destination_{destination},
+        sourceType_{sourceType},
+        destinationType_{destinationType} {}
 
   BBMove(const BBMove&) = default;
   BBMove(BBMove&&) noexcept = default;
@@ -33,6 +34,69 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
   [[nodiscard]] SourceType getSourceType() const { return sourceType_; }
   [[nodiscard]] DestinationType getDestinationType() const { return destinationType_; }
 
+  virtual void visitDefVariables(std::function<void(const VariableType&)> visitor) const override {
+    if constexpr (std::is_same_v<DestT, VariableType>) {
+      visitor(destination_);
+    }
+  }
+
+  virtual void visitUseVariables(std::function<void(const VariableType&)> visitor) const override {
+    if constexpr (std::is_same_v<SrcT, VariableType>) {
+      visitor(source_);
+    }
+  }
+
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const VariableType& to) override {
+    if constexpr (std::is_same_v<SrcT, VariableType> && std::is_same_v<DestT, VariableType>) {
+      return std::make_unique<BBMove<VariableType, VariableType>>(
+          source_ == from ? to : source_, destination_ == from ? to : destination_, sourceType_, destinationType_);
+    }
+    else if constexpr (std::is_same_v<SrcT, VariableType>) {
+      return std::make_unique<BBMove<VariableType, DestT>>(source_ == from ? to : source_, destination_, sourceType_,
+                                                           destinationType_);
+    }
+    else if constexpr (std::is_same_v<DestT, VariableType>) {
+      return std::make_unique<BBMove<SrcT, VariableType>>(source_, destination_ == from ? to : destination_, sourceType_,
+                                                          destinationType_);
+    }
+    else {
+      return clone();
+    }
+  }
+
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const NumericType& to) override {
+    if constexpr (std::is_same_v<SrcT, VariableType> && std::is_same_v<DestT, VariableType>) {
+      if (source_ == from && destination_ == from) {
+        return std::make_unique<BBMove<NumericType, NumericType>>(to, to, sourceType_, destinationType_);
+      }
+      else if (source_ == from) {
+        return std::make_unique<BBMove<NumericType, VariableType>>(to, destination_, sourceType_, destinationType_);
+      }
+      else if (destination_ == from) {
+        return std::make_unique<BBMove<SrcT, NumericType>>(source_, to, sourceType_, destinationType_);
+      }
+
+      return clone();
+    }
+    else if constexpr (std::is_same_v<SrcT, VariableType>) {
+      if (source_ == from) {
+        return std::make_unique<BBMove<NumericType, DestT>>(to, destination_, sourceType_, destinationType_);
+      }
+
+      return clone();
+    }
+    else if constexpr (std::is_same_v<DestT, VariableType>) {
+      if (destination_ == from) {
+        return std::make_unique<BBMove<SrcT, NumericType>>(source_, to, sourceType_, destinationType_);
+      }
+
+      return clone();
+    }
+    else {
+      return clone();
+    }
+  }
+
   virtual std::unique_ptr<BBInstruction> clone() const override {
     return std::make_unique<BBMove<SrcT, DestT>>(source_, destination_, sourceType_, destinationType_);
   }
@@ -41,10 +105,10 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
     out << std::string(tab, ' ');
 
     switch (destinationType_) {
-      case DestinationType::VARIABLE:
+      case DestinationType::REGISTER:
         out << destination_;
         break;
-      case DestinationType::ADDRESS:
+      case DestinationType::MEMORY:
         out << "[ " << destination_ << " ]";
         break;
     }
@@ -52,13 +116,13 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
     out << " := ";
 
     switch (sourceType_) {
-      case SourceType::VARIABLE:
+      case SourceType::CONSTANT:
         out << source_;
         break;
-      case SourceType::NUMERIC:
+      case SourceType::REGISTER:
         out << source_;
         break;
-      case SourceType::ADDRESS:
+      case SourceType::MEMORY:
         out << "[ " << source_ << " ]";
         break;
     }
@@ -74,11 +138,9 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
 };
 
 typedef BBMove<VariableType, VariableType> BBMoveVV;
-typedef BBMove<VariableType, AddressType> BBMoveVA;
+typedef BBMove<VariableType, NumericType> BBMoveVN;
 typedef BBMove<NumericType, VariableType> BBMoveNV;
-typedef BBMove<AddressType, VariableType> BBMoveAV;
-typedef BBMove<AddressType, AddressType> BBMoveAA;
-typedef BBMove<NumericType, AddressType> BBMoveNA;
+typedef BBMove<NumericType, NumericType> BBMoveNN;
 
 }  // namespace bblocks
 

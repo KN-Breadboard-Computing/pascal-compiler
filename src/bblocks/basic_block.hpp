@@ -10,10 +10,7 @@
 #include "instructions/bb_call.hpp"
 #include "instructions/bb_halt.hpp"
 #include "instructions/bb_instruction.hpp"
-#include "instructions/bb_label.hpp"
 #include "instructions/bb_move.hpp"
-#include "instructions/bb_pop.hpp"
-#include "instructions/bb_push.hpp"
 #include "instructions/bb_ret.hpp"
 #include "instructions/bb_unary_operation.hpp"
 

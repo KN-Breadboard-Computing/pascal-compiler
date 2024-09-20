@@ -10,10 +10,13 @@
 #include "../ast/program_node.hpp"
 #include "basic_block.hpp"
 
+#undef CFG_DEBUG
+
 namespace bblocks {
 class BBControlFlowGraph {
  public:
   BBControlFlowGraph() = default;
+
   explicit BBControlFlowGraph(const std::string& entryLabel) : entryLabel_{entryLabel}, exitLabel_{entryLabel} {
     addBBlock(entryLabel, BasicBlock{});
   }
@@ -45,6 +48,7 @@ class BBControlFlowGraph {
   [[nodiscard]] const std::string& getEntryLabel() const { return entryLabel_; }
   [[nodiscard]] const std::string& getExitLabel() const { return exitLabel_; }
   [[nodiscard]] const std::map<std::string, BasicBlock>& getBasicBlocks() const { return basicBlocks_; }
+  [[nodiscard]] std::map<std::string, BasicBlock>& basicBlocks() { return basicBlocks_; }
   [[nodiscard]] const BasicBlock& getBasicBlock(const std::string& blockLabel) const { return basicBlocks_.at(blockLabel); }
   [[nodiscard]] BasicBlock& basicBlock(const std::string& blockLabel) { return basicBlocks_.at(blockLabel); }
   [[nodiscard]] const std::vector<std::string>& getOutLinks(const std::string& blockLabel) const {

@@ -1,6 +1,7 @@
 #ifndef BBLOCKS_BB_INSTRUCTION_HPP
 #define BBLOCKS_BB_INSTRUCTION_HPP
 
+#include <functional>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -9,15 +10,18 @@
 #undef BB_DEBUG
 
 typedef std::string VariableType;
-typedef int64_t NumericType;
-typedef bool BooleanType;
+typedef int16_t NumericType;
 typedef std::string LabelType;
-typedef std::size_t AddressType;
 
 namespace bblocks {
 class BBInstruction {
  public:
-  BBInstruction() = default;
+  enum class Type { UNSPECIFIED, BINARY_OPERATION, BRANCH, CALL, HALT, MOVE, RET, UNARY_OPERATION };
+  enum class SourceType { CONSTANT, REGISTER, MEMORY };
+  enum class DestinationType { REGISTER, MEMORY };
+
+  BBInstruction() : type_{Type::UNSPECIFIED} {}
+  BBInstruction(Type type) : type_{type} {}
 
   BBInstruction(const BBInstruction&) = default;
   BBInstruction(BBInstruction&&) noexcept = default;
@@ -27,6 +31,20 @@ class BBInstruction {
 
   virtual ~BBInstruction() = default;
 
+  Type getType() const { return type_; }
+
+  // visit all variables that are defined by this instruction
+  virtual void visitDefVariables(std::function<void(const VariableType&)> visitor) const = 0;
+
+  // visit all variables that are used by this instruction
+  virtual void visitUseVariables(std::function<void(const VariableType&)> visitor) const = 0;
+
+  // changes all variables from to the variable to
+  [[nodiscard]] virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const VariableType& to) = 0;
+
+  // changes all variables from to the numeric to
+  [[nodiscard]] virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const NumericType& to) = 0;
+
   [[nodiscard]] virtual std::unique_ptr<BBInstruction> clone() const = 0;
   virtual void print(std::ostream& out, int tab) const = 0;
 
@@ -34,6 +52,9 @@ class BBInstruction {
     instruction.print(out, 0);
     return out;
   }
+
+ private:
+  Type type_;
 };
 
 }  // namespace bblocks

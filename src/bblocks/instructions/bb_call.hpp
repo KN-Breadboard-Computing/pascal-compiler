@@ -6,8 +6,9 @@
 namespace bblocks {
 class BBCall : public BBInstruction {
  public:
-  BBCall() = default;
-  BBCall(std::string name, std::vector<std::string> args) : name_{std::move(name)}, args_{std::move(args)} {}
+  BBCall() : BBInstruction(Type::CALL) {}
+  BBCall(std::string name, std::vector<std::string> args)
+      : BBInstruction(Type::CALL), name_{std::move(name)}, args_{std::move(args)} {}
 
   BBCall(const BBCall&) = default;
   BBCall(BBCall&&) noexcept = default;
@@ -20,6 +21,11 @@ class BBCall : public BBInstruction {
   [[nodiscard]] const std::string& getName() const { return name_; }
 
   [[nodiscard]] const std::vector<std::string>& getArgs() const { return args_; }
+
+  virtual void visitDefVariables(std::function<void(const VariableType&)> visitor) const override;
+  virtual void visitUseVariables(std::function<void(const VariableType&)> visitor) const override;
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const VariableType& to) override;
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const NumericType& to) override;
 
   virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBCall>(name_, args_); }
 

@@ -11,14 +11,19 @@ concept BranchArgs = requires {
   {std::is_same_v<ArgT, VariableType> || std::is_same_v<ArgT, NumericType>};
 };
 
+enum class BBBranchCondition { ANY, NEGATIVE, POSITIVE, ODD, EVEN, ZERO, NONZERO, CARRY, NOCARRY, OVERFLOW, NOOVERFLOW };
+
 template <typename ArgT>
 requires BranchArgs<ArgT> class BBBranch : public BBInstruction {
  public:
-  enum class Condition { ANY, NEGATIVE, POSITIVE, ODD, EVEN, ZERO, NONZERO, CARRY, NOCARRY, OVERFLOW, NOOVERFLOW };
-
-  BBBranch() = default;
-  BBBranch(ArgT value, Condition condition, LabelType trueLabel, LabelType falseLabel)
-      : value_{value}, condition_{condition}, trueLabel_{std::move(trueLabel)}, falseLabel_{std::move(falseLabel)} {}
+  BBBranch() : BBInstruction(Type::BRANCH) {}
+  BBBranch(ArgT value, SourceType valueType, BBBranchCondition condition, LabelType trueLabel, LabelType falseLabel)
+      : BBInstruction(Type::BRANCH),
+        value_{value},
+        valueType_{valueType},
+        condition_{condition},
+        trueLabel_{std::move(trueLabel)},
+        falseLabel_{std::move(falseLabel)} {}
 
   BBBranch(const BBBranch&) = default;
   BBBranch(BBBranch&&) noexcept = default;
@@ -29,65 +34,106 @@ requires BranchArgs<ArgT> class BBBranch : public BBInstruction {
   ~BBBranch() = default;
 
   [[nodiscard]] ArgT getValue() const { return value_; }
-  [[nodiscard]] Condition getCondition() const { return condition_; }
+  [[nodiscard]] BBBranchCondition getCondition() const { return condition_; }
   [[nodiscard]] LabelType getTrueLabel() const { return trueLabel_; }
   [[nodiscard]] LabelType getFalseLabel() const { return falseLabel_; }
 
+  virtual void visitDefVariables(std::function<void(const VariableType&)> /*visitor*/) const override {}
+
+  virtual void visitUseVariables(std::function<void(const VariableType&)> visitor) const override {
+    if constexpr (std::is_same_v<ArgT, VariableType>) {
+      visitor(value_);
+    }
+  }
+
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const VariableType& to) override {
+    if constexpr (std::is_same_v<ArgT, VariableType>) {
+      return std::make_unique<BBBranch<VariableType>>(value_ == from ? to : value_, valueType_, condition_, trueLabel_,
+                                                      falseLabel_);
+    }
+    else {
+      return clone();
+    }
+  }
+
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const NumericType& to) override {
+    if constexpr (std::is_same_v<ArgT, VariableType>) {
+      if (value_ == from) {
+        return std::make_unique<BBBranch<NumericType>>(to, valueType_, condition_, trueLabel_, falseLabel_);
+      }
+      return clone();
+    }
+    else {
+      return clone();
+    }
+  }
+
   virtual std::unique_ptr<BBInstruction> clone() const override {
-    return std::make_unique<BBBranch>(value_, condition_, trueLabel_, falseLabel_);
+    return std::make_unique<BBBranch>(value_, valueType_, condition_, trueLabel_, falseLabel_);
   }
 
   virtual void print(std::ostream& out, int tab) const override {
     out << std::string(tab, ' ') << "br ";
 
     switch (condition_) {
-      case Condition::ANY:
+      case BBBranchCondition::ANY:
         out << "any ";
         break;
-      case Condition::NEGATIVE:
+      case BBBranchCondition::NEGATIVE:
         out << "negative ";
         break;
-      case Condition::POSITIVE:
+      case BBBranchCondition::POSITIVE:
         out << "positive ";
         break;
-      case Condition::ODD:
+      case BBBranchCondition::ODD:
         out << "odd ";
         break;
-      case Condition::EVEN:
+      case BBBranchCondition::EVEN:
         out << "even ";
         break;
-      case Condition::ZERO:
+      case BBBranchCondition::ZERO:
         out << "zero ";
         break;
-      case Condition::NONZERO:
+      case BBBranchCondition::NONZERO:
         out << "nonzero ";
         break;
-      case Condition::CARRY:
+      case BBBranchCondition::CARRY:
         out << "carry ";
         break;
-      case Condition::NOCARRY:
+      case BBBranchCondition::NOCARRY:
         out << "nocarry ";
         break;
-      case Condition::OVERFLOW:
+      case BBBranchCondition::OVERFLOW:
         out << "overflow ";
         break;
-      case Condition::NOOVERFLOW:
+      case BBBranchCondition::NOOVERFLOW:
         out << "nooverflow ";
         break;
     }
 
-    out << value_ << " ? " << trueLabel_ << " : " << falseLabel_ << std::endl;
+    switch (valueType_) {
+      case SourceType::CONSTANT:
+      case SourceType::REGISTER:
+        out << value_;
+        break;
+      case SourceType::MEMORY:
+        out << "[" << value_ << "]";
+        break;
+    }
+
+    out << " ? " << trueLabel_ << " : " << falseLabel_ << std::endl;
   }
 
  private:
   ArgT value_;
-  Condition condition_;
+  SourceType valueType_;
+  BBBranchCondition condition_;
   LabelType trueLabel_;
   LabelType falseLabel_;
 };
 
 typedef BBBranch<VariableType> BBBranchV;
-typedef BBBranch<BooleanType> BBBranchB;
+typedef BBBranch<NumericType> BBBranchN;
 }  // namespace bblocks
 
 #endif  // BBLOCKS_BB_BRANCH_HPP

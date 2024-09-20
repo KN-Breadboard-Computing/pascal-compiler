@@ -7,18 +7,23 @@ namespace bblocks {
 template <typename ArgT, typename DestT>
 concept UnaryOperationArgs = requires {
   {std::is_same_v<ArgT, VariableType> || std::is_same_v<ArgT, NumericType>};
-  {std::is_same_v<DestT, VariableType> || std::is_same_v<DestT, AddressType>};
+  {std::is_same_v<DestT, VariableType> || std::is_same_v<DestT, NumericType>};
 };
+
+enum class BBUnaryOperationEnum { NEG, NOT, INC, DEC, SHL, SHR, SAR };
 
 template <typename ArgT, typename DestT>
 requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstruction {
  public:
-  enum class OperationType { NEG, NOT, INC, DEC, SHL, SHR, SAR };
-  enum class DestinationType { VARIABLE, ADDRESS };
-
-  BBUnaryOperation() = default;
-  BBUnaryOperation(ArgT source, DestT destination, OperationType operationType, DestinationType destinationType)
-      : source_{source}, destination_{destination}, operationType_{operationType}, destinationType_{destinationType} {}
+  BBUnaryOperation() : BBInstruction(Type::UNARY_OPERATION) {}
+  BBUnaryOperation(ArgT source, DestT destination, SourceType sourceType, DestinationType destinationType,
+                   BBUnaryOperationEnum operation)
+      : BBInstruction(Type::UNARY_OPERATION),
+        source_{source},
+        destination_{destination},
+        sourceType_{sourceType},
+        destinationType_{destinationType},
+        operation_{operation} {}
 
   BBUnaryOperation(const BBUnaryOperation&) = default;
   BBUnaryOperation(BBUnaryOperation&&) noexcept = default;
@@ -30,65 +35,142 @@ requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstr
 
   [[nodiscard]] ArgT getSource() const { return source_; }
   [[nodiscard]] DestT getDestination() const { return destination_; }
-  [[nodiscard]] OperationType getOperation() const { return operationType_; }
   [[nodiscard]] DestinationType getDestinationType() const { return destinationType_; }
+  [[nodiscard]] SourceType getSourceType() const { return sourceType_; }
+  [[nodiscard]] BBUnaryOperationEnum getOperation() const { return operation_; }
+
+  virtual void visitDefVariables(std::function<void(const VariableType&)> visitor) const override {
+    if constexpr (std::is_same_v<DestT, VariableType>) {
+      visitor(destination_);
+    }
+  }
+
+  virtual void visitUseVariables(std::function<void(const VariableType&)> visitor) const override {
+    if constexpr (std::is_same_v<ArgT, VariableType>) {
+      visitor(source_);
+    }
+  }
+
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const VariableType& to) override {
+    if constexpr (std::is_same_v<ArgT, VariableType> && std::is_same_v<DestT, VariableType>) {
+      return std::make_unique<BBUnaryOperation<VariableType, VariableType>>(
+          source_ == from ? to : source_, destination_ == from ? to : destination_, sourceType_, destinationType_, operation_);
+    }
+    else if constexpr (std::is_same_v<ArgT, VariableType>) {
+      return std::make_unique<BBUnaryOperation<VariableType, DestT>>(source_ == from ? to : source_, destination_, sourceType_,
+                                                                     destinationType_, operation_);
+    }
+    else if constexpr (std::is_same_v<DestT, VariableType>) {
+      return std::make_unique<BBUnaryOperation<ArgT, VariableType>>(source_, destination_ == from ? to : destination_,
+                                                                    sourceType_, destinationType_, operation_);
+    }
+    else {
+      return clone();
+    }
+  }
+
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const NumericType& to) override {
+    if constexpr (std::is_same_v<ArgT, VariableType> && std::is_same_v<DestT, VariableType>) {
+      if (source_ == from && destination_ == from) {
+        return std::make_unique<BBUnaryOperation<NumericType, NumericType>>(to, to, sourceType_, destinationType_, operation_);
+      }
+      else if (source_ == from) {
+        return std::make_unique<BBUnaryOperation<NumericType, VariableType>>(to, destination_, sourceType_, destinationType_,
+                                                                             operation_);
+      }
+      else if (destination_ == from) {
+        return std::make_unique<BBUnaryOperation<ArgT, NumericType>>(source_, to, sourceType_, destinationType_, operation_);
+      }
+
+      return clone();
+    }
+    else if constexpr (std::is_same_v<ArgT, VariableType>) {
+      if (source_ == from) {
+        return std::make_unique<BBUnaryOperation<NumericType, DestT>>(to, destination_, sourceType_, destinationType_,
+                                                                      operation_);
+      }
+
+      return clone();
+    }
+    else if constexpr (std::is_same_v<DestT, VariableType>) {
+      if (destination_ == from) {
+        return std::make_unique<BBUnaryOperation<ArgT, NumericType>>(source_, to, sourceType_, destinationType_, operation_);
+      }
+
+      return clone();
+    }
+    else {
+      return clone();
+    }
+  }
 
   virtual std::unique_ptr<BBInstruction> clone() const override {
-    return std::make_unique<BBUnaryOperation<ArgT, DestT>>(source_, destination_, operationType_, destinationType_);
+    return std::make_unique<BBUnaryOperation<ArgT, DestT>>(source_, destination_, sourceType_, destinationType_, operation_);
   }
 
   virtual void print(std::ostream& out, int tab) const override {
     out << std::string(tab, ' ');
 
     switch (destinationType_) {
-      case DestinationType::VARIABLE:
+      case DestinationType::REGISTER:
         out << destination_;
         break;
-      case DestinationType::ADDRESS:
+      case DestinationType::MEMORY:
         out << "[ " << destination_ << " ]";
         break;
     }
 
     out << " := ";
 
-    switch (operationType_) {
-      case OperationType::NEG:
+    switch (operation_) {
+      case BBUnaryOperationEnum::NEG:
         out << "- ";
         break;
-      case OperationType::NOT:
+      case BBUnaryOperationEnum::NOT:
         out << "~ ";
         break;
-      case OperationType::INC:
+      case BBUnaryOperationEnum::INC:
         out << "inc ";
         break;
-      case OperationType::DEC:
+      case BBUnaryOperationEnum::DEC:
         out << "dec ";
         break;
-      case OperationType::SHL:
+      case BBUnaryOperationEnum::SHL:
         out << "shl ";
         break;
-      case OperationType::SHR:
+      case BBUnaryOperationEnum::SHR:
         out << "shr ";
         break;
-      case OperationType::SAR:
+      case BBUnaryOperationEnum::SAR:
         out << "sar ";
         break;
     }
 
-    out << source_ << std::endl;
+    switch (sourceType_) {
+      case SourceType::CONSTANT:
+      case SourceType::REGISTER:
+        out << source_;
+        break;
+      case SourceType::MEMORY:
+        out << "[ " << source_ << " ]";
+        break;
+    }
+
+    out << std::endl;
   }
 
  private:
   ArgT source_;
   DestT destination_;
-  OperationType operationType_;
+  SourceType sourceType_;
   DestinationType destinationType_;
+  BBUnaryOperationEnum operation_;
 };
 
 typedef BBUnaryOperation<VariableType, VariableType> BBUnaryOperationVV;
-typedef BBUnaryOperation<VariableType, AddressType> BBUnaryOperationVA;
+typedef BBUnaryOperation<VariableType, NumericType> BBUnaryOperationVN;
 typedef BBUnaryOperation<NumericType, VariableType> BBUnaryOperationNV;
-typedef BBUnaryOperation<NumericType, AddressType> BBUnaryOperationNA;
+typedef BBUnaryOperation<NumericType, NumericType> BBUnaryOperationNN;
 
 }  // namespace bblocks
 

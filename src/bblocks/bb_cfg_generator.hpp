@@ -80,9 +80,12 @@ class BbCfgGenerator : public ast::AstVisitor {
   virtual void visit(const ast::VarRangeTypeNode* node) override;
   virtual void visit(const ast::WhileNode* node) override;
 
-  [[nodiscard]] std::map<std::string, BBControlFlowGraph> generate(const std::unique_ptr<ast::ProgramNode>& program);
+  void generate(const std::unique_ptr<ast::ProgramNode>& program);
 
   void removeEmptyBasicBlocks();
+  void removeSingleAssigmentVariables();
+
+  [[nodiscard]] std::map<std::string, BBControlFlowGraph> getControlFlowGraphs() const { return functionControlFlowGraphs_; }
 
   const std::map<std::string, size_t>& getEnumTranslator() const { return enumTranslator_; }
   const std::map<std::string, size_t>& getTypeBytes() const { return typeBytes_; }

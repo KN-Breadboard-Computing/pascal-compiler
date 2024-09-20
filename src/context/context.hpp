@@ -1,7 +1,7 @@
 #ifndef CONTEXT_HPP
 #define CONTEXT_HPP
 
-#define CONTEXT_DEBUG
+#undef CONTEXT_DEBUG
 
 #include <algorithm>
 #include <string>
@@ -50,6 +50,8 @@ class Context {
     }
     return currentScope;
   }
+
+  const std::string& getTopScope() { return scopes_.back(); }
 
   [[nodiscard]] std::string generateTempVariable() { return "#t" + std::to_string(tempVariableCounter_++); }
   [[nodiscard]] std::string getLastTempVariable() const { return "#t" + std::to_string(tempVariableCounter_ - 1); }

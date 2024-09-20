@@ -99,7 +99,7 @@ class LookupTable {
 #ifdef CONTEXT_DEBUG
     std::cout << "Define type: " << currentScope << " " << name << " " << static_cast<int>(category) << " " << type << std::endl;
 #endif
-    types_[name][currentScope] = TypeInfo{category, name, currentScope + name, std::move(type), true};
+    types_[name][currentScope] = TypeInfo{category, name, currentScope + "." + name, std::move(type), true};
   }
 
   [[nodiscard]] bool isTypeDefined(const std::string& name, const std::string& currentScope) const {
@@ -124,7 +124,8 @@ class LookupTable {
     throw std::runtime_error("Type not found");
   }
 
-  [[nodiscard]] std::vector<TypeInfo> getTypes(const std::function<bool(const std::string&, const TypeInfo&)>& indicator, const std::string& currentScope) const {
+  [[nodiscard]] std::vector<TypeInfo> getTypes(const std::function<bool(const std::string&, const TypeInfo&)>& indicator,
+                                               const std::string& currentScope) const {
     std::vector<TypeInfo> result;
     for (const auto& [name, scopes] : types_) {
       for (const auto& [scopeName, typeInfo] : scopes) {
@@ -155,7 +156,7 @@ class LookupTable {
     std::cout << "Define variable: " << currentScope << " " << name << " " << static_cast<int>(category) << " " << type
               << std::endl;
 #endif
-    variables_[name][currentScope] = VariableInfo{category, name, currentScope + name, std::move(type), false, true};
+    variables_[name][currentScope] = VariableInfo{category, name, currentScope + "." + name, std::move(type), false, true};
   }
 
   void setVariableValue(const std::string& name, const std::string& /*value*/, const std::string& currentScope) {
@@ -239,7 +240,7 @@ class LookupTable {
     }
     std::cout << "] " << type << std::endl;
 #endif
-    routines_[name][currentScope] = RoutineInfo{category, name, currentScope + name, args, std::move(type), true};
+    routines_[name][currentScope] = RoutineInfo{category, name, currentScope + "." + name, args, std::move(type), true};
   }
 
   [[nodiscard]] bool isRoutineDefined(const std::string& name, const std::string& currentScope) const {

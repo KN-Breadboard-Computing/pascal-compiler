@@ -9,7 +9,8 @@ bool parse(const std::string& inputFileName, std::vector<std::string>& errors, s
 int main(int argc, char* argv[]) {
   constexpr int expectedArgumentsNumber{5};
   if (argc != expectedArgumentsNumber) {
-    std::cerr << "Usage: " << argv[0] << " <input_ast-file> <output-ast-file> <output-bblocks-file> <output-asm-file>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <input_ast-file> <output-ast-file> <output-bblocks-file> <output-asm-file>"
+              << std::endl;
     return 1;
   }
 
@@ -37,21 +38,20 @@ int main(int argc, char* argv[]) {
   outputAstFile << *program;
 
   bblocks::BbCfgGenerator cfgGenerator;
-  const std::map<std::string, bblocks::BBControlFlowGraph> cfgs{cfgGenerator.generate(program)};
+  cfgGenerator.generate(program);
 
   std::ofstream outputBbFile(argv[3]);
-  for(const auto& [name, cfg]: cfgs) {
+  for (const auto& [name, cfg] : cfgGenerator.getControlFlowGraphs()) {
     outputBbFile << name << ":\n" << cfg << std::endl;
   }
 
   cfgGenerator.removeEmptyBasicBlocks();
-  const std::map<std::string, bblocks::BBControlFlowGraph> cfgs2{cfgGenerator.generate(program)};
+  cfgGenerator.removeSingleAssigmentVariables();
 
-  for(const auto& [name, cfg]: cfgs2) {
-    outputBbFile << name << ":\n" << cfg << std::endl;
+  std::ofstream outputOptimizedBbFile("optimized-" + std::string(argv[3]));
+  for (const auto& [name, cfg] : cfgGenerator.getControlFlowGraphs()) {
+    outputOptimizedBbFile << name << ":\n" << cfg << std::endl;
   }
-
-  outputBbFile << std::endl << std::endl;
 
   return 0;
 }

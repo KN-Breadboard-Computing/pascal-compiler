@@ -1,4 +1,4 @@
-program WhileTest
+program WhileTest;
 
 var
   i, j: Integer;

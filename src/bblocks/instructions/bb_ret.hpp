@@ -6,7 +6,7 @@
 namespace bblocks {
 class BBRet : public BBInstruction {
  public:
-  BBRet() = default;
+  BBRet() : BBInstruction(Type::RET) {}
 
   BBRet(const BBRet&) = default;
   BBRet(BBRet&&) noexcept = default;
@@ -15,6 +15,18 @@ class BBRet : public BBInstruction {
   BBRet& operator=(BBRet&&) noexcept = default;
 
   ~BBRet() override = default;
+
+  virtual void visitDefVariables(std::function<void(const VariableType&)> /*visitor*/) const override {}
+
+  virtual void visitUseVariables(std::function<void(const VariableType&)> /*visitor*/) const override {}
+
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& /*from*/, const VariableType& /*to*/) override {
+    return clone();
+  }
+
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& /*from*/, const NumericType& /*to*/) override {
+    return clone();
+  }
 
   virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBRet>(); }
 

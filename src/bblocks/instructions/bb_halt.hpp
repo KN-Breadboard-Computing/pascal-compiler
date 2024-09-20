@@ -6,7 +6,7 @@
 namespace bblocks {
 class BBHalt : public BBInstruction {
  public:
-  BBHalt() = default;
+  BBHalt() : BBInstruction(Type::HALT) {}
 
   BBHalt(const BBHalt&) = default;
   BBHalt(BBHalt&&) noexcept = default;
@@ -15,6 +15,18 @@ class BBHalt : public BBInstruction {
   BBHalt& operator=(BBHalt&&) noexcept = default;
 
   ~BBHalt() override = default;
+
+  virtual void visitDefVariables(std::function<void(const VariableType&)> /*visitor*/) const override {}
+
+  virtual void visitUseVariables(std::function<void(const VariableType&)> /*visitor*/) const override {}
+
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& /*from*/, const VariableType& /*to*/) override {
+    return clone();
+  }
+
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& /*from*/, const NumericType& /*to*/) override {
+    return clone();
+  }
 
   virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBHalt>(); }
 
