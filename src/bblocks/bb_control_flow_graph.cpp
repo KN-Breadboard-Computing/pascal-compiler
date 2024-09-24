@@ -57,6 +57,27 @@ void BBControlFlowGraph::merge(const BBControlFlowGraph& cfg) {
   merge(cfg, exitLabel_, cfg.getEntryLabel());
 }
 
+size_t BBControlFlowGraph::distance(const std::string& from, const std::string& to) const {
+  std::queue<std::string> labels;
+  std::map<std::string, size_t> distances;
+
+  labels.push(from);
+  distances.insert({from, 0});
+
+  while (!labels.empty()) {
+    const auto label = labels.front();
+    labels.pop();
+    for (const auto& neighbour : srcDest_.at(label)) {
+      if (distances.find(neighbour) == distances.end()) {
+        labels.push(neighbour);
+        distances.insert({neighbour, distances.at(label) + 1});
+      }
+    }
+  }
+
+  return distances.at(to);
+}
+
 std::ostream& operator<<(std::ostream& out, const BBControlFlowGraph& cfg) {
   std::queue<std::string> labels;
   std::set<std::string> visited;
@@ -67,6 +88,12 @@ std::ostream& operator<<(std::ostream& out, const BBControlFlowGraph& cfg) {
   while (!labels.empty()) {
     const auto label = labels.front();
     labels.pop();
+    if (cfg.destSrc_.find(label) != cfg.destSrc_.end()) {
+      for (const auto& neighbour : cfg.destSrc_.at(label)) {
+        out << neighbour << " ";
+      }
+      out << "-> ";
+    }
     out << label;
     if (cfg.srcDest_.find(label) != cfg.srcDest_.end()) {
       out << " -> ";

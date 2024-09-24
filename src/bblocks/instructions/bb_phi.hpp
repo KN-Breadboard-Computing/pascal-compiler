@@ -1,20 +1,26 @@
-#ifndef BBLOCKS_BB_RET_HPP
-#define BBLOCKS_BB_RET_HPP
+#ifndef BBLOCKS_BB_PHI_HPP
+#define BBLOCKS_BB_PHI_HPP
 
 #include "bb_instruction.hpp"
 
 namespace bblocks {
-class BBRet : public BBInstruction {
+class BBPhi : public BBInstruction {
  public:
-  BBRet() : BBInstruction(Type::RET) {}
+  BBPhi() : BBInstruction(Type::PHI) {}
+  BBPhi(std::string name, std::vector<std::string> args)
+      : BBInstruction(Type::PHI), name_{std::move(name)}, args_{std::move(args)} {}
 
-  BBRet(const BBRet&) = default;
-  BBRet(BBRet&&) noexcept = default;
+  BBPhi(const BBPhi&) = default;
+  BBPhi(BBPhi&&) noexcept = default;
 
-  BBRet& operator=(const BBRet&) = default;
-  BBRet& operator=(BBRet&&) noexcept = default;
+  BBPhi& operator=(const BBPhi&) = default;
+  BBPhi& operator=(BBPhi&&) noexcept = default;
 
-  ~BBRet() override = default;
+  ~BBPhi() override = default;
+
+  [[nodiscard]] const std::string& getName() const { return name_; }
+
+  [[nodiscard]] const std::vector<std::string>& getArgs() const { return args_; }
 
   virtual void visitDefVariables(std::function<void(const VariableType&)> /*visitor*/) const override {}
 
@@ -38,10 +44,20 @@ class BBRet : public BBInstruction {
     return std::vector<TemplateArgumentType>{};
   }
 
-  virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBRet>(); }
+  virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBPhi>(name_, args_); }
 
-  virtual void print(std::ostream& out, int tab) const override { out << std::string(tab, ' ') << "ret" << std::endl; }
+  virtual void print(std::ostream& out, int tab) const override {
+    out << std::string(tab, ' ') << name_ << " := phi( ";
+    for (const auto& arg : args_) {
+      out << arg << " ";
+    }
+    out << ")" << std::endl;
+  }
+
+ private:
+  std::string name_;
+  std::vector<std::string> args_;
 };
 }  // namespace bblocks
 
-#endif  // BBLOCKS_BB_RET_HPP
+#endif  // BBLOCKS_BB_PHI_HPP

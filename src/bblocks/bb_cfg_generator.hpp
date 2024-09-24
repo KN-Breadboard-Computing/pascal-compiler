@@ -83,7 +83,7 @@ class BbCfgGenerator : public ast::AstVisitor {
   void generate(const std::unique_ptr<ast::ProgramNode>& program);
 
   void removeEmptyBasicBlocks();
-  void removeSingleAssigmentVariables();
+  void removeTemporaryVariables();
 
   [[nodiscard]] std::map<std::string, BBControlFlowGraph> getControlFlowGraphs() const { return functionControlFlowGraphs_; }
 
@@ -101,7 +101,7 @@ class BbCfgGenerator : public ast::AstVisitor {
   static bool isInteger(const std::string& expr);
   static bool isBoolean(const std::string& expr);
 
-  size_t countIndexes(const std::string type);
+  size_t countIndexes(std::string type);
 
   std::map<std::string, size_t> enumTranslator_;
   std::map<std::string, size_t> typeBytes_;
@@ -110,6 +110,12 @@ class BbCfgGenerator : public ast::AstVisitor {
   BasicBlock currentBasicBlock_;
   std::stack<BBControlFlowGraph> controlFlowGraphs_;
   std::map<std::string, BBControlFlowGraph> functionControlFlowGraphs_;
+
+  struct VariableReassignment {
+    BBInstruction::TemplateArgumentType type;
+    NumericType number;
+    VariableType variable;
+  };
 };
 }  // namespace bblocks
 

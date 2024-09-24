@@ -1,17 +1,27 @@
 program SsaTest;
 
 var
-  a,b,c,d,x,y,z,w,p: Integer;
+  i,j,k,res: Integer;
 begin
-  x := 1;
-  y := 2;
-  z := 3;
-  w := 4;
-  a := x + y;
-  p := z + w;
-  d := a + p + w;
-  b := a + x;
-  a := b + 2;
-  c := y + 1;
-  a := c + a;
+  i := 1;
+  j := 1;
+  k := 0;
+
+  while j < 100 do
+  begin
+    if j < 20 then
+    begin
+      k := k + 1;
+      j := i;
+    end
+    else
+    begin
+      k := k + 2;
+      j := k;
+    end;
+  end;
+
+  res := j;
+  res := k;
+  res := i;
 end.

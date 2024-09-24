@@ -22,10 +22,27 @@ class BBCall : public BBInstruction {
 
   [[nodiscard]] const std::vector<std::string>& getArgs() const { return args_; }
 
-  virtual void visitDefVariables(std::function<void(const VariableType&)> visitor) const override;
-  virtual void visitUseVariables(std::function<void(const VariableType&)> visitor) const override;
-  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const VariableType& to) override;
-  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const NumericType& to) override;
+  virtual void visitDefVariables(std::function<void(const VariableType&)> /*visitor*/) const override {}
+
+  virtual void visitUseVariables(std::function<void(const VariableType&)> /*visitor*/) const override {}
+
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& /*from*/, const VariableType& /*to*/) override {
+    return clone();
+  }
+
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& /*from*/, const NumericType& /*to*/) override {
+    return clone();
+  }
+
+  virtual void replaceDefVariables(const VariableType& /*from*/, const VariableType& /*to*/) override {}
+
+  virtual void replaceUseVariables(const VariableType& /*from*/, const VariableType& /*to*/) override {}
+
+  virtual void replaceLabel(const LabelType& /*from*/, const LabelType& /*to*/) override {}
+
+  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override {
+    return std::vector<TemplateArgumentType>{};
+  }
 
   virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBCall>(name_, args_); }
 

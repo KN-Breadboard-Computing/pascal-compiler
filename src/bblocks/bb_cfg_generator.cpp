@@ -6,6 +6,7 @@
 #include <queue>
 #include <set>
 #include <stdexcept>
+#include <utility>
 
 namespace bblocks {
 Context* ctx = Context::getInstance();
@@ -219,37 +220,37 @@ void BbCfgGenerator::visit(const ast::MathExpressionNode* node) {
     case ast::MathExpressionNode::EQUAL: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
           leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
-          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::EQ));
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::SUB));
       break;
     }
     case ast::MathExpressionNode::NOT_EQUAL: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
           leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
-          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::NE));
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::SUB));
       break;
     }
     case ast::MathExpressionNode::LESS: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
           leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
-          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::LT));
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::SUB));
       break;
     }
     case ast::MathExpressionNode::LESS_EQUAL: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
           leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
-          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::LE));
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::SUB));
       break;
     }
     case ast::MathExpressionNode::GREATER: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
           leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
-          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::GT));
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::SUB));
       break;
     }
     case ast::MathExpressionNode::GREATER_EQUAL: {
       currentBasicBlock_.addInstruction(std::make_unique<BBBinaryOperationVVV>(
           leftOperand, rightOperand, ctx->generateTempVariable(), BBInstruction::SourceType::REGISTER,
-          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::GE));
+          BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER, BBBinaryOperationEnum::SUB));
       break;
     }
   }
@@ -783,7 +784,7 @@ void BbCfgGenerator::removeEmptyBasicBlocks() {
       }
     }
 
-    fun.update(std::move(updatedSrcDest), std::move(updatedDestSrc), std::move(updatedBlocks));
+    fun.update(updatedSrcDest, updatedDestSrc, updatedBlocks);
 
     if (labelsTranslation.find(fun.getEntryLabel()) != labelsTranslation.end()) {
       fun.setEntryLabel(labelsTranslation[fun.getEntryLabel()]);
@@ -792,87 +793,112 @@ void BbCfgGenerator::removeEmptyBasicBlocks() {
     if (labelsTranslation.find(fun.getExitLabel()) != labelsTranslation.end()) {
       fun.setExitLabel(labelsTranslation[fun.getExitLabel()]);
     }
+
+    for (auto& block : fun.basicBlocks()) {
+      for (auto& instruction : block.second.instructions()) {
+        for (const auto& labelTranslation : labelsTranslation) {
+          instruction->replaceLabel(labelTranslation.first, labelTranslation.second);
+        }
+      }
+    }
   }
 }
 
-void BbCfgGenerator::removeSingleAssigmentVariables() {
+void BbCfgGenerator::removeTemporaryVariables() {
   for (auto& [funName, fun] : functionControlFlowGraphs_) {
     std::map<std::string, size_t> variableDefs;
     std::map<std::string, size_t> variableDefsInMove;
-    std::map<std::string, size_t> variableUses;
-    std::map<std::string, size_t> variableUsesInMove;
+    std::map<std::string, size_t> variableDefsInOperations;
     for (const auto& [blockLabel, block] : fun.basicBlocks()) {
       for (const auto& instruction : block.getInstructions()) {
-        const bool isMove = instruction->getType() == BBInstruction::Type::MOVE;
-        instruction->visitDefVariables([&variableDefs, &variableDefsInMove, isMove](const std::string& var) {
-          if (variableDefs.find(var) == variableDefs.end()) {
-            variableDefs[var] = 0;
-            variableDefsInMove[var] = 0;
-          }
-          variableDefs[var]++;
-          if (isMove) {
-            variableDefsInMove[var]++;
-          }
-        });
-        instruction->visitUseVariables([&variableUses, &variableUsesInMove, isMove](const std::string& var) {
-          if (variableUses.find(var) == variableUses.end()) {
-            variableUses[var] = 0;
-            variableUsesInMove[var] = 0;
-          }
-          variableUses[var]++;
-          if (isMove) {
-            variableUsesInMove[var]++;
-          }
-        });
+        const BBInstruction::Type instructionType = instruction->getType();
+        instruction->visitDefVariables(
+            [&variableDefs, &variableDefsInMove, &variableDefsInOperations, instructionType](const std::string& var) {
+              if (variableDefs.find(var) == variableDefs.end()) {
+                variableDefs[var] = 0;
+                variableDefsInMove[var] = 0;
+                variableDefsInOperations[var] = 0;
+              }
+
+              variableDefs[var]++;
+              if (instructionType == BBInstruction::Type::MOVE) {
+                variableDefsInMove[var]++;
+              }
+              else if (instructionType == BBInstruction::Type::UNARY_OPERATION ||
+                       instructionType == BBInstruction::Type::BINARY_OPERATION) {
+                variableDefsInOperations[var]++;
+              }
+            });
       }
     }
 
-    std::cout << "Def-Use analysis for function " << funName << std::endl;
-    for (const auto& [var, defs] : variableDefs) {
-      const auto uses = variableUses.find(var) == variableUses.end() ? 0 : variableUses[var];
-      const auto defsInMove = variableDefsInMove.find(var) == variableDefsInMove.end() ? 0 : variableDefsInMove[var];
-      const auto usesInMove = variableUsesInMove.find(var) == variableUsesInMove.end() ? 0 : variableUsesInMove[var];
-
-      if (uses == 0) {
-        std::cout << "Variable " << var << " is never used" << std::endl;
-      }
-      else if (defsInMove == 1) {
-        std::cout << "Variable " << var << " is single assignment" << std::endl;
-      }
-      else {
-        std::cout << "Variable " << var << " is not single assignment. Uses: " << uses << ", in moves: " << usesInMove
-                  << ", defs: " << defs << ", in moves: " << defsInMove << std::endl;
-      }
-    }
-
-    std::map<std::string, std::string> variableReplacements;
+    std::map<std::string, VariableReassignment> reassignments;
 
     std::queue<std::string> blocksToProcess;
+    std::set<std::string> visitedBlocks;
     blocksToProcess.push(fun.getEntryLabel());
+    visitedBlocks.insert(fun.getEntryLabel());
     while (!blocksToProcess.empty()) {
       const std::string blockLabel = blocksToProcess.front();
       blocksToProcess.pop();
-      auto& block = fun.basicBlock(blockLabel);
-      for (auto& instruction : block.getInstructions()) {
-        instruction->visitDefVariables([&variableDefsInMove, &variableReplacements](const std::string& var) {
-          if (variableDefsInMove[var] == 1) {
-            variableReplacements[var] = var;
+      BasicBlock blockAfterFirstPass;
+      for (auto& instruction : fun.basicBlock(blockLabel).instructions()) {
+        const std::vector<BBInstruction::TemplateArgumentType> templateTypes = instruction->getTemplateTypes();
+        if (instruction->getType() == BBInstruction::Type::MOVE) {
+          if (templateTypes[1] == BBInstruction::TemplateArgumentType::STRING) {
+            if (templateTypes[0] == BBInstruction::TemplateArgumentType::STRING) {
+              BBMoveVV* move = dynamic_cast<BBMoveVV*>(instruction.get());
+              const VariableType dst = move->getDestination();
+              const VariableType src = move->getSource();
+              if (Context::isTempVariable(dst) && variableDefs[dst] == 1 && variableDefsInMove[dst] == 1) {
+                reassignments.insert({dst, {BBInstruction::TemplateArgumentType::STRING, 0, src}});
+              }
+              else if (Context::isTempVariable(src) && variableDefs[src] == 1 && variableDefsInOperations[src] == 1) {
+                reassignments.insert({src, {BBInstruction::TemplateArgumentType::STRING, 0, dst}});
+              }
+              else {
+                blockAfterFirstPass.addInstruction(instruction->clone());
+              }
+            }
+            else {  // (templateTypes[0] == BBInstruction::TemplateArgumentType::NUMBER)
+              BBMoveNV* move = dynamic_cast<BBMoveNV*>(instruction.get());
+              const VariableType dst = move->getDestination();
+              const NumericType src = move->getSource();
+              if (Context::isTempVariable(dst) && variableDefs[dst] == 1 && variableDefsInMove[dst] == 1) {
+                reassignments.insert({dst, {BBInstruction::TemplateArgumentType::NUMBER, src, ""}});
+              }
+              else {
+                blockAfterFirstPass.addInstruction(instruction->clone());
+              }
+            }
           }
-        });
-        instruction->visitUseVariables([&variableReplacements](const std::string& var) {
-          if (variableReplacements.find(var) != variableReplacements.end()) {
-            variableReplacements.erase(var);
-          }
-        });
-        instruction->visitVariables([&variableReplacements](std::string& var) {
-          if (variableReplacements.find(var) != variableReplacements.end()) {
-            var = variableReplacements[var];
-          }
-        });
+        }
+        else {
+          blockAfterFirstPass.addInstruction(instruction->clone());
+        }
       }
 
+      BasicBlock blockAfterSecondPass;
+      for (auto& instruction : blockAfterFirstPass.instructions()) {
+        std::unique_ptr<BBInstruction> newInstruction = instruction->clone();
+        for (const auto& reassignment : reassignments) {
+          if (reassignment.second.type == BBInstruction::TemplateArgumentType::STRING) {
+            newInstruction = newInstruction->replaceVariable(reassignment.first, reassignment.second.variable);
+          }
+          else {
+            newInstruction = newInstruction->replaceVariable(reassignment.first, reassignment.second.number);
+          }
+        }
+        blockAfterSecondPass.addInstruction(std::move(newInstruction));
+      }
+
+      fun.setBasicBlock(blockLabel, blockAfterSecondPass);
+
       for (const auto& outLink : fun.getOutLinks(blockLabel)) {
-        blocksToProcess.push(outLink);
+        if (visitedBlocks.find(outLink) == visitedBlocks.end()) {
+          blocksToProcess.push(outLink);
+          visitedBlocks.insert(outLink);
+        }
       }
     }
   }

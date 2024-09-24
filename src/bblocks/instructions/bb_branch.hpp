@@ -38,6 +38,15 @@ requires BranchArgs<ArgT> class BBBranch : public BBInstruction {
   [[nodiscard]] LabelType getTrueLabel() const { return trueLabel_; }
   [[nodiscard]] LabelType getFalseLabel() const { return falseLabel_; }
 
+  [[nodiscard]] TemplateArgumentType getValueTemplateType() const {
+    if constexpr (std::is_same_v<ArgT, VariableType>) {
+      return TemplateArgumentType::STRING;
+    }
+    else {
+      return TemplateArgumentType::NUMBER;
+    }
+  }
+
   virtual void visitDefVariables(std::function<void(const VariableType&)> /*visitor*/) const override {}
 
   virtual void visitUseVariables(std::function<void(const VariableType&)> visitor) const override {
@@ -66,6 +75,29 @@ requires BranchArgs<ArgT> class BBBranch : public BBInstruction {
     else {
       return clone();
     }
+  }
+
+  virtual void replaceDefVariables(const VariableType& /*from*/, const VariableType& /*to*/) override {}
+
+  virtual void replaceUseVariables(const VariableType& from, const VariableType& to) override {
+    if constexpr (std::is_same_v<ArgT, VariableType>) {
+      if (value_ == from) {
+        value_ = to;
+      }
+    }
+  }
+
+  virtual void replaceLabel(const LabelType& from, const LabelType& to) override {
+    if (trueLabel_ == from) {
+      trueLabel_ = to;
+    }
+    if (falseLabel_ == from) {
+      falseLabel_ = to;
+    }
+  }
+
+  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override {
+    return std::vector<TemplateArgumentType>{getValueTemplateType()};
   }
 
   virtual std::unique_ptr<BBInstruction> clone() const override {

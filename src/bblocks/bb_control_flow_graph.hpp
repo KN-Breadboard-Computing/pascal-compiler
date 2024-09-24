@@ -50,6 +50,7 @@ class BBControlFlowGraph {
   [[nodiscard]] const std::map<std::string, BasicBlock>& getBasicBlocks() const { return basicBlocks_; }
   [[nodiscard]] std::map<std::string, BasicBlock>& basicBlocks() { return basicBlocks_; }
   [[nodiscard]] const BasicBlock& getBasicBlock(const std::string& blockLabel) const { return basicBlocks_.at(blockLabel); }
+  void setBasicBlock(const std::string& blockLabel, BasicBlock block) { basicBlocks_[blockLabel] = block; }
   [[nodiscard]] BasicBlock& basicBlock(const std::string& blockLabel) { return basicBlocks_.at(blockLabel); }
   [[nodiscard]] const std::vector<std::string>& getOutLinks(const std::string& blockLabel) const {
     return srcDest_.at(blockLabel);
@@ -71,6 +72,8 @@ class BBControlFlowGraph {
     destSrc_ = std::move(destSrc);
     basicBlocks_ = std::move(basicBlocks);
   }
+
+  size_t distance(const std::string& from, const std::string& to) const;
 
   friend std::ostream& operator<<(std::ostream& out, const BBControlFlowGraph& cfg);
 

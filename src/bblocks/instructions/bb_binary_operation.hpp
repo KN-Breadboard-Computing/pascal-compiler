@@ -11,7 +11,7 @@ concept BinaryOperationArgs = requires {
   {std::is_same_v<DestT, VariableType> || std::is_same_v<DestT, NumericType>};
 };
 
-enum BBBinaryOperationEnum { ADD, SUB, MUL, DIV, MOD, AND, OR, XOR, EQ, NE, LT, LE, GT, GE };
+enum BBBinaryOperationEnum { ADD, SUB, MUL, DIV, MOD, AND, OR, XOR };
 
 template <typename Arg1T, typename Arg2T, typename DestT>
 requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : public BBInstruction {
@@ -43,6 +43,33 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
   [[nodiscard]] SourceType getSource2Type() const { return source2Type_; }
   [[nodiscard]] DestinationType getDestinationType() const { return destinationType_; }
   [[nodiscard]] BBBinaryOperationEnum getOperation() const { return operation_; }
+
+  [[nodiscard]] TemplateArgumentType getSource1TemplateType() const {
+    if constexpr (std::is_same_v<Arg1T, VariableType>) {
+      return TemplateArgumentType::STRING;
+    }
+    else {
+      return TemplateArgumentType::NUMBER;
+    }
+  }
+
+  [[nodiscard]] TemplateArgumentType getSource2TemplateType() const {
+    if constexpr (std::is_same_v<Arg2T, VariableType>) {
+      return TemplateArgumentType::STRING;
+    }
+    else {
+      return TemplateArgumentType::NUMBER;
+    }
+  }
+
+  [[nodiscard]] TemplateArgumentType getDestinationTemplateType() const {
+    if constexpr (std::is_same_v<DestT, VariableType>) {
+      return TemplateArgumentType::STRING;
+    }
+    else {
+      return TemplateArgumentType::NUMBER;
+    }
+  }
 
   virtual void visitDefVariables(std::function<void(const VariableType&)> visitor) const override {
     if constexpr (std::is_same_v<DestT, VariableType>) {
@@ -133,12 +160,12 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
     }
     else if constexpr (std::is_same_v<Arg1T, VariableType> && std::is_same_v<Arg2T, VariableType>) {
       if (source1_ == from && source2_ == from) {
-        return std::make_unique<BBBinaryOperation<NumericType, NumericType, DestT>>(
-            to, to, destination_, source1Type_, source2Type_, destinationType_, operation_);
+        return std::make_unique<BBBinaryOperation<NumericType, NumericType, DestT>>(to, to, destination_, source1Type_,
+                                                                                    source2Type_, destinationType_, operation_);
       }
       else if (source1_ == from) {
         return std::make_unique<BBBinaryOperation<NumericType, Arg2T, DestT>>(to, source2_, destination_, source1Type_,
-                                                                                    source2Type_, destinationType_, operation_);
+                                                                              source2Type_, destinationType_, operation_);
       }
       else if (source2_ == from) {
         return std::make_unique<BBBinaryOperation<Arg1T, NumericType, NumericType>>(source1_, to, destination_, source1Type_,
@@ -202,6 +229,33 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
     }
   }
 
+  virtual void replaceDefVariables(const VariableType& from, const VariableType& to) override {
+    if constexpr (std::is_same_v<DestT, VariableType>) {
+      if (destination_ == from) {
+        destination_ = to;
+      }
+    }
+  }
+
+  virtual void replaceUseVariables(const VariableType& from, const VariableType& to) override {
+    if constexpr (std::is_same_v<Arg1T, VariableType>) {
+      if (source1_ == from) {
+        source1_ = to;
+      }
+    }
+    if constexpr (std::is_same_v<Arg2T, VariableType>) {
+      if (source2_ == from) {
+        source2_ = to;
+      }
+    }
+  }
+
+  virtual void replaceLabel(const LabelType& /*from*/, const LabelType& /*to*/) override {}
+
+  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override {
+    return std::vector<TemplateArgumentType>{getSource1TemplateType(), getSource2TemplateType(), getDestinationTemplateType()};
+  }
+
   virtual std::unique_ptr<BBInstruction> clone() const override {
     return std::make_unique<BBBinaryOperation<Arg1T, Arg2T, DestT>>(source1_, source2_, destination_, source1Type_, source2Type_,
                                                                     destinationType_, operation_);
@@ -257,24 +311,6 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
         break;
       case BBBinaryOperationEnum::XOR:
         out << "^";
-        break;
-      case BBBinaryOperationEnum::EQ:
-        out << "==";
-        break;
-      case BBBinaryOperationEnum::NE:
-        out << "!=";
-        break;
-      case BBBinaryOperationEnum::LT:
-        out << "<";
-        break;
-      case BBBinaryOperationEnum::LE:
-        out << "<=";
-        break;
-      case BBBinaryOperationEnum::GT:
-        out << ">";
-        break;
-      case BBBinaryOperationEnum::GE:
-        out << ">=";
         break;
     }
 

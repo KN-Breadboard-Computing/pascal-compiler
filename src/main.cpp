@@ -3,6 +3,7 @@
 
 #include "ast/program_node.hpp"
 #include "bblocks/bb_cfg_generator.hpp"
+#include "bblocks/bb_ssa_generator.hpp"
 
 bool parse(const std::string& inputFileName, std::vector<std::string>& errors, std::unique_ptr<ast::ProgramNode>& program);
 
@@ -46,12 +47,31 @@ int main(int argc, char* argv[]) {
   }
 
   cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeSingleAssigmentVariables();
+  cfgGenerator.removeTemporaryVariables();
 
   std::ofstream outputOptimizedBbFile("optimized-" + std::string(argv[3]));
   for (const auto& [name, cfg] : cfgGenerator.getControlFlowGraphs()) {
     outputOptimizedBbFile << name << ":\n" << cfg << std::endl;
   }
+
+  bblocks::BbSsaGenerator ssaGenerator;
+  for(const auto& [name, cfg] : cfgGenerator.getControlFlowGraphs()) {
+    ssaGenerator.toSsa(name, cfg);
+  }
+
+  std::ofstream outputSsaFile(argv[4]);
+  for(const auto& [name, cfg] : ssaGenerator.getControlFlowGraphs()) {
+    outputSsaFile << name << ":\n" << cfg << std::endl;
+  }
+
+  ssaGenerator.optimize();
+
+  std::ofstream outputOptimizedSsaFile("optimized-" + std::string(argv[4]));
+  for(const auto& [name, cfg] : ssaGenerator.getControlFlowGraphs()) {
+    outputOptimizedSsaFile << name << ":\n" << cfg << std::endl;
+  }
+
+  ssaGenerator.fromSsa();
 
   return 0;
 }

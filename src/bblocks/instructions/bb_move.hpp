@@ -34,6 +34,24 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
   [[nodiscard]] SourceType getSourceType() const { return sourceType_; }
   [[nodiscard]] DestinationType getDestinationType() const { return destinationType_; }
 
+  [[nodiscard]] TemplateArgumentType getSourceTemplateType() const {
+    if constexpr (std::is_same_v<SrcT, VariableType>) {
+      return TemplateArgumentType::STRING;
+    }
+    else {
+      return TemplateArgumentType::NUMBER;
+    }
+  }
+
+  [[nodiscard]] TemplateArgumentType getDestinationTemplateType() const {
+    if constexpr (std::is_same_v<DestT, VariableType>) {
+      return TemplateArgumentType::STRING;
+    }
+    else {
+      return TemplateArgumentType::NUMBER;
+    }
+  }
+
   virtual void visitDefVariables(std::function<void(const VariableType&)> visitor) const override {
     if constexpr (std::is_same_v<DestT, VariableType>) {
       visitor(destination_);
@@ -97,6 +115,28 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
     }
   }
 
+  virtual void replaceDefVariables(const VariableType& from, const VariableType& to) override {
+    if constexpr (std::is_same_v<DestT, VariableType>) {
+      if (destination_ == from) {
+        destination_ = to;
+      }
+    }
+  }
+
+  virtual void replaceUseVariables(const VariableType& from, const VariableType& to) override {
+    if constexpr (std::is_same_v<SrcT, VariableType>) {
+      if (source_ == from) {
+        source_ = to;
+      }
+    }
+  }
+
+  virtual void replaceLabel(const LabelType& /*from*/, const LabelType& /*to*/) override {}
+
+  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override {
+    return std::vector<TemplateArgumentType>{getSourceTemplateType(), getDestinationTemplateType()};
+  }
+
   virtual std::unique_ptr<BBInstruction> clone() const override {
     return std::make_unique<BBMove<SrcT, DestT>>(source_, destination_, sourceType_, destinationType_);
   }
@@ -117,8 +157,6 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
 
     switch (sourceType_) {
       case SourceType::CONSTANT:
-        out << source_;
-        break;
       case SourceType::REGISTER:
         out << source_;
         break;

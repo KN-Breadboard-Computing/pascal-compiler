@@ -28,6 +28,16 @@ class BBHalt : public BBInstruction {
     return clone();
   }
 
+  virtual void replaceDefVariables(const VariableType& /*from*/, const VariableType& /*to*/) override {}
+
+  virtual void replaceUseVariables(const VariableType& /*from*/, const VariableType& /*to*/) override {}
+
+  virtual void replaceLabel(const LabelType& /*from*/, const LabelType& /*to*/) override {}
+
+  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override {
+    return std::vector<TemplateArgumentType>{};
+  }
+
   virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBHalt>(); }
 
   virtual void print(std::ostream& out, int tab) const override { out << std::string(tab, ' ') << "halt" << std::endl; }

@@ -42,7 +42,11 @@ class BasicBlock {
   virtual ~BasicBlock() = default;
 
   void addInstruction(std::unique_ptr<BBInstruction> instruction) { instructions_.emplace_back(std::move(instruction)); }
+  void addInstructionToStart(std::unique_ptr<BBInstruction> instruction) {
+    instructions_.insert(instructions_.begin(), std::move(instruction));
+  }
   [[nodiscard]] const std::vector<std::unique_ptr<BBInstruction>>& getInstructions() const { return instructions_; }
+  [[nodiscard]] std::vector<std::unique_ptr<BBInstruction>>& instructions() { return instructions_; }
   [[nodiscard]] bool empty() const { return instructions_.empty(); }
   [[nodiscard]] size_t size() const { return instructions_.size(); }
 

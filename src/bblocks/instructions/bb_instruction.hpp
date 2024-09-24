@@ -2,6 +2,7 @@
 #define BBLOCKS_BB_INSTRUCTION_HPP
 
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -16,9 +17,10 @@ typedef std::string LabelType;
 namespace bblocks {
 class BBInstruction {
  public:
-  enum class Type { UNSPECIFIED, BINARY_OPERATION, BRANCH, CALL, HALT, MOVE, RET, UNARY_OPERATION };
+  enum class Type { UNSPECIFIED, BINARY_OPERATION, BRANCH, CALL, HALT, MOVE, PHI, RET, UNARY_OPERATION };
   enum class SourceType { CONSTANT, REGISTER, MEMORY };
   enum class DestinationType { REGISTER, MEMORY };
+  enum class TemplateArgumentType { STRING, NUMBER };
 
   BBInstruction() : type_{Type::UNSPECIFIED} {}
   BBInstruction(Type type) : type_{type} {}
@@ -45,6 +47,14 @@ class BBInstruction {
   // changes all variables from to the numeric to
   [[nodiscard]] virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const NumericType& to) = 0;
 
+  virtual void replaceDefVariables(const VariableType& from, const VariableType& to) = 0;
+
+  virtual void replaceUseVariables(const VariableType& from, const VariableType& to) = 0;
+
+  // change all labels from to labels to
+  virtual void replaceLabel(const LabelType& from, const LabelType& to) = 0;
+
+  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const = 0;
   [[nodiscard]] virtual std::unique_ptr<BBInstruction> clone() const = 0;
   virtual void print(std::ostream& out, int tab) const = 0;
 

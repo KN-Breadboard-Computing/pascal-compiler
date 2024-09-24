@@ -55,6 +55,7 @@ class Context {
 
   [[nodiscard]] std::string generateTempVariable() { return "#t" + std::to_string(tempVariableCounter_++); }
   [[nodiscard]] std::string getLastTempVariable() const { return "#t" + std::to_string(tempVariableCounter_ - 1); }
+  [[nodiscard]] static bool isTempVariable(const std::string& variable) { return variable.starts_with("#t"); }
 
   [[nodiscard]] std::string generateBasicBlockLabel() { return "bb" + std::to_string(basicBlockCounter_++); }
 
