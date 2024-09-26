@@ -88,12 +88,14 @@ requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstr
   }
 
   virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const NumericType& to) override {
+    const SourceType newSourceType = sourceType_ == SourceType::REGISTER ? SourceType::CONSTANT : sourceType_;
+
     if constexpr (std::is_same_v<ArgT, VariableType> && std::is_same_v<DestT, VariableType>) {
       if (source_ == from && destination_ == from) {
-        return std::make_unique<BBUnaryOperation<NumericType, NumericType>>(to, to, sourceType_, destinationType_, operation_);
+        return std::make_unique<BBUnaryOperation<NumericType, NumericType>>(to, to, newSourceType, destinationType_, operation_);
       }
       else if (source_ == from) {
-        return std::make_unique<BBUnaryOperation<NumericType, VariableType>>(to, destination_, sourceType_, destinationType_,
+        return std::make_unique<BBUnaryOperation<NumericType, VariableType>>(to, destination_, newSourceType, destinationType_,
                                                                              operation_);
       }
       else if (destination_ == from) {
@@ -104,7 +106,7 @@ requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstr
     }
     else if constexpr (std::is_same_v<ArgT, VariableType>) {
       if (source_ == from) {
-        return std::make_unique<BBUnaryOperation<NumericType, DestT>>(to, destination_, sourceType_, destinationType_,
+        return std::make_unique<BBUnaryOperation<NumericType, DestT>>(to, destination_, newSourceType, destinationType_,
                                                                       operation_);
       }
 

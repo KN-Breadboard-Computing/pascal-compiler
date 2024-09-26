@@ -34,6 +34,7 @@ requires BranchArgs<ArgT> class BBBranch : public BBInstruction {
   ~BBBranch() = default;
 
   [[nodiscard]] ArgT getValue() const { return value_; }
+  [[nodiscard]] SourceType getValueType() const { return valueType_; }
   [[nodiscard]] BBBranchCondition getCondition() const { return condition_; }
   [[nodiscard]] LabelType getTrueLabel() const { return trueLabel_; }
   [[nodiscard]] LabelType getFalseLabel() const { return falseLabel_; }
@@ -68,7 +69,8 @@ requires BranchArgs<ArgT> class BBBranch : public BBInstruction {
   virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const NumericType& to) override {
     if constexpr (std::is_same_v<ArgT, VariableType>) {
       if (value_ == from) {
-        return std::make_unique<BBBranch<NumericType>>(to, valueType_, condition_, trueLabel_, falseLabel_);
+        return std::make_unique<BBBranch<NumericType>>(to, BBInstruction::SourceType::CONSTANT, condition_, trueLabel_,
+                                                       falseLabel_);
       }
       return clone();
     }

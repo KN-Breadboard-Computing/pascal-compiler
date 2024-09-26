@@ -234,7 +234,8 @@ std::string MachineInstruction::typeToString_[typesCount_] = {
     /*228*/ "enter interrupt service routine",
     /*229*/ "return from interrupt service routine",
     /*230*/ "trigger interrupt 0",
-    /*231*/ "halt"};
+    /*231*/ "halt",
+    /*232*/ "label"};
 
 std::string MachineInstruction::typeToAssembly_[typesCount_] = {/**/ "Undefined Instruction",
                                                                 /*0*/ "0b00000001",
@@ -468,5 +469,6 @@ std::string MachineInstruction::typeToAssembly_[typesCount_] = {/**/ "Undefined 
                                                                 /*228*/ "0b11100101",
                                                                 /*229*/ "0b11100110",
                                                                 /*230*/ "0b11100111",
-                                                                /*231*/ "0b11111111"};
+                                                                /*231*/ "0b11101100",
+                                                                /*232*/ ""};
 }  // namespace machine_code

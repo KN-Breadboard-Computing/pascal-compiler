@@ -3,11 +3,6 @@
 namespace machine_code {
 void LiveRangesGenerator::generate(const bblocks::BBControlFlowGraph& cfg,
                                    const std::map<std::string, std::pair<size_t, size_t>>& blockBounds) {
-  for (const auto& blockLabel : blockBounds) {
-    std::cout << blockLabel.first << " from " << blockLabel.second.first << " to " << blockLabel.second.second << std::endl;
-  }
-  std::cout << std::endl;
-
   for (const auto& block : cfg.getBasicBlocks()) {
     addDefsAndUses(block.first, block.second, blockBounds.at(block.first).first);
   }
@@ -82,8 +77,6 @@ void LiveRangesGenerator::addDefsAndUses(const std::string& label, const bblocks
   size_t enumerator = blockStartEnumerator;
   for (const auto& instruction : block.getInstructions()) {
     defsInBlock_.insert({label, {}});
-
-    std::cout << enumerator << ": " << *instruction;
 
     instruction->visitDefVariables([this, &label, enumerator](const std::string& variable) {
       if (defsInBlock_[label].find(variable) == defsInBlock_[label].end()) {

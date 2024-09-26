@@ -240,22 +240,27 @@ class MachineInstruction {
     /*228*/ ISR,
     /*229*/ IRET,
     /*230*/ INT0,
-    /*231*/ HALT
+    /*231*/ HALT,
+    /*232*/ LABEL  // this is not a hardware instruction, but a label for the assembler
   };
 
   MachineInstruction() = default;
   MachineInstruction(Type type) : type_(type), operands_{} {}
   MachineInstruction(Type type, std::vector<std::string> operands) : type_(type), operands_(std::move(operands)) {}
 
-  MachineInstruction(const MachineInstruction&) = delete;
+  MachineInstruction(const MachineInstruction&) = default;
   MachineInstruction(MachineInstruction&&) = default;
 
-  MachineInstruction& operator=(const MachineInstruction&) = delete;
+  MachineInstruction& operator=(const MachineInstruction&) = default;
   MachineInstruction& operator=(MachineInstruction&&) = default;
 
   ~MachineInstruction() = default;
 
   [[nodiscard]] Type getType() const { return type_; }
+  [[nodiscard]] const std::vector<std::string>& getOperands() const { return operands_; }
+
+  [[nodiscard]] std::string getBinaryCode() const { return typeToAssembly_[type_]; }
+
   [[nodiscard]] std::string toString() const {
     std::string operands;
     for (const auto& operand : operands_) {
@@ -272,8 +277,16 @@ class MachineInstruction {
     return typeToAssembly_[type_] + operands;
   }
 
+  void replaceOperand(const std::string& oldOperand, const std::string& newOperand) {
+    for (auto& operand : operands_) {
+      if (operand == oldOperand) {
+        operand = newOperand;
+      }
+    }
+  }
+
  private:
-  static constexpr size_t typesCount_ = 233;
+  static constexpr size_t typesCount_ = 234;
   static std::string typeToString_[typesCount_];
   static std::string typeToAssembly_[typesCount_];
 

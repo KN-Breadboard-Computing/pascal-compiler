@@ -83,12 +83,14 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
   }
 
   virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const NumericType& to) override {
+    const SourceType newSourceType = sourceType_ == SourceType::REGISTER ? SourceType::CONSTANT : sourceType_;
+
     if constexpr (std::is_same_v<SrcT, VariableType> && std::is_same_v<DestT, VariableType>) {
       if (source_ == from && destination_ == from) {
-        return std::make_unique<BBMove<NumericType, NumericType>>(to, to, sourceType_, destinationType_);
+        return std::make_unique<BBMove<NumericType, NumericType>>(to, to, newSourceType, destinationType_);
       }
       else if (source_ == from) {
-        return std::make_unique<BBMove<NumericType, VariableType>>(to, destination_, sourceType_, destinationType_);
+        return std::make_unique<BBMove<NumericType, VariableType>>(to, destination_, newSourceType, destinationType_);
       }
       else if (destination_ == from) {
         return std::make_unique<BBMove<SrcT, NumericType>>(source_, to, sourceType_, destinationType_);
@@ -98,7 +100,7 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
     }
     else if constexpr (std::is_same_v<SrcT, VariableType>) {
       if (source_ == from) {
-        return std::make_unique<BBMove<NumericType, DestT>>(to, destination_, sourceType_, destinationType_);
+        return std::make_unique<BBMove<NumericType, DestT>>(to, destination_, newSourceType, destinationType_);
       }
 
       return clone();

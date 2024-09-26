@@ -126,31 +126,34 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
   }
 
   virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const NumericType& to) override {
+    const SourceType newSource1Type = source1Type_ == SourceType::REGISTER ? SourceType::CONSTANT : source1Type_;
+    const SourceType newSource2Type = source2Type_ == SourceType::REGISTER ? SourceType::CONSTANT : source2Type_;
+
     if constexpr (std::is_same_v<Arg1T, VariableType> && std::is_same_v<Arg2T, VariableType> &&
                   std::is_same_v<DestT, VariableType>) {
       if (source1_ == from && source2_ == from && destination_ == from) {
-        return std::make_unique<BBBinaryOperation<NumericType, NumericType, NumericType>>(to, to, to, source1Type_, source2Type_,
+        return std::make_unique<BBBinaryOperation<NumericType, NumericType, NumericType>>(to, to, to, newSource1Type, newSource2Type,
                                                                                           destinationType_, operation_);
       }
       else if (source1_ == from && source2_ == from) {
         return std::make_unique<BBBinaryOperation<NumericType, NumericType, VariableType>>(
-            to, to, destination_, source1Type_, source2Type_, destinationType_, operation_);
+            to, to, destination_, newSource1Type, newSource2Type, destinationType_, operation_);
       }
       else if (source1_ == from && destination_ == from) {
-        return std::make_unique<BBBinaryOperation<NumericType, Arg2T, NumericType>>(to, source2_, to, source1Type_, source2Type_,
+        return std::make_unique<BBBinaryOperation<NumericType, Arg2T, NumericType>>(to, source2_, to, newSource1Type, source2Type_,
                                                                                     destinationType_, operation_);
       }
       else if (source2_ == from && destination_ == from) {
-        return std::make_unique<BBBinaryOperation<Arg1T, NumericType, NumericType>>(source1_, to, to, source1Type_, source2Type_,
+        return std::make_unique<BBBinaryOperation<Arg1T, NumericType, NumericType>>(source1_, to, to, source1Type_, newSource2Type,
                                                                                     destinationType_, operation_);
       }
       else if (source1_ == from) {
-        return std::make_unique<BBBinaryOperation<NumericType, Arg2T, DestT>>(to, source2_, destination_, source1Type_,
+        return std::make_unique<BBBinaryOperation<NumericType, Arg2T, DestT>>(to, source2_, destination_, newSource1Type,
                                                                               source2Type_, destinationType_, operation_);
       }
       else if (source2_ == from) {
         return std::make_unique<BBBinaryOperation<Arg1T, NumericType, DestT>>(source1_, to, destination_, source1Type_,
-                                                                              source2Type_, destinationType_, operation_);
+                                                                              newSource2Type, destinationType_, operation_);
       }
       else if (destination_ == from) {
         return std::make_unique<BBBinaryOperation<Arg1T, Arg2T, NumericType>>(source1_, source2_, to, source1Type_, source2Type_,
@@ -160,26 +163,26 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
     }
     else if constexpr (std::is_same_v<Arg1T, VariableType> && std::is_same_v<Arg2T, VariableType>) {
       if (source1_ == from && source2_ == from) {
-        return std::make_unique<BBBinaryOperation<NumericType, NumericType, DestT>>(to, to, destination_, source1Type_,
-                                                                                    source2Type_, destinationType_, operation_);
+        return std::make_unique<BBBinaryOperation<NumericType, NumericType, DestT>>(to, to, destination_, newSource1Type,
+                                                                                    newSource2Type, destinationType_, operation_);
       }
       else if (source1_ == from) {
-        return std::make_unique<BBBinaryOperation<NumericType, Arg2T, DestT>>(to, source2_, destination_, source1Type_,
+        return std::make_unique<BBBinaryOperation<NumericType, Arg2T, DestT>>(to, source2_, destination_, newSource1Type,
                                                                               source2Type_, destinationType_, operation_);
       }
       else if (source2_ == from) {
         return std::make_unique<BBBinaryOperation<Arg1T, NumericType, NumericType>>(source1_, to, destination_, source1Type_,
-                                                                                    source2Type_, destinationType_, operation_);
+                                                                                    newSource2Type, destinationType_, operation_);
       }
       return clone();
     }
     else if constexpr (std::is_same_v<Arg1T, VariableType> && std::is_same_v<DestT, VariableType>) {
       if (source1_ == from && destination_ == from) {
-        return std::make_unique<BBBinaryOperation<NumericType, Arg2T, NumericType>>(to, source2_, to, source1Type_, source2Type_,
+        return std::make_unique<BBBinaryOperation<NumericType, Arg2T, NumericType>>(to, source2_, to, newSource1Type, source2Type_,
                                                                                     destinationType_, operation_);
       }
       else if (source1_ == from) {
-        return std::make_unique<BBBinaryOperation<NumericType, Arg2T, DestT>>(to, source2_, destination_, source1Type_,
+        return std::make_unique<BBBinaryOperation<NumericType, Arg2T, DestT>>(to, source2_, destination_, newSource1Type,
                                                                               source2Type_, destinationType_, operation_);
       }
       else if (destination_ == from) {
@@ -190,12 +193,12 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
     }
     else if constexpr (std::is_same_v<Arg2T, VariableType> && std::is_same_v<DestT, VariableType>) {
       if (source2_ == from && destination_ == from) {
-        return std::make_unique<BBBinaryOperation<Arg1T, NumericType, NumericType>>(source1_, to, to, source1Type_, source2Type_,
+        return std::make_unique<BBBinaryOperation<Arg1T, NumericType, NumericType>>(source1_, to, to, source1Type_, newSource2Type,
                                                                                     destinationType_, operation_);
       }
       else if (source2_ == from) {
         return std::make_unique<BBBinaryOperation<Arg1T, NumericType, DestT>>(source1_, to, destination_, source1Type_,
-                                                                              source2Type_, destinationType_, operation_);
+                                                                              newSource2Type, destinationType_, operation_);
       }
       else if (destination_ == from) {
         return std::make_unique<BBBinaryOperation<Arg1T, Arg2T, NumericType>>(source1_, source2_, to, source1Type_, source2Type_,
@@ -205,7 +208,7 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
     }
     else if constexpr (std::is_same_v<Arg1T, VariableType>) {
       if (source1_ == from) {
-        return std::make_unique<BBBinaryOperation<NumericType, Arg2T, DestT>>(to, source2_, destination_, source1Type_,
+        return std::make_unique<BBBinaryOperation<NumericType, Arg2T, DestT>>(to, source2_, destination_, newSource1Type,
                                                                               source2Type_, destinationType_, operation_);
       }
       return clone();
@@ -213,7 +216,7 @@ requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : publ
     else if constexpr (std::is_same_v<Arg2T, VariableType>) {
       if (source2_ == from) {
         return std::make_unique<BBBinaryOperation<Arg1T, NumericType, DestT>>(source1_, to, destination_, source1Type_,
-                                                                              source2Type_, destinationType_, operation_);
+                                                                              newSource2Type, destinationType_, operation_);
       }
       return clone();
     }

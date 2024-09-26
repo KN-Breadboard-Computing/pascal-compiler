@@ -84,6 +84,7 @@ int main(int argc, char* argv[]) {
 
   machineCodeGenerator.saveMachineCode(outputMachineCodeFileName);
   machineCodeGenerator.saveAssembly(outputAsmFileName);
+  machineCodeGenerator.saveBinary("binary-" + outputAsmFileName);
 
   return 0;
 }
