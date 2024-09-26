@@ -1,35 +1,39 @@
 program:
 -> bb0 -> bb2 {
-  i := 1
-  j := 1
-  k := 0
+  a := 0
+  b := 1
+  d := a
+  a := 1
 }
 
-bb0 bb11 bb9 -> bb2 -> bb7 bb14 {
-  #t5 := j - 100
-  br nonzero #t5 ? bb7 : bb14
+bb0 bb4 -> bb2 -> bb4 bb8 {
+  #t6 := a - 100
+  br nonzero #t6 ? bb4 : bb8
 }
 
-bb2 -> bb7 -> bb9 bb11 {
-  #t8 := j - 20
-  br nonzero #t8 ? bb9 : bb11
+bb2 -> bb4 -> bb2 {
+  a := 5 + 1
+  a := a + 2
+  d := d + 1
 }
 
-bb2 -> bb14 -> {
-  res := j
-  res := k
-  res := i
+bb2 -> bb8 -> bb10 bb12 {
+  #t18 := a - b
+  br nonzero #t18 ? bb10 : bb12
+}
+
+bb8 -> bb10 -> bb14 {
+  c := 6 - b
+}
+
+bb8 -> bb12 -> bb14 {
+  c := a + b
+}
+
+bb10 bb12 -> bb14 -> {
+  d := c
+  e := d + 1
   halt
-}
-
-bb7 -> bb9 -> bb2 {
-  k := k + 1
-  j := i
-}
-
-bb7 -> bb11 -> bb2 {
-  k := k + 2
-  j := k
 }
 
 

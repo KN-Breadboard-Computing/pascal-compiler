@@ -7,84 +7,100 @@ ProgramNode SsaTest:
         Group 0:
           BasicTypeNode INTEGER
           Identifiers:
-            IdentifierNode: i
-            IdentifierNode: j
-            IdentifierNode: k
-            IdentifierNode: res
+            IdentifierNode: a
+            IdentifierNode: b
+            IdentifierNode: c
+            IdentifierNode: d
+            IdentifierNode: e
       Routines:
     RoutineBodyNode:
       CompoundStatementNode:
         AssignNode
           SpecialExpressionNode: VARIABLE
-            IdentifierNode: i
-          SpecialExpressionNode: CONST
-            ConstantInteger<1>
-        AssignNode
-          SpecialExpressionNode: VARIABLE
-            IdentifierNode: j
-          SpecialExpressionNode: CONST
-            ConstantInteger<1>
-        AssignNode
-          SpecialExpressionNode: VARIABLE
-            IdentifierNode: k
+            IdentifierNode: a
           SpecialExpressionNode: CONST
             ConstantInteger<0>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: b
+          SpecialExpressionNode: CONST
+            ConstantInteger<1>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: d
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: a
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: a
+          SpecialExpressionNode: CONST
+            ConstantInteger<1>
         WhileNode:
           MathExpressionNode: LESS
             SpecialExpressionNode: VARIABLE
-              IdentifierNode: j
+              IdentifierNode: a
             SpecialExpressionNode: CONST
               ConstantInteger<100>
           CompoundStatementNode:
-            IfNode:
-              Condition:
-                MathExpressionNode: LESS
-                  SpecialExpressionNode: VARIABLE
-                    IdentifierNode: j
-                  SpecialExpressionNode: CONST
-                    ConstantInteger<20>
-              ThenStatement:
-                CompoundStatementNode:
-                  AssignNode
-                    SpecialExpressionNode: VARIABLE
-                      IdentifierNode: k
-                    MathExpressionNode: ADDITION
-                      SpecialExpressionNode: VARIABLE
-                        IdentifierNode: k
-                      SpecialExpressionNode: CONST
-                        ConstantInteger<1>
-                  AssignNode
-                    SpecialExpressionNode: VARIABLE
-                      IdentifierNode: j
-                    SpecialExpressionNode: VARIABLE
-                      IdentifierNode: i
-              ElseStatement:
-                CompoundStatementNode:
-                  AssignNode
-                    SpecialExpressionNode: VARIABLE
-                      IdentifierNode: k
-                    MathExpressionNode: ADDITION
-                      SpecialExpressionNode: VARIABLE
-                        IdentifierNode: k
-                      SpecialExpressionNode: CONST
-                        ConstantInteger<2>
-                  AssignNode
-                    SpecialExpressionNode: VARIABLE
-                      IdentifierNode: j
-                    SpecialExpressionNode: VARIABLE
-                      IdentifierNode: k
+            AssignNode
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: a
+              MathExpressionNode: ADDITION
+                SpecialExpressionNode: CONST
+                  ConstantInteger<5>
+                SpecialExpressionNode: CONST
+                  ConstantInteger<1>
+            AssignNode
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: a
+              MathExpressionNode: ADDITION
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: a
+                SpecialExpressionNode: CONST
+                  ConstantInteger<2>
+            AssignNode
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: d
+              MathExpressionNode: ADDITION
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: d
+                SpecialExpressionNode: CONST
+                  ConstantInteger<1>
+        IfNode:
+          Condition:
+            MathExpressionNode: GREATER
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: a
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: b
+          ThenStatement:
+            AssignNode
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: c
+              MathExpressionNode: SUBTRACTION
+                SpecialExpressionNode: CONST
+                  ConstantInteger<6>
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: b
+          ElseStatement:
+            AssignNode
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: c
+              MathExpressionNode: ADDITION
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: a
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: b
         AssignNode
           SpecialExpressionNode: VARIABLE
-            IdentifierNode: res
+            IdentifierNode: d
           SpecialExpressionNode: VARIABLE
-            IdentifierNode: j
+            IdentifierNode: c
         AssignNode
           SpecialExpressionNode: VARIABLE
-            IdentifierNode: res
-          SpecialExpressionNode: VARIABLE
-            IdentifierNode: k
-        AssignNode
-          SpecialExpressionNode: VARIABLE
-            IdentifierNode: res
-          SpecialExpressionNode: VARIABLE
-            IdentifierNode: i
+            IdentifierNode: e
+          MathExpressionNode: ADDITION
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: d
+            SpecialExpressionNode: CONST
+              ConstantInteger<1>

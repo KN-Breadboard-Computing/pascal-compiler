@@ -159,6 +159,11 @@ void BbSsaGenerator::toSsa(const std::string& name, const BBControlFlowGraph& gr
 void BbSsaGenerator::fromSsa() {
   for (auto& [name, cfg] : functionControlFlowGraphs_) {
     for (auto& block : cfg.basicBlocks()) {
+      block.second.instructions().erase(std::remove_if(block.second.instructions().begin(), block.second.instructions().end(),
+                                                       [](const std::unique_ptr<BBInstruction>& instruction) {
+                                                         return instruction->getType() == BBInstruction::Type::PHI;
+                                                       }),
+                                        block.second.instructions().end());
       for (auto& instruction : block.second.instructions()) {
         std::set<VariableType> vars;
         instruction->visitDefVariables([&vars](const VariableType& var) { vars.insert(var); });
@@ -222,6 +227,9 @@ void BbSsaGenerator::renameVariables(BBControlFlowGraph& cfg,
     usedVariables.insert(usedVariables.end(), uses.begin(), uses.end());
 
     for (const auto& use : uses) {
+      if (variableRenames.find(use) == variableRenames.end() || variableRenames[use].empty()) {
+        continue;
+      }
       instruction->replaceUseVariables(use, variableRenames[use].top());
     }
 

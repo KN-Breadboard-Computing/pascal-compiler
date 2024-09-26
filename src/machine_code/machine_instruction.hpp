@@ -261,7 +261,7 @@ class MachineInstruction {
     for (const auto& operand : operands_) {
       operands += " " + operand;
     }
-    return typeToString_[type_] + "," + operands;
+    return typeToString_[type_] + operands;
   }
 
   [[nodiscard]] std::string toAssembly() const {
