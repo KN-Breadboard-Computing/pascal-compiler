@@ -173,8 +173,8 @@ class MachineInstruction {
     /*161*/ DEC_B,
     /*162*/ DEC_T,
     /*163*/ JMP_IMM,
-    /*164*/ JMP_S,
-    /*165*/ JMP_NS,
+    /*164*/ JMP_IMM_S,
+    /*165*/ JMP_IMM_NS,
     /*166*/ JMP_IMM_T_S,
     /*167*/ JMP_IMM_T_NS,
     /*168*/ JMP_IMM_P,
@@ -277,10 +277,15 @@ class MachineInstruction {
     return typeToAssembly_[type_] + operands;
   }
 
-  void replaceOperand(const std::string& oldOperand, const std::string& newOperand) {
-    for (auto& operand : operands_) {
+  void replaceOperand(const std::string& oldOperand, const std::vector<std::string>& newOperands) {
+    const std::vector<std::string> operandsCopy = operands_;
+    operands_.clear();
+    for (const auto& operand : operandsCopy) {
       if (operand == oldOperand) {
-        operand = newOperand;
+        operands_.insert(operands_.end(), newOperands.begin(), newOperands.end());
+      }
+      else {
+        operands_.push_back(operand);
       }
     }
   }

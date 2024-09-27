@@ -4,10 +4,13 @@
 #include <bitset>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
+#include <optional>
 #include <queue>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "../bblocks/bb_control_flow_graph.hpp"
@@ -75,7 +78,11 @@ class MachineCodeGenerator {
   std::vector<MachineInstruction> generateRet(const bblocks::BBRet& instruction);
   std::vector<MachineInstruction> generateHalt(const bblocks::BBHalt& instruction);
 
-  std::string getBinary(int number);
+  static std::string getBinaryInt(int8_t number);
+  static std::string getBinaryUint(uint8_t number);
+  static std::string getBinaryAnyInt(int number);
+  static std::pair<std::optional<std::string>, std::string> getBinaryAddress(uint16_t address);
+  static std::pair<std::string, std::string> getBinaryFullAddress(uint16_t address);
 
   std::map<std::string, std::map<std::string, std::pair<size_t, size_t>>> blockBounds_;
   std::map<std::string, std::vector<MachineInstruction>> machineCode_;
