@@ -70,8 +70,8 @@ class Context {
 
   std::vector<std::string> scopes_;
 
-  size_t tempVariableCounter_;
-  size_t basicBlockCounter_;
+  std::size_t tempVariableCounter_;
+  std::size_t basicBlockCounter_;
 
   LookupTable lookupTable_;
   MemoryLayout memoryLayout_;

@@ -1,0 +1,87 @@
+Function: program
+Defs in block:
+bb0: 
+  a: 2 
+  i: 0 
+  j: 1 
+  k: 3 
+bb10: 
+  j: 9 
+bb12: 
+  #t11: 10 
+bb14: 
+  j: 12 
+bb18: 
+bb2: 
+  #t4: 4 
+bb7: 
+  #t7: 6 
+bb9: 
+  a: 13 
+  i: 14 
+  k: 15 
+
+Uses in block:
+bb0: 
+bb10: 
+bb12: 
+  #t11: 11 
+  j: 10 
+bb14: 
+  j: 12 
+bb18: 
+bb2: 
+  #t4: 5 
+  i: 4 
+bb7: 
+  #t7: 7 
+  k: 6 
+bb9: 
+  a: 14 
+  i: 14 
+  j: 13 
+  k: 15 
+
+Live in:
+bb0: 
+bb10: i k 
+bb12: i j k 
+bb14: i j k 
+bb18: 
+bb2: i k 
+bb7: i k 
+bb9: i j k 
+
+Live out:
+bb0: i k 
+bb10: i j k 
+bb12: i j k 
+bb14: i j k 
+bb18: 
+bb2: i k 
+bb7: i k 
+bb9: i k 
+
+Live ranges:
+#t11: 
+  10 11 
+
+#t4: 
+  4 5 
+
+#t7: 
+  6 7 
+
+a: 
+  13 14 
+
+i: 
+  0 15 
+
+j: 
+  9 13 
+
+k: 
+  3 15 
+
+

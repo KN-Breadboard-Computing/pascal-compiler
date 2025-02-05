@@ -1,0 +1,32 @@
+program:
+-> bb0 -> bb3 {
+  i := 0
+  j := 0
+  j := 0
+}
+
+bb0 bb10 -> bb3 -> bb5 {
+  j := j * 3
+  i := 0
+}
+
+bb3 bb7 -> bb5 -> bb7 {
+  i := i + 2
+}
+
+bb5 -> bb7 -> bb5 bb10 {
+  #t10 := j - 10
+  br nonzero #t10 ? bb5 : bb10
+}
+
+bb7 -> bb10 -> bb3 bb12 {
+  #t13 := j - 5
+  br nonzero #t13 ? bb3 : bb12
+}
+
+bb10 -> bb12 -> {
+  j := 0
+  halt
+}
+
+

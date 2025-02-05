@@ -1,0 +1,49 @@
+program:
+-> bb0 -> bb2 {
+  sum := 0
+  sum := 0
+}
+
+bb0 -> bb2 -> bb4 {
+  i := 1
+}
+
+bb2 -> bb4 -> bb5 {
+}
+
+bb4 bb7 -> bb5 -> bb8 bb18 {
+  #t3 := i - 5
+  br positive #t3 ? bb8 : bb18
+}
+
+bb5 -> bb8 -> bb10 {
+  sum := sum + i
+}
+
+bb5 -> bb18 -> {
+  halt
+}
+
+bb8 -> bb10 -> bb12 {
+  j := 1
+}
+
+bb10 -> bb12 -> bb13 {
+}
+
+bb12 bb15 -> bb13 -> bb15 bb7 {
+  #t9 := j - 5
+  br negative #t9 ? bb15 : bb7
+}
+
+bb13 -> bb15 -> bb13 {
+  #t13 := i * j
+  sum := sum + #t13
+  j := j - 1
+}
+
+bb13 -> bb7 -> bb5 {
+  i := i + 1
+}
+
+

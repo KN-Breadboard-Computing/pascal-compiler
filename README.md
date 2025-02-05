@@ -7,7 +7,10 @@ This project can run on Linux, make sure you have flex and bison. If you do not 
 Then compile the project with the `make` command.
 
 # Supported Pascal Syntax
-The `tests/examples` directory contains examples showing the syntax described below.
+The `examples` directory contains examples showing the syntax described below.
+
+# Compilation Steps
+The `compilation-process` directory contains example Pascal code and the corresponding output of each compilation step.
 
 ## Identifiers
 + Pascal is case insensitive.
@@ -25,6 +28,7 @@ The `tests/examples` directory contains examples showing the syntax described be
 + NOT - logical negation
 + AND - logical conjunction
 + OR - logical alternation
++ XOR - logical exclusive or
 + < -	less than
 + \>	- greater than
 + =	- equal to
@@ -236,10 +240,10 @@ END;
 ### Repeat Until Loop
 A loop can be interrupted using the `break` statement. Iteration can be skipped using `continue`.
 ```
-repeat
+REPEAT
   Statement1;
   Statement2;
-until BooleanExpression;
+UNTIL BooleanExpression;
 ```
 
 ### Goto - disabled
@@ -263,6 +267,7 @@ Each of these comments is multiline.
 ## Data Types
 
 ### Basic Data Types
+#### All basic variables are initialized to 0
 + Bool $\in$ {TRUE, FALSE}
 + Char $\in$ [0, 255] (represent ASCII codes)
 + Integer $\in$ [0, 255] / [-128, 127] (2's complement)
@@ -283,6 +288,7 @@ TIntTypeRename = Integer;
 ```
 
 ### Enumeration
+#### All enumeration variables are initialized to the first value in the enumeration
 ```
 TDay = (Mon, Tue, Wed, Thu, Fri, Sat, Sun);
 ```
@@ -301,7 +307,7 @@ TBools = False..True;
 TLetters = 'a'..'z';
 ```
 
-### Arrays
+### Arrays (max 256 elements)
 ```
 TIntArray = array[1..10] of Integer;
 TIntMatrix = array[1..10] of TIntArray;

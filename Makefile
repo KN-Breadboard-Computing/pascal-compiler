@@ -4,56 +4,76 @@ BB := bison
 BFLAGS :=
 CXX := clang++
 CXXFLAGS := -Wall -Wextra -pedantic -std=c++20 -O3 -g
+FORMATTER = clang-format -i --style=file
 
 SRCS := $(shell find src -name '*.cpp' | grep -v 'src/main.cpp')
+ALL_PROJECT_FILES := $(shell find . -type f \( -name "*.cpp" -o -name "*.hpp" \) ! -path "src/out/*")
 
-TEST_DIR = tests
-INPUT_DIR = $(TEST_DIR)/input
-AST_DIR = $(TEST_DIR)/ast
-BB_DIR = $(TEST_DIR)/bblock
-ASM_DIR = $(TEST_DIR)/asm
-INPUT_FILES = $(wildcard $(INPUT_DIR)/*.pas)
+COMPILATION_EXAMPLE_DIR = compilation-process
 
-all: lexer parser compiler
+all: lexer parser compiler format
+
+test-all: clean-ast-test clean-bb-test clean-ssa-test clean-mc-test test-ast test-bb test-ssa test-mc run-ast-test run-bb-test run-ssa-test run-mc-test
+
+clean: clean-compiler clean-ast-test clean-bb-test clean-ssa-test clean-mc-test
 
 lexer:
-	$(FF) $(FFLAGS) -o out/lexer.cpp --header-file=out/lexer.hpp src/lex.l
+	$(FF) $(FFLAGS) -o src/out/lexer.cpp --header-file=src/out/lexer.hpp src/lex.l
 
 parser:
-	$(BB) $(BFLAGS) -o out/parser.cpp --defines=out/parser.hpp -v src/yacc.y
+	$(BB) $(BFLAGS) -o src/out/parser.cpp --defines=src/out/parser.hpp -v src/yacc.y
 
 compiler:
-	$(CXX) $(CXXFLAGS) out/*.cpp $(SRCS) src/main.cpp -o compiler
+	$(CXX) $(CXXFLAGS) $(SRCS) src/main.cpp -o compiler
 
-generate-examples:
-	@for input_file in $(INPUT_FILES); do \
-		ast_file=$(AST_DIR)/`basename $$input_file .pas`.ast; \
-		bblock_file=$(BB_DIR)/`basename $$input_file .pas`.bblock; \
-		asm_file=$(ASM_DIR)/`basename $$input_file .pas`.asm; \
-		./compiler $$input_file $$ast_file $$bblock_file $$asm_file; \
-		echo ""; \
-		echo ""; \
-	done
+generate-example:
+	./compiler $(COMPILATION_EXAMPLE_DIR)/test.pas $(COMPILATION_EXAMPLE_DIR)/test.ast $(COMPILATION_EXAMPLE_DIR)/test.bb $(COMPILATION_EXAMPLE_DIR)/test.ssa $(COMPILATION_EXAMPLE_DIR)/test.mc $(COMPILATION_EXAMPLE_DIR)/test.lr $(COMPILATION_EXAMPLE_DIR)/test.asm $(COMPILATION_EXAMPLE_DIR)/test.bin
 
 test-ast:
-	$(CXX) $(CXXFLAGS) out/*.cpp $(SRCS) tests/src/ast_test.cpp tests/src/main.cpp -lgtest -o ast-test
+	$(CXX) $(CXXFLAGS) $(SRCS) tests/ast_test.cpp tests/main.cpp -lgtest -o ast-test
 
 test-bb:
-	$(CXX) $(CXXFLAGS) out/*.cpp $(SRCS) tests/src/bb_test.cpp tests/src/main.cpp -lgtest -o bb-test
+	$(CXX) $(CXXFLAGS) $(SRCS) tests/bb_test.cpp tests/main.cpp -lgtest -o bb-test
+
+test-ssa:
+	$(CXX) $(CXXFLAGS) $(SRCS) tests/ssa_test.cpp tests/main.cpp -lgtest -o ssa-test
+
+test-mc:
+	$(CXX) $(CXXFLAGS) $(SRCS) tests/mc_test.cpp tests/main.cpp -lgtest -o mc-test
 
 run-ast-test:
+	@echo "=== Running AST Tests ==="
 	@./ast-test | \
     tee >(grep '^Total' | awk '{print $$0}' >&2) | \
     grep -c 'OK' | \
   	awk '{print "Passed count:", $$1}'
 
 run-bb-test:
+	@echo "=== Running BB Tests  ==="
 	@./bb-test | \
     tee >(grep '^Total' | awk '{print $$0}' >&2) | \
     grep -c 'OK' | \
   	awk '{print "Passed count:", $$1}'
 
-clean:
+run-ssa-test:
+	@echo "=== Running SSA Tests ==="
+	@./ssa-test | \
+	tee >(grep '^Total' | awk '{print $$0}' >&2) | \
+	grep -c 'OK' | \
+  	awk '{print "Passed count:", $$1}'
+
+run-mc-test:
+	@echo "=== Running MC Tests  ==="
+	@./mc-test | \
+	tee >(grep '^Total' | awk '{print $$0}' >&2) | \
+	grep -c 'OK' | \
+  	awk '{print "Passed count:", $$1}'
+
+test-end-to-end:
+	./compiler $(COMPILATION_EXAMPLE_DIR)/test.pas $(COMPILATION_EXAMPLE_DIR)/test.ast $(COMPILATION_EXAMPLE_DIR)/test.bb $(COMPILATION_EXAMPLE_DIR)/test.ssa $(COMPILATION_EXAMPLE_DIR)/test.mc $(COMPILATION_EXAMPLE_DIR)/test.lr $(COMPILATION_EXAMPLE_DIR)/test.asm $(COMPILATION_EXAMPLE_DIR)/test.bin
+	../emulator/build/cli_app/EmulatorCliApp -i ../computer/config/instructions.json -f $(COMPILATION_EXAMPLE_DIR)/test.bin
+
+clean-compiler:
 	rm -f compiler
 
 clean-ast-test:
@@ -61,3 +81,12 @@ clean-ast-test:
 
 clean-bb-test:
 	rm -f bb-test
+
+clean-ssa-test:
+	rm -f ssa-test
+
+clean-mc-test:
+	rm -f mc-test
+
+format:
+	$(FORMATTER) $(ALL_PROJECT_FILES)

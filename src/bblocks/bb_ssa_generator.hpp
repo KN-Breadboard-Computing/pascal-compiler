@@ -28,17 +28,20 @@ class BbSsaGenerator {
   void toSsa(const std::string& name, const BBControlFlowGraph& graph);
   void fromSsa();
 
-  void optimize();
+  void removeRedundantAssignments();
+  void propagateConstants();
 
  private:
-  std::string appendVariableCounter(const std::string& var, size_t index);
-  std::string removeVariableCounter(const std::string& var);
-  void renameVariables(BBControlFlowGraph& cfg, const std::map<std::string, std::vector<std::string>>& dominanceTree,
-                       const std::string& blockLabel, std::map<std::string, size_t>& variablesCounter,
-                       std::map<std::string, std::stack<std::string>>& variableRenames,
-                       std::map<std::string, std::vector<std::string>>& phis);
+  static std::string appendVariableCounter(const std::string& var, std::size_t index);
+  static std::string removeVariableCounter(const std::string& var);
+  void renameVariables(const std::string& blockLabel, BBControlFlowGraph& cfg,
+                       const std::map<std::string, std::vector<std::string>>& dominanceTree,
+                       std::map<std::string, std::size_t>& variableCounters,
+                       std::map<std::string, std::stack<std::size_t>>& variableStacks,
+                       std::map<std::string, std::map<std::string, std::map<std::string, std::size_t>>>& phiCompletions);
 
   std::map<std::string, BBControlFlowGraph> functionControlFlowGraphs_;
+  std::map<std::string, std::map<std::string, std::map<std::string, std::map<std::string, std::size_t>>>> phiCompletions_;
 };
 }  // namespace bblocks
 

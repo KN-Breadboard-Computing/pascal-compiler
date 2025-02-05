@@ -87,9 +87,9 @@ class BbCfgGenerator : public ast::AstVisitor {
 
   [[nodiscard]] std::map<std::string, BBControlFlowGraph> getControlFlowGraphs() const { return functionControlFlowGraphs_; }
 
-  const std::map<std::string, size_t>& getEnumTranslator() const { return enumTranslator_; }
-  const std::map<std::string, size_t>& getTypeBytes() const { return typeBytes_; }
-  const std::map<std::string, size_t>& getProcedureOffsets() const { return procedureOffsets_; }
+  const std::map<std::string, std::size_t>& getEnumTranslator() const { return enumTranslator_; }
+  const std::map<std::string, std::size_t>& getTypeBytes() const { return typeBytes_; }
+  const std::map<std::string, std::size_t>& getProcedureOffsets() const { return procedureOffsets_; }
 
  private:
   void newControlFlowGraph(const std::string& label);
@@ -101,11 +101,11 @@ class BbCfgGenerator : public ast::AstVisitor {
   static bool isInteger(const std::string& expr);
   static bool isBoolean(const std::string& expr);
 
-  size_t countIndexes(std::string type);
+  std::size_t countIndexes(std::string type);
 
-  std::map<std::string, size_t> enumTranslator_;
-  std::map<std::string, size_t> typeBytes_;
-  std::map<std::string, size_t> procedureOffsets_;
+  std::map<std::string, std::size_t> enumTranslator_;
+  std::map<std::string, std::size_t> typeBytes_;
+  std::map<std::string, std::size_t> procedureOffsets_;
 
   BasicBlock currentBasicBlock_;
   std::stack<BBControlFlowGraph> controlFlowGraphs_;

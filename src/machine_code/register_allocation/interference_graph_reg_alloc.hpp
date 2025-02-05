@@ -18,7 +18,7 @@ class InterferenceGraphRegAlloc {
 
   ~InterferenceGraphRegAlloc() = default;
 
-  void allocateRegisters(size_t registersCount, std::map<std::string, std::vector<std::string>>& interferenceGraph);
+  void allocateRegisters(std::size_t registersCount, std::map<std::string, std::vector<std::string>>& interferenceGraph);
 };
 }  // namespace machine_code
 

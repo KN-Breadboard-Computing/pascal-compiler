@@ -1,2 +1,7 @@
-./out
+.out
 .idea
+compiler
+ast-test
+bb-test
+ssa-test
+mc-test

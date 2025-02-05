@@ -151,6 +151,10 @@ class LookupTable {
     }
   }
 
+  bool isBasicType(const std::string& name) const {
+    return name == "integer" || name == "boolean" || name == "char" || name.find("enum%") == 0;
+  }
+
   void defineVariable(VariableCategory category, const std::string& name, std::string type, const std::string& currentScope) {
 #ifdef CONTEXT_DEBUG
     std::cout << "Define variable: " << currentScope << " " << name << " " << static_cast<int>(category) << " " << type

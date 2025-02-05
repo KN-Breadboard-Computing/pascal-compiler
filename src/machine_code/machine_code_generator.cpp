@@ -1,7 +1,7 @@
 #include "machine_code_generator.hpp"
 
 namespace machine_code {
-void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg) {
+void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg, std::ostream& liveRangesFile) {
   for (const auto& [functionName, controlFlowGraph] : cfg) {
     // enumerate labels of blocks
     enumerateBlockLabels(functionName, controlFlowGraph);
@@ -9,7 +9,9 @@ void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBContr
     // calculate live ranges
     liveRanges_.insert({functionName, LiveRangesGenerator{}});
     liveRanges_[functionName].generate(controlFlowGraph, blockBounds_[functionName]);
-    liveRanges_[functionName].saveLiveRanges("live_ranges_" + functionName + ".txt");
+    liveRangesFile << "Function: " << functionName << std::endl;
+    liveRanges_[functionName].saveLiveRanges(liveRangesFile);
+    liveRangesFile << std::endl;
 
     // calculate variable addresses
     generateVariableAddresses(functionName, controlFlowGraph, liveRanges_[functionName]);
@@ -107,8 +109,8 @@ void MachineCodeGenerator::saveBinary(const std::string& filename) {
 }
 
 void MachineCodeGenerator::enumerateBlockLabels(const std::string& name, const bblocks::BBControlFlowGraph& cfg) {
-  std::map<std::string, std::pair<size_t, size_t>> bounds;
-  size_t labelCounter = 0;
+  std::map<std::string, std::pair<std::size_t, std::size_t>> bounds;
+  std::size_t labelCounter = 0;
 
   std::queue<std::string> blocksToProcess;
   std::set<std::string> visitedBlocks;
@@ -137,7 +139,7 @@ void MachineCodeGenerator::generateVariableAddresses(const std::string& /*name*/
                                                      const LiveRangesGenerator& liveRanges) {
   //  variableAddresses_.insert({name, std::map<std::string, uint16_t>{}});
 
-  constexpr size_t beginningAddress = 1024;
+  constexpr std::size_t beginningAddress = 129;
   uint16_t address = beginningAddress;
   for (const auto& [variable, range] : liveRanges.getLiveRanges()) {
     variableAddresses_.insert({variable, address});
@@ -148,7 +150,7 @@ void MachineCodeGenerator::generateVariableAddresses(const std::string& /*name*/
 void MachineCodeGenerator::calculateLabelValues(const std::string& name) {
   labelValues_.insert({name, std::map<std::string, uint16_t>{}});
 
-  size_t currentLabelValue = 0;
+  std::size_t currentLabelValue = 0;
   for (const auto& instruction : machineCode_[name]) {
     if (instruction.getType() == MachineInstruction::Type::LABEL) {
       labelValues_[name].insert({instruction.getOperands().front(), currentLabelValue});
@@ -1378,11 +1380,11 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBranch(const bbloc
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateCall(const bblocks::BBCall& /*instruction*/) {
-  return {MachineInstruction(MachineInstruction::JMP_IMM)};
+  return {MachineInstruction(MachineInstruction::JMP_FUN)};
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateRet(const bblocks::BBRet& /*instruction*/) {
-  return {MachineInstruction(MachineInstruction::JMP_REL_RET)};
+  return {MachineInstruction(MachineInstruction::JMP_RET)};
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateHalt(const bblocks::BBHalt& /*instruction*/) {

@@ -39,7 +39,7 @@ class MachineCodeGenerator {
 
   ~MachineCodeGenerator() = default;
 
-  void generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg);
+  void generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg, std::ostream& liveRangesFile);
   void saveMachineCode(const std::string& filename);
   void saveAssembly(const std::string& filename);
   void saveBinary(const std::string& filename);
@@ -84,7 +84,7 @@ class MachineCodeGenerator {
   static std::pair<std::optional<std::string>, std::string> getBinaryAddress(uint16_t address);
   static std::pair<std::string, std::string> getBinaryFullAddress(uint16_t address);
 
-  std::map<std::string, std::map<std::string, std::pair<size_t, size_t>>> blockBounds_;
+  std::map<std::string, std::map<std::string, std::pair<std::size_t, std::size_t>>> blockBounds_;
   std::map<std::string, std::vector<MachineInstruction>> machineCode_;
   std::map<std::string, LiveRangesGenerator> liveRanges_;
   //  std::map<std::string, std::map<std::string, uint16_t>> variableAddresses_;

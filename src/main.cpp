@@ -1,4 +1,3 @@
-#include <fstream>
 #include <iostream>
 
 #include "ast/program_node.hpp"
@@ -9,11 +8,11 @@
 bool parse(const std::string& inputFileName, std::vector<std::string>& errors, std::unique_ptr<ast::ProgramNode>& program);
 
 int main(int argc, char* argv[]) {
-  constexpr int expectedArgumentsNumber{7};
+  constexpr int expectedArgumentsNumber{9};
   if (argc != expectedArgumentsNumber) {
     std::cerr << "Usage: " << argv[0]
               << " <input-file> <output-ast-file> <output-bblocks-file> <output-ssa-file> <output-machine-code-file> "
-                 "<output-asm-file>"
+                 "<register-allocation-output-file> <output-asm-file> <output-asm-binary-file>"
               << std::endl;
     return 1;
   }
@@ -23,7 +22,9 @@ int main(int argc, char* argv[]) {
   const std::string outputBblocksFileName{argv[3]};
   const std::string outputSsaFileName{argv[4]};
   const std::string outputMachineCodeFileName{argv[5]};
-  const std::string outputAsmFileName{argv[6]};
+  const std::string outputRegisterAllocationFileName{argv[6]};
+  const std::string outputAsmFileName{argv[7]};
+  const std::string outputBinaryAsmFileName{argv[8]};
 
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
@@ -54,8 +55,9 @@ int main(int argc, char* argv[]) {
 
   cfgGenerator.removeEmptyBasicBlocks();
   cfgGenerator.removeTemporaryVariables();
+  cfgGenerator.removeEmptyBasicBlocks();
 
-  std::ofstream outputOptimizedBbFile("optimized-" + outputBblocksFileName);
+  std::ofstream outputOptimizedBbFile(outputBblocksFileName + ".opt");
   for (const auto& [name, cfg] : cfgGenerator.getControlFlowGraphs()) {
     outputOptimizedBbFile << name << ":\n" << cfg << std::endl;
   }
@@ -70,21 +72,28 @@ int main(int argc, char* argv[]) {
     outputSsaFile << name << ":\n" << cfg << std::endl;
   }
 
-  ssaGenerator.optimize();
+  ssaGenerator.propagateConstants();
+  ssaGenerator.removeRedundantAssignments();
 
-  std::ofstream outputOptimizedSsaFile("optimized-" + outputSsaFileName);
+  std::ofstream outputOptimizedSsaFile(outputSsaFileName + ".opt");
   for (const auto& [name, cfg] : ssaGenerator.getControlFlowGraphs()) {
     outputOptimizedSsaFile << name << ":\n" << cfg << std::endl;
   }
 
   ssaGenerator.fromSsa();
 
+  std::ofstream outputAfterSsaFile(outputSsaFileName + ".merged");
+  for (const auto& [name, cfg] : ssaGenerator.getControlFlowGraphs()) {
+    outputAfterSsaFile << name << ":\n" << cfg << std::endl;
+  }
+
   machine_code::MachineCodeGenerator machineCodeGenerator;
-  machineCodeGenerator.generate(ssaGenerator.getControlFlowGraphs());
+  std::ofstream outputRegisterAllocationFile(outputRegisterAllocationFileName);
+  machineCodeGenerator.generate(ssaGenerator.getControlFlowGraphs(), outputRegisterAllocationFile);
 
   machineCodeGenerator.saveMachineCode(outputMachineCodeFileName);
   machineCodeGenerator.saveAssembly(outputAsmFileName);
-  machineCodeGenerator.saveBinary("binary-" + outputAsmFileName);
+  machineCodeGenerator.saveBinary(outputBinaryAsmFileName);
 
   return 0;
 }

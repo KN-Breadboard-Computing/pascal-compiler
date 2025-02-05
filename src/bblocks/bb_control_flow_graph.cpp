@@ -57,9 +57,9 @@ void BBControlFlowGraph::merge(const BBControlFlowGraph& cfg) {
   merge(cfg, exitLabel_, cfg.getEntryLabel());
 }
 
-size_t BBControlFlowGraph::distance(const std::string& from, const std::string& to) const {
+std::size_t BBControlFlowGraph::distance(const std::string& from, const std::string& to) const {
   std::queue<std::string> labels;
-  std::map<std::string, size_t> distances;
+  std::map<std::string, std::size_t> distances;
 
   labels.push(from);
   distances.insert({from, 0});

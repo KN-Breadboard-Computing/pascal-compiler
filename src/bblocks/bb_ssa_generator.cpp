@@ -62,11 +62,11 @@ void BbSsaGenerator::toSsa(const std::string& name, const BBControlFlowGraph& gr
       continue;
     }
 
-    std::vector<std::pair<std::string, size_t>> distances;
+    std::vector<std::pair<std::string, std::size_t>> distances;
     for (const auto& domLabel : dominators[label]) {
       distances.push_back({domLabel, ssaGraph.distance(domLabel, label)});
     }
-    std::sort(distances.begin(), distances.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
+    std::sort(distances.begin(), distances.end(), [](const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
 
     if (distances.size() == 1) {
       immediateDominators.insert({label, distances[0].first});
@@ -82,47 +82,14 @@ void BbSsaGenerator::toSsa(const std::string& name, const BBControlFlowGraph& gr
   }
 
   for (const auto& label : allBlockLabels) {
+    if (ssaGraph.getInLinks(label).size() < 2) {
+      continue;
+    }
     for (const auto& predLabel : ssaGraph.getInLinks(label)) {
       std::string runner = predLabel;
-      while (std::find(strictDominators[label].begin(), strictDominators[label].end(), runner) == strictDominators[label].end()) {
+      while (runner != immediateDominators[label]) {
         dominanceFrontiers[runner].insert(label);
         runner = immediateDominators[runner];
-      }
-    }
-  }
-
-  std::set<std::string> vars;
-  std::map<std::string, std::set<std::string>> origDefs;
-  std::map<std::string, std::set<std::string>> defSites;
-  for (const auto& label : allBlockLabels) {
-    origDefs.insert({label, std::set<std::string>()});
-    for (const auto& instruction : ssaGraph.getBasicBlock(label).getInstructions()) {
-      instruction->visitDefVariables([&vars, &origDefs, &defSites, &label](const VariableType& var) {
-        vars.insert(var);
-        origDefs[label].insert(var);
-        defSites[var].insert(label);
-      });
-    }
-  }
-
-  std::map<std::string, std::vector<std::string>> phis;
-  for (const auto& var : vars) {
-    std::set<std::string> worklist;
-    for (const auto& defSite : defSites[var]) {
-      worklist.insert(defSite);
-    }
-
-    while (!worklist.empty()) {
-      const std::string label = *worklist.begin();
-      worklist.erase(worklist.begin());
-
-      for (const auto& df : dominanceFrontiers[label]) {
-        if (std::find(phis[var].begin(), phis[var].end(), df) == phis[var].end()) {
-          phis[var].push_back(df);
-          if (std::find(origDefs[df].begin(), origDefs[df].end(), var) == origDefs[df].end()) {
-            worklist.insert(df);
-          }
-        }
       }
     }
   }
@@ -138,20 +105,83 @@ void BbSsaGenerator::toSsa(const std::string& name, const BBControlFlowGraph& gr
     }
   }
 
-  std::map<std::string, std::vector<std::string>> translatedPhis;
-  for (const auto& [var, phiBlocks] : phis) {
-    for (const auto& block : phiBlocks) {
-      if (translatedPhis.find(block) == translatedPhis.end()) {
-        translatedPhis.insert({block, std::vector<std::string>{}});
-      }
-      translatedPhis[block].push_back(var);
+  std::map<std::string, std::set<std::string>> varDefs;
+  for (const auto& label : allBlockLabels) {
+    for (const auto& instruction : ssaGraph.getBasicBlock(label).getInstructions()) {
+      instruction->visitDefVariables([&varDefs, &label](const VariableType& var) {
+        if (varDefs.find(var) == varDefs.end()) {
+          varDefs.insert({var, std::set<std::string>()});
+        }
+        varDefs[var].insert(label);
+      });
     }
   }
 
-  std::map<std::string, size_t> variablesCounter;
-  std::map<std::string, std::stack<std::string>> variableRenames;
+  std::map<std::string, std::vector<std::string>> phis;
+  for (const auto& [var, labels] : varDefs) {
+    if (labels.size() < 2) {
+      continue;
+    }
 
-  renameVariables(ssaGraph, dominanceTree, ssaGraph.getEntryLabel(), variablesCounter, variableRenames, translatedPhis);
+    std::set<std::string> hasAlready;
+    std::set<std::string> everOnWorklist;
+    std::set<std::string> worklist;
+
+    everOnWorklist.insert(labels.begin(), labels.end());
+    worklist.insert(labels.begin(), labels.end());
+
+    while (!worklist.empty()) {
+      const std::string label = *worklist.begin();
+      worklist.erase(worklist.begin());
+
+      for (const auto& dfLabel : dominanceFrontiers[label]) {
+        if (hasAlready.find(dfLabel) == hasAlready.end()) {
+          if (phis.find(dfLabel) == phis.end()) {
+            phis.insert({dfLabel, std::vector<std::string>()});
+          }
+          if (std::find(phis[dfLabel].begin(), phis[dfLabel].end(), var) == phis[dfLabel].end()) {
+            phis[dfLabel].push_back(var);
+          }
+          hasAlready.insert(dfLabel);
+
+          if (everOnWorklist.find(dfLabel) == everOnWorklist.end()) {
+            everOnWorklist.insert(dfLabel);
+            worklist.insert(dfLabel);
+          }
+        }
+      }
+    }
+  }
+
+  for (const auto& [label, vars] : phis) {
+    for (const auto& var : vars) {
+      ssaGraph.basicBlocks().at(label).addInstructionToStart(std::make_unique<BBPhi>(var, std::vector<std::string>{}));
+    }
+  }
+
+  std::map<std::string, std::size_t> variableCounters;
+  std::map<std::string, std::stack<std::size_t>> variableStacks;
+  phiCompletions_.insert({name, std::map<std::string, std::map<std::string, std::map<std::string, std::size_t>>>()});
+  for (const auto& [var, defs] : varDefs) {
+    variableCounters.insert({var, 0});
+    variableStacks.insert({var, std::stack<std::size_t>{}});
+  }
+
+  renameVariables(ssaGraph.getEntryLabel(), ssaGraph, dominanceTree, variableCounters, variableStacks, phiCompletions_[name]);
+
+  for (const auto& [label, block] : ssaGraph.basicBlocks()) {
+    for (const auto& instruction : block.getInstructions()) {
+      if (instruction->getType() == BBInstruction::Type::PHI) {
+        BBPhi* phi = dynamic_cast<BBPhi*>(instruction.get());
+        const std::string var = removeVariableCounter(phi->getName());
+        std::vector<std::string> args;
+        for (const auto& [predLabel, predIndex] : phiCompletions_[name][label][var]) {
+          args.push_back(appendVariableCounter(var, predIndex));
+        }
+        phi->setArgs(args);
+      }
+    }
+  }
 
   functionControlFlowGraphs_.insert({name, ssaGraph});
 }
@@ -177,83 +207,220 @@ void BbSsaGenerator::fromSsa() {
   }
 }
 
-void BbSsaGenerator::optimize() {}
+//void BbSsaGenerator::fromSsa() { <- This function is not used, because generate additional variables
+//  for (auto& [name, cfg] : functionControlFlowGraphs_) {
+//    // iterate over block in bfs order
+//    std::queue<std::string> bfsQueue;
+//    std::set<std::string> visited;
+//    bfsQueue.push(cfg.getEntryLabel());
+//    visited.insert(cfg.getEntryLabel());
+//
+//    while (!bfsQueue.empty()) {
+//      const std::string label = bfsQueue.front();
+//      bfsQueue.pop();
+//
+//      for (const auto& childLabel : cfg.getOutLinks(label)) {
+//        if (visited.find(childLabel) == visited.end()) {
+//          bfsQueue.push(childLabel);
+//          visited.insert(childLabel);
+//        }
+//      }
+//
+//      BasicBlock newBlock;
+//      for (const auto& instruction : cfg.basicBlocks().at(label).getInstructions()) {
+//        if (instruction->getType() == BBInstruction::Type::PHI) {
+//          BBPhi* phi = dynamic_cast<BBPhi*>(instruction.get());
+//          const std::string var = phi->getName();
+//          for (const auto& pred : phiCompletions_[name][label][removeVariableCounter(var)]) {
+//            cfg.basicBlocks()
+//                .at(pred.first)
+//                .addInstruction(std::make_unique<BBMoveVV>(appendVariableCounter(removeVariableCounter(var), pred.second), var,
+//                                                           BBInstruction::SourceType::REGISTER,
+//                                                           BBInstruction::DestinationType::REGISTER));
+//          }
+//        }
+//        else {
+//          newBlock.addInstruction(instruction->clone());
+//        }
+//      }
+//
+//      cfg.basicBlocks().at(label) = newBlock;
+//    }
+//  }
+//}
 
-std::string BbSsaGenerator::appendVariableCounter(const std::string& var, size_t index) {
+void BbSsaGenerator::removeRedundantAssignments() {
+  for (auto& [name, cfg] : functionControlFlowGraphs_) {
+    std::set<std::string> defs;
+    std::set<std::string> uses;
+    for (const auto& block : cfg.basicBlocks()) {
+      for (const auto& instruction : block.second.getInstructions()) {
+        instruction->visitDefVariables([&defs](const VariableType& var) { defs.insert(var); });
+        instruction->visitUseVariables([&uses](const VariableType& var) { uses.insert(var); });
+      }
+    }
+
+    std::vector<std::string> redundantDefs;
+    std::set_difference(defs.begin(), defs.end(), uses.begin(), uses.end(), std::inserter(redundantDefs, redundantDefs.begin()));
+
+    for (auto& block : cfg.basicBlocks()) {
+      BasicBlock newBlock;
+
+      for (const auto& instruction : block.second.getInstructions()) {
+        bool isRedundant = false;
+        instruction->visitDefVariables([&redundantDefs, &isRedundant](const VariableType& var) {
+          if (std::find(redundantDefs.begin(), redundantDefs.end(), var) != redundantDefs.end()) {
+            isRedundant = true;
+          }
+        });
+
+        if (!isRedundant) {
+          newBlock.addInstruction(instruction->clone());
+        }
+      }
+
+      block.second = newBlock;
+    }
+  }
+}
+
+void BbSsaGenerator::propagateConstants() {
+  for (auto& [name, cfg] : functionControlFlowGraphs_) {}
+}
+
+std::string BbSsaGenerator::appendVariableCounter(const std::string& var, std::size_t index) {
   return var + "." + std::to_string(index);
 }
 std::string BbSsaGenerator::removeVariableCounter(const std::string& var) {
-  std::string newVar = "";
-  for (char c : var) {
-    if (c == '.') {
+  std::string newVar;
+  for (const char character : var) {
+    if (character == '.') {
       break;
     }
-    newVar += c;
+    newVar += character;
   }
   return newVar;
 }
 
-void BbSsaGenerator::renameVariables(BBControlFlowGraph& cfg,
-                                     const std::map<std::string, std::vector<std::string>>& dominanceTree,
-                                     const std::string& blockLabel, std::map<std::string, size_t>& variablesCounter,
-                                     std::map<std::string, std::stack<std::string>>& variableRenames,
-                                     std::map<std::string, std::vector<std::string>>& phis) {
+void BbSsaGenerator::renameVariables(
+    const std::string& blockLabel, BBControlFlowGraph& cfg, const std::map<std::string, std::vector<std::string>>& dominanceTree,
+    std::map<std::string, std::size_t>& variableCounters, std::map<std::string, std::stack<std::size_t>>& variableStacks,
+    std::map<std::string, std::map<std::string, std::map<std::string, std::size_t>>>& phiCompletions) {
+  for (auto& instruction : cfg.basicBlocks().at(blockLabel).instructions()) {
+    if (instruction->getType() == BBInstruction::Type::PHI) {
+      BBPhi* phi = dynamic_cast<BBPhi*>(instruction.get());
+      const std::string var = phi->getName();
 
-  for (const auto& phiVar : phis[blockLabel]) {
-    if (variablesCounter.find(phiVar) == variablesCounter.end()) {
-      variablesCounter.insert({phiVar, 0});
-      std::stack<std::string> stack;
-      stack.push(appendVariableCounter(phiVar, 0));
-      variableRenames.insert({phiVar, stack});
+      const std::size_t index = variableCounters[var];
+      phi->setName(appendVariableCounter(var, index));
+
+      variableStacks[var].push(index);
+      variableCounters[var]++;
     }
-    variablesCounter[phiVar]++;
-    variableRenames[phiVar].push(appendVariableCounter(phiVar, variablesCounter[phiVar]));
+    else {
+      std::set<std::string> rhsVars;
+      instruction->visitUseVariables([&rhsVars](const VariableType& var) { rhsVars.insert(var); });
+      for (const auto& rhsVar : rhsVars) {
+        instruction->replaceUseVariables(rhsVar, appendVariableCounter(rhsVar, variableStacks[rhsVar].top()));
+      }
 
-    cfg.basicBlocks()
-        .at(blockLabel)
-        .addInstructionToStart(std::make_unique<BBPhi>(variableRenames[phiVar].top(), std::vector<std::string>{phiVar}));
+      std::set<std::string> lhsVars;
+      instruction->visitDefVariables([&lhsVars](const VariableType& var) { lhsVars.insert(var); });
+      for (const auto& lhsVar : lhsVars) {
+        const std::size_t index = variableCounters[lhsVar];
+        instruction->replaceDefVariables(lhsVar, appendVariableCounter(lhsVar, index));
+
+        variableStacks[lhsVar].push(index);
+        variableCounters[lhsVar]++;
+      }
+    }
   }
 
-  std::vector<std::string> definedVariables;
-  std::vector<std::string> usedVariables;
+  for (const auto& childLabel : cfg.getOutLinks(blockLabel)) {
+    for (const auto& instruction : cfg.basicBlocks().at(childLabel).instructions()) {
+      if (instruction->getType() == BBInstruction::Type::PHI) {
+        BBPhi* phi = dynamic_cast<BBPhi*>(instruction.get());
+        const std::string var = removeVariableCounter(phi->getName());
+
+        if (phiCompletions.find(childLabel) == phiCompletions.end()) {
+          phiCompletions.insert({childLabel, std::map<std::string, std::map<std::string, std::size_t>>()});
+        }
+        if (phiCompletions[childLabel].find(var) == phiCompletions[childLabel].end()) {
+          phiCompletions[childLabel].insert({var, std::map<std::string, std::size_t>()});
+        }
+
+        if (phiCompletions[childLabel][var].find(blockLabel) == phiCompletions[childLabel][var].end()) {
+          if (!variableStacks[var].empty()) {
+            phiCompletions[childLabel][var].insert({blockLabel, variableStacks[var].top()});
+          }
+        }
+        else {
+          if (!variableStacks[var].empty()) {
+            phiCompletions[childLabel][var][blockLabel] = variableStacks[var].top();
+          }
+        }
+      }
+      else {
+        break;  // All phi functions are at the beginning of the block
+      }
+    }
+  }
+
+  for (const auto& childLabel : dominanceTree.at(blockLabel)) {
+    if (childLabel != "") {
+      renameVariables(childLabel, cfg, dominanceTree, variableCounters, variableStacks, phiCompletions);
+    }
+  }
 
   for (auto& instruction : cfg.basicBlocks().at(blockLabel).instructions()) {
-    std::set<std::string> defs;
-    instruction->visitDefVariables([&defs](const VariableType& var) { defs.insert(var); });
-    definedVariables.insert(definedVariables.end(), defs.begin(), defs.end());
-
-    std::set<std::string> uses;
-    instruction->visitUseVariables([&uses](const VariableType& var) { uses.insert(var); });
-    usedVariables.insert(usedVariables.end(), uses.begin(), uses.end());
-
-    for (const auto& use : uses) {
-      if (variableRenames.find(use) == variableRenames.end() || variableRenames[use].empty()) {
-        continue;
-      }
-      instruction->replaceUseVariables(use, variableRenames[use].top());
+    std::set<std::string> lhsVars;
+    instruction->visitDefVariables([&lhsVars](const VariableType& var) { lhsVars.insert(var); });
+    for (const auto& lhsVar : lhsVars) {
+      variableStacks[removeVariableCounter(lhsVar)].pop();
     }
-
-    for (const auto& def : defs) {
-      if (variablesCounter.find(def) == variablesCounter.end()) {
-        variablesCounter.insert({def, 0});
-        std::stack<std::string> stack;
-        stack.push(appendVariableCounter(def, 0));
-        variableRenames.insert({def, stack});
-      }
-      variablesCounter[def]++;
-      variableRenames[def].push(appendVariableCounter(def, variablesCounter[def]));
-
-      instruction->replaceDefVariables(def, variableRenames[def].top());
-    }
-  }
-
-  for (const auto& child : dominanceTree.at(blockLabel)) {
-    renameVariables(cfg, dominanceTree, child, variablesCounter, variableRenames, phis);
-  }
-
-  for (const auto& def : definedVariables) {
-    variableRenames[def].pop();
   }
 }
+
+//void BbSsaGenerator::removeAssignChains(BBControlFlowGraph& cfg) {
+//  std::map<std::string, std::pair<std::size_t, std::size_t>> varDefs;
+//  for (const auto& block : cfg.basicBlocks()) {
+//    for (const auto& instruction : block.second.getInstructions()) {
+//      instruction->visitDefVariables([&varDefs, &instruction](const VariableType& var) {
+//        if (varDefs.find(var) == varDefs.end()) {
+//          varDefs.insert({var, {0, 0}});
+//        }
+//        varDefs[var].first++;
+//        if (instruction->getType() == BBInstruction::Type::MOVE) {
+//          varDefs[var].second++;
+//        }
+//      });
+//    }
+//  }
+//
+//  std::map<std::string, std::pair<std::size_t, std::size_t>> varUses;
+//  for (const auto& block : cfg.basicBlocks()) {
+//    for (const auto& instruction : block.second.getInstructions()) {
+//      instruction->visitUseVariables([&varUses, &instruction](const VariableType& var) {
+//        if (varUses.find(var) == varUses.end()) {
+//          varUses.insert({var, {0, 0}});
+//        }
+//        varUses[var].first++;
+//        if (instruction->getType() == BBInstruction::Type::MOVE) {
+//          varUses[var].second++;
+//        }
+//      });
+//    }
+//  }
+//
+//  std::cout << "Defs" << std::endl;
+//  for (const auto& [var, defs] : varDefs) {
+//    std::cout << var << " " << defs.first << " " << defs.second << std::endl;
+//  }
+//
+//  std::cout << "Uses" << std::endl;
+//  for (const auto& [var, uses] : varUses) {
+//    std::cout << var << " " << uses.first << " " << uses.second << std::endl;
+//  }
+//}
 
 }  // namespace bblocks

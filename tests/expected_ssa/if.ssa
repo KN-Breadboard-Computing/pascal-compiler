@@ -1,0 +1,53 @@
+program:
+-> bb0 -> bb2 {
+  num.0 := 0
+  res1.0 := 0
+  res2.0 := 0
+  num.1 := 0
+}
+
+bb0 -> bb2 -> bb5 bb17 {
+  #t3.0 := num.1 - 0
+  br nonzero #t3.0 ? bb5 : bb17
+}
+
+bb2 -> bb5 -> bb7 {
+  res1.4 := 1
+  res2.4 := 2
+}
+
+bb2 -> bb17 -> bb19 bb21 {
+  #t13.0 := num.1 - 0
+  br nonzero #t13.0 ? bb19 : bb21
+}
+
+bb5 -> bb7 -> bb9 bb11 {
+  #t8.0 := res1.4 - 1
+  br nonzero #t8.0 ? bb9 : bb11
+}
+
+bb17 -> bb19 -> bb24 {
+  res1.1 := 2
+  res2.1 := 1
+}
+
+bb17 -> bb21 -> bb24 {
+  res1.2 := 3
+  res2.2 := 3
+}
+
+bb7 -> bb9 -> bb24 {
+  res1.6 := 2
+}
+
+bb7 -> bb11 -> bb24 {
+  res1.5 := 3
+}
+
+bb11 bb9 bb19 bb21 -> bb24 -> {
+  res2.3 := phi( res2.4 res2.1 res2.2 res2.4 )
+  res1.3 := phi( res1.5 res1.1 res1.2 res1.6 )
+  halt
+}
+
+

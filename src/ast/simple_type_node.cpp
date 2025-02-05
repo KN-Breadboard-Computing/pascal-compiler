@@ -119,10 +119,12 @@ std::string VarRangeTypeNode::flat() const {
   const std::string lowBound = lowerBound_->getName();
   const std::string upBound = upperBound_->getName();
 
-  auto properEnums = ctx->getLookupTable().getTypes([&](const std::string&, const LookupTable::TypeInfo& tf) {
-    return tf.alive && tf.type.find("enum%") == 0 && tf.type.find("%" + lowBound + "%") != std::string::npos &&
-           tf.type.find("%" + upBound + "%") != std::string::npos;
-  }, ctx->getCurrentScope());
+  auto properEnums = ctx->getLookupTable().getTypes(
+      [&](const std::string&, const LookupTable::TypeInfo& tf) {
+        return tf.alive && tf.type.find("enum%") == 0 && tf.type.find("%" + lowBound + "%") != std::string::npos &&
+               tf.type.find("%" + upBound + "%") != std::string::npos;
+      },
+      ctx->getCurrentScope());
 
   if (properEnums.empty()) {
     throw std::runtime_error(lowBound + " and " + upBound + " are not in any enum");

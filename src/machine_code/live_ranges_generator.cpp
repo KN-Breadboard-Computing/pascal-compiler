@@ -2,7 +2,7 @@
 
 namespace machine_code {
 void LiveRangesGenerator::generate(const bblocks::BBControlFlowGraph& cfg,
-                                   const std::map<std::string, std::pair<size_t, size_t>>& blockBounds) {
+                                   const std::map<std::string, std::pair<std::size_t, std::size_t>>& blockBounds) {
   for (const auto& block : cfg.getBasicBlocks()) {
     addDefsAndUses(block.first, block.second, blockBounds.at(block.first).first);
   }
@@ -10,71 +10,66 @@ void LiveRangesGenerator::generate(const bblocks::BBControlFlowGraph& cfg,
   computeLiveRanges(cfg, blockBounds);
 }
 
-void LiveRangesGenerator::saveLiveRanges(const std::string& filename) {
-  std::fstream file;
-  file.open(filename, std::ios::out);
-
-  file << "Defs in block:" << std::endl;
+void LiveRangesGenerator::saveLiveRanges(std::ostream& output) const {
+  output << "Defs in block:" << std::endl;
   for (const auto& [label, defs] : defsInBlock_) {
-    file << label << ": " << std::endl;
+    output << label << ": " << std::endl;
     for (const auto& [variable, enumerators] : defs) {
-      file << "  " << variable << ": ";
+      output << "  " << variable << ": ";
       for (const auto& enumerator : enumerators) {
-        file << enumerator << " ";
+        output << enumerator << " ";
       }
-      file << std::endl;
+      output << std::endl;
     }
   }
-  file << std::endl;
+  output << std::endl;
 
-  file << "Uses in block:" << std::endl;
+  output << "Uses in block:" << std::endl;
   for (const auto& [label, uses] : usesInBlock_) {
-    file << label << ": " << std::endl;
+    output << label << ": " << std::endl;
     for (const auto& [variable, enumerators] : uses) {
-      file << "  " << variable << ": ";
+      output << "  " << variable << ": ";
       for (const auto& enumerator : enumerators) {
-        file << enumerator << " ";
+        output << enumerator << " ";
       }
-      file << std::endl;
+      output << std::endl;
     }
   }
-  file << std::endl;
+  output << std::endl;
 
-  file << "Live in:" << std::endl;
+  output << "Live in:" << std::endl;
   for (const auto& [label, liveIn] : liveIn_) {
-    file << label << ": ";
+    output << label << ": ";
     for (const auto& variable : liveIn) {
-      file << variable << " ";
+      output << variable << " ";
     }
-    file << std::endl;
+    output << std::endl;
   }
-  file << std::endl;
+  output << std::endl;
 
-  file << "Live out:" << std::endl;
+  output << "Live out:" << std::endl;
   for (const auto& [label, liveOut] : liveOut_) {
-    file << label << ": ";
+    output << label << ": ";
     for (const auto& variable : liveOut) {
-      file << variable << " ";
+      output << variable << " ";
     }
-    file << std::endl;
+    output << std::endl;
   }
-  file << std::endl;
+  output << std::endl;
 
-  file << "Live ranges:" << std::endl;
+  output << "Live ranges:" << std::endl;
   for (const auto& [label, ranges] : liveRanges_) {
-    file << label << ": " << std::endl;
+    output << label << ": " << std::endl;
     for (const auto& range : ranges) {
-      file << "  " << range.first << " " << range.second << " " << std::endl;
+      output << "  " << range.first << " " << range.second << " " << std::endl;
     }
-    file << std::endl;
+    output << std::endl;
   }
-
-  file.close();
 }
 
 void LiveRangesGenerator::addDefsAndUses(const std::string& label, const bblocks::BasicBlock& block,
-                                         size_t blockStartEnumerator) {
-  size_t enumerator = blockStartEnumerator;
+                                         std::size_t blockStartEnumerator) {
+  std::size_t enumerator = blockStartEnumerator;
   for (const auto& instruction : block.getInstructions()) {
     defsInBlock_.insert({label, {}});
 
@@ -124,10 +119,10 @@ void LiveRangesGenerator::computeLiveInAndLiveOut(const bblocks::BBControlFlowGr
           usesInBlock.push_back(use.first);
         }
         else {
-          size_t firstDef =
+          std::size_t firstDef =
               *std::min_element(defsInBlock_[block.first][use.first].begin(), defsInBlock_[block.first][use.first].end());
 
-          size_t firstUse = *std::min_element(use.second.begin(), use.second.end());
+          std::size_t firstUse = *std::min_element(use.second.begin(), use.second.end());
 
           if (firstDef >= firstUse) {
             usesInBlock.push_back(use.first);
@@ -160,7 +155,7 @@ void LiveRangesGenerator::computeLiveInAndLiveOut(const bblocks::BBControlFlowGr
 }
 
 void LiveRangesGenerator::computeLiveRanges(const bblocks::BBControlFlowGraph& cfg,
-                                            const std::map<std::string, std::pair<size_t, size_t>>& blockBounds) {
+                                            const std::map<std::string, std::pair<std::size_t, std::size_t>>& blockBounds) {
   std::set<std::string> allVariables;
   for (const auto& block : cfg.getBasicBlocks()) {
     for (const auto& def : defsInBlock_[block.first]) {
@@ -171,7 +166,7 @@ void LiveRangesGenerator::computeLiveRanges(const bblocks::BBControlFlowGraph& c
     }
   }
 
-  std::map<std::string, std::map<std::string, std::vector<std::vector<size_t>>>> liveRanges;
+  std::map<std::string, std::map<std::string, std::vector<std::vector<std::size_t>>>> liveRanges;
   for (const auto& variable : allVariables) {
     liveRanges.insert({variable, {}});
   }
@@ -224,17 +219,17 @@ void LiveRangesGenerator::computeLiveRanges(const bblocks::BBControlFlowGraph& c
 }
 
 void LiveRangesGenerator::computeLiveRangesForVariableAndBlock(const std::string& variable, const std::string& label,
-                                                               std::pair<size_t, size_t> blockBounds,
-                                                               std::vector<std::vector<size_t>>& ranges) {
+                                                               std::pair<std::size_t, std::size_t> blockBounds,
+                                                               std::vector<std::vector<std::size_t>>& ranges) {
   bool isLiveIn = liveIn_[label].find(variable) != liveIn_[label].end();
   bool isLiveOut = liveOut_[label].find(variable) != liveOut_[label].end();
 
-  std::vector<size_t> uses;
+  std::vector<std::size_t> uses;
   if (usesInBlock_[label].find(variable) != usesInBlock_[label].end()) {
     uses = usesInBlock_[label][variable];
   }
 
-  std::vector<size_t> defs;
+  std::vector<std::size_t> defs;
   if (defsInBlock_[label].find(variable) != defsInBlock_[label].end()) {
     for (const auto& def : defsInBlock_[label][variable]) {
       if (std::find(uses.begin(), uses.end(), def) == uses.end()) {
@@ -244,11 +239,11 @@ void LiveRangesGenerator::computeLiveRangesForVariableAndBlock(const std::string
   }
 
   if ((!defs.empty() || isLiveIn) && (!uses.empty() || isLiveOut)) {
-    size_t firstDef = isLiveIn ? blockBounds.first : *std::min_element(defs.begin(), defs.end());
-    size_t lastUse = isLiveOut ? blockBounds.second : *std::max_element(uses.begin(), uses.end());
+    std::size_t firstDef = isLiveIn ? blockBounds.first : *std::min_element(defs.begin(), defs.end());
+    std::size_t lastUse = isLiveOut ? blockBounds.second : *std::max_element(uses.begin(), uses.end());
 
-    std::vector<size_t> currentRange;
-    for (size_t i = firstDef; i <= lastUse; i++) {
+    std::vector<std::size_t> currentRange;
+    for (std::size_t i = firstDef; i <= lastUse; i++) {
       if (std::find(defs.begin(), defs.end(), i) != defs.end()) {
         if (!currentRange.empty()) {
           ranges.push_back(currentRange);
@@ -292,9 +287,9 @@ void LiveRangesGenerator::computeAllBlockChains(const bblocks::BBControlFlowGrap
 
 void LiveRangesGenerator::mergeLiveRanges(
     const std::string& variable, const std::vector<std::vector<std::string>>& blockChains,
-    const std::map<std::string, std::map<std::string, std::vector<std::vector<size_t>>>>& ranges) {
+    const std::map<std::string, std::map<std::string, std::vector<std::vector<std::size_t>>>>& ranges) {
   for (const auto& blockChain : blockChains) {
-    std::vector<std::pair<size_t, size_t>> mergedRanges;
+    std::vector<std::pair<std::size_t, std::size_t>> mergedRanges;
     for (const auto& block : blockChain) {
       if (mergedRanges.empty()) {
         for (const auto& range : ranges.at(variable).at(block)) {
@@ -302,19 +297,21 @@ void LiveRangesGenerator::mergeLiveRanges(
         }
       }
       else {
-        std::vector<std::pair<size_t, size_t>> newRanges;
+        std::vector<std::pair<std::size_t, std::size_t>> newRanges;
         for (const auto& range : ranges.at(variable).at(block)) {
           newRanges.push_back({range.front(), range.back()});
         }
         mergedRanges.back().second = newRanges.front().second;
-        for (size_t i = 1; i < newRanges.size(); i++) {
+        for (std::size_t i = 1; i < newRanges.size(); i++) {
           mergedRanges.push_back(newRanges[i]);
         }
       }
     }
 
     std::sort(mergedRanges.begin(), mergedRanges.end(),
-              [](const std::pair<size_t, size_t>& a, const std::pair<size_t, size_t>& b) { return a.first < b.first; });
+              [](const std::pair<std::size_t, std::size_t>& a, const std::pair<std::size_t, std::size_t>& b) {
+                return a.first < b.first;
+              });
 
     if (liveRanges_.find(variable) == liveRanges_.end()) {
       liveRanges_.insert({variable, mergedRanges});
@@ -326,7 +323,7 @@ void LiveRangesGenerator::mergeLiveRanges(
 
   for (auto& [var, rangesForVar] : liveRanges_) {
     std::sort(rangesForVar.begin(), rangesForVar.end(),
-              [](const std::pair<size_t, size_t>& a, const std::pair<size_t, size_t>& b) {
+              [](const std::pair<std::size_t, std::size_t>& a, const std::pair<std::size_t, std::size_t>& b) {
                 if (a.first == b.first) {
                   return a.second < b.second;
                 }
@@ -335,7 +332,7 @@ void LiveRangesGenerator::mergeLiveRanges(
   }
 
   for (auto& [var, rangesForVar] : liveRanges_) {
-    std::vector<std::pair<size_t, size_t>> newRanges;
+    std::vector<std::pair<std::size_t, std::size_t>> newRanges;
     for (const auto& r : rangesForVar) {
       if (newRanges.empty()) {
         newRanges.push_back(r);

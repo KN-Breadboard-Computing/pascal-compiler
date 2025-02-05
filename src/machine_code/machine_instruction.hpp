@@ -214,8 +214,8 @@ class MachineInstruction {
     /*202*/ JMP_REL_NO,
     /*203*/ JMP_REL_TL_O,
     /*204*/ JMP_REL_TL_NO,
-    /*205*/ JMP_REL_FUN,
-    /*206*/ JMP_REL_RET,
+    /*205*/ JMP_FUN,
+    /*206*/ JMP_RET,
     /*207*/ PUSH_A,
     /*208*/ PUSH_B,
     /*209*/ PUSH_TH,
@@ -291,7 +291,7 @@ class MachineInstruction {
   }
 
  private:
-  static constexpr size_t typesCount_ = 234;
+  static constexpr std::size_t typesCount_ = 234;
   static std::string typeToString_[typesCount_];
   static std::string typeToAssembly_[typesCount_];
 

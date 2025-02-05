@@ -7,34 +7,34 @@
 #include <utility>
 #include <algorithm>
 
-#include "../src/ast/arguments_list_node.hpp"
-#include "../src/ast/array_type_node.hpp"
-#include "../src/ast/assign_node.hpp"
-#include "../src/ast/ast_node.hpp"
-#include "../src/ast/break_node.hpp"
-#include "../src/ast/call_node.hpp"
-#include "../src/ast/case_node.hpp"
-#include "../src/ast/compound_statement_node.hpp"
-#include "../src/ast/constant_node.hpp"
-#include "../src/ast/continue_node.hpp"
-#include "../src/ast/expression_node.hpp"
-#include "../src/ast/for_node.hpp"
-#include "../src/ast/goto_node.hpp"
-#include "../src/ast/identifier_node.hpp"
-#include "../src/ast/if_node.hpp"
-#include "../src/ast/params_group_node.hpp"
-#include "../src/ast/params_node.hpp"
-#include "../src/ast/program_node.hpp"
-#include "../src/ast/record_type_node.hpp"
-#include "../src/ast/repeat_node.hpp"
-#include "../src/ast/routine_body_node.hpp"
-#include "../src/ast/routine_decl_head_node.hpp"
-#include "../src/ast/simple_type_node.hpp"
-#include "../src/ast/statement_node.hpp"
-#include "../src/ast/type_node.hpp"
-#include "../src/ast/while_node.hpp"
+#include "../ast/arguments_list_node.hpp"
+#include "../ast/array_type_node.hpp"
+#include "../ast/assign_node.hpp"
+#include "../ast/ast_node.hpp"
+#include "../ast/break_node.hpp"
+#include "../ast/call_node.hpp"
+#include "../ast/case_node.hpp"
+#include "../ast/compound_statement_node.hpp"
+#include "../ast/constant_node.hpp"
+#include "../ast/continue_node.hpp"
+#include "../ast/expression_node.hpp"
+#include "../ast/for_node.hpp"
+#include "../ast/goto_node.hpp"
+#include "../ast/identifier_node.hpp"
+#include "../ast/if_node.hpp"
+#include "../ast/params_group_node.hpp"
+#include "../ast/params_node.hpp"
+#include "../ast/program_node.hpp"
+#include "../ast/record_type_node.hpp"
+#include "../ast/repeat_node.hpp"
+#include "../ast/routine_body_node.hpp"
+#include "../ast/routine_decl_head_node.hpp"
+#include "../ast/simple_type_node.hpp"
+#include "../ast/statement_node.hpp"
+#include "../ast/type_node.hpp"
+#include "../ast/while_node.hpp"
 
-#include "../src/context/context.hpp"
+#include "../context/context.hpp"
 
 #undef YACC_DEBUG
 #undef YACC_ENABLE_GOTO
@@ -90,32 +90,32 @@ std::string getRecordFieldType(const std::string& recordType, const std::string&
     #include <string>
     #include <algorithm>
 
-    #include "../src/ast/arguments_list_node.hpp"
-    #include "../src/ast/array_type_node.hpp"
-    #include "../src/ast/assign_node.hpp"
-    #include "../src/ast/ast_node.hpp"
-    #include "../src/ast/break_node.hpp"
-    #include "../src/ast/call_node.hpp"
-    #include "../src/ast/case_node.hpp"
-    #include "../src/ast/compound_statement_node.hpp"
-    #include "../src/ast/constant_node.hpp"
-    #include "../src/ast/continue_node.hpp"
-    #include "../src/ast/expression_node.hpp"
-    #include "../src/ast/for_node.hpp"
-    #include "../src/ast/goto_node.hpp"
-    #include "../src/ast/identifier_node.hpp"
-    #include "../src/ast/if_node.hpp"
-    #include "../src/ast/params_group_node.hpp"
-    #include "../src/ast/params_node.hpp"
-    #include "../src/ast/program_node.hpp"
-    #include "../src/ast/record_type_node.hpp"
-    #include "../src/ast/repeat_node.hpp"
-    #include "../src/ast/routine_body_node.hpp"
-    #include "../src/ast/routine_decl_head_node.hpp"
-    #include "../src/ast/simple_type_node.hpp"
-    #include "../src/ast/statement_node.hpp"
-    #include "../src/ast/type_node.hpp"
-    #include "../src/ast/while_node.hpp"
+    #include "../ast/arguments_list_node.hpp"
+    #include "../ast/array_type_node.hpp"
+    #include "../ast/assign_node.hpp"
+    #include "../ast/ast_node.hpp"
+    #include "../ast/break_node.hpp"
+    #include "../ast/call_node.hpp"
+    #include "../ast/case_node.hpp"
+    #include "../ast/compound_statement_node.hpp"
+    #include "../ast/constant_node.hpp"
+    #include "../ast/continue_node.hpp"
+    #include "../ast/expression_node.hpp"
+    #include "../ast/for_node.hpp"
+    #include "../ast/goto_node.hpp"
+    #include "../ast/identifier_node.hpp"
+    #include "../ast/if_node.hpp"
+    #include "../ast/params_group_node.hpp"
+    #include "../ast/params_node.hpp"
+    #include "../ast/program_node.hpp"
+    #include "../ast/record_type_node.hpp"
+    #include "../ast/repeat_node.hpp"
+    #include "../ast/routine_body_node.hpp"
+    #include "../ast/routine_decl_head_node.hpp"
+    #include "../ast/simple_type_node.hpp"
+    #include "../ast/statement_node.hpp"
+    #include "../ast/type_node.hpp"
+    #include "../ast/while_node.hpp"
 
     typedef struct Token {
         int numericalValue;
@@ -1056,8 +1056,8 @@ record_type_decl :
         #endif
 
         std::set<std::string> fields;
-        for(size_t i = 0; i < $2->size(); i++) {
-            for(size_t j = 0; j < $2->at(i)->first->size(); j++) {
+        for(std::size_t i = 0; i < $2->size(); i++) {
+            for(std::size_t j = 0; j < $2->at(i)->first->size(); j++) {
                 std::string field = $2->at(i)->first->at(j)->getName();
                 if(fields.find(field) != fields.end()) {
                     parsingErrors.push_back("Error at line " + std::to_string(linesCounter) + ", field name `" + field + "` duplication");
@@ -3105,9 +3105,9 @@ bool isInAnyEnum(const std::string& enumElement) {
 
 bool isEnumSubRangeType(const std::string& enumElement, const std::string& enumType,
     const std::string& begin, const std::string& end) {
-    size_t beginPos = enumType.find("%" + begin + "%");
-    size_t endPos = enumType.find("%" + end + "%");
-    size_t enumElementPos = enumType.find("%" + enumElement + "%");
+    std::size_t beginPos = enumType.find("%" + begin + "%");
+    std::size_t endPos = enumType.find("%" + end + "%");
+    std::size_t enumElementPos = enumType.find("%" + enumElement + "%");
 
     return beginPos != std::string::npos && endPos != std::string::npos && enumElementPos != std::string::npos &&
         beginPos <= enumElementPos && enumElementPos <= endPos;
@@ -3134,7 +3134,7 @@ bool isLeftValueCompatible(ast::ExpressionNode* expr) {
 
 bool isArrayIndexCompatible(const std::string& arrayType, ast::ExpressionNode* index) {
     std::string arrayElementType{};
-    size_t it{7};
+    std::size_t it{7};
     while(arrayType[it] != '@' && it < arrayType.size()) {
         arrayElementType += arrayType[it];
         it++;
@@ -3161,7 +3161,7 @@ bool isArrayIndexCompatible(const std::string& arrayType, ast::ExpressionNode* i
     else if(arrayElementType.substr(0, 10) == "constrange") {
         std::string begin{};
         std::string end{};
-        size_t pos;
+        std::size_t pos;
         for(pos = 11; pos < arrayElementType.size(); pos++) {
             if(arrayElementType[pos] == '.') {
                 break;
@@ -3193,7 +3193,7 @@ bool isArrayIndexCompatible(const std::string& arrayType, ast::ExpressionNode* i
     }
     else if(arrayElementType.substr(0, 9) == "enumrange") {
         std::string enumName, beginEnum, endEnum;
-        size_t pos{10};
+        std::size_t pos{10};
         for(; pos < arrayElementType.size(); pos++) {
             if(arrayElementType[pos] == '%') {
                 break;
@@ -3239,8 +3239,8 @@ bool isArrayIndexCompatible(const std::string& arrayType, ast::ExpressionNode* i
 
 bool isRecordFieldCompatible(const std::string& recordType, ast::IdentifierNode* field) {
     const std::string& fieldName = "$" + field->getName() + "#";
-    size_t parenthesisCounter{};
-    for(size_t i = 0; i < recordType.size(); i++) {
+    std::size_t parenthesisCounter{};
+    for(std::size_t i = 0; i < recordType.size(); i++) {
         if(recordType[i] == '(') {
             parenthesisCounter++;
         }
@@ -3261,7 +3261,7 @@ bool isFunctionArgumentsCompatible(const std::vector<LookupTable::ArgumentInfo>&
         return false;
     }
 
-    for(size_t i = 0; i < expectedArgs.size(); i++) {
+    for(std::size_t i = 0; i < expectedArgs.size(); i++) {
         if(expectedArgs[i].type != givenArgs[i]->getInferredType()) {
             return false;
         }
@@ -3280,9 +3280,9 @@ bool hasReturnValue(ast::RoutineNode* function, const std::string& functionName)
         return false;
     }
 
-    size_t returnCounter{0};
-    size_t lastStatementIndex{0};
-    for(size_t i = 0; i < statements->size(); i++) {
+    std::size_t returnCounter{0};
+    std::size_t lastStatementIndex{0};
+    for(std::size_t i = 0; i < statements->size(); i++) {
         if(statements->at(i)->getCategory() != ast::StatementNode::Category::ASSIGN) {
             continue;
         }
@@ -3343,11 +3343,11 @@ bool variableIsReassignedS(const std::string& varName, ast::StatementNode* stmt)
                 ast::UserDefineCallNode* userCall = dynamic_cast<ast::UserDefineCallNode*>(call);
                 const std::vector<LookupTable::ArgumentInfo>& callArgs = ctx->getLookupTable().getRoutine(userCall->getName()->getName(), ctx->getCurrentScope()).args;
                 std::vector<bool> passByReference;
-                for(size_t i = 0; i < callArgs.size(); i++) {
+                for(std::size_t i = 0; i < callArgs.size(); i++) {
                     passByReference.push_back(callArgs[i].isReference);
                 }
 
-                size_t index{0};
+                std::size_t index{0};
                 for(auto arg : userCall->getArguments()->getArguments()) {
                     if(arg->getOperation() == ast::ExpressionNode::Operation::SPECIAL) {
                         ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(arg);
@@ -3494,11 +3494,11 @@ bool variableIsReassignedE(const std::string& varName, ast::ExpressionNode* expr
 
         const std::vector<LookupTable::ArgumentInfo>& callArgs = ctx->getLookupTable().getRoutine(routineName, ctx->getCurrentScope()).args;
         std::vector<bool> passByReference;
-        for(size_t i = 0; i < callArgs.size(); i++) {
+        for(std::size_t i = 0; i < callArgs.size(); i++) {
             passByReference.push_back(callArgs[i].isReference);
         }
 
-        size_t index{0};
+        std::size_t index{0};
         for(auto arg : args) {
             if(arg->getOperation() == ast::ExpressionNode::Operation::SPECIAL) {
                 ast::SpecialExpressionNode* special = dynamic_cast<ast::SpecialExpressionNode*>(arg);
@@ -3524,7 +3524,7 @@ bool variableIsReassignedE(const std::string& varName, ast::ExpressionNode* expr
 
 std::string getArrayElementType(const std::string& arrayType) {
     std::string elementType{};
-    size_t counter{0};
+    std::size_t counter{0};
     for(auto it = arrayType.begin(); it != (arrayType.end() - 2); ++it) {
         if(counter >= 3) {
             elementType += (*it);
@@ -3539,7 +3539,7 @@ std::string getArrayElementType(const std::string& arrayType) {
 std::string getRecordFieldType(const std::string& recordType, const std::string& field) {
     std::size_t it = recordType.find("$" + field + "#") + field.size() + 3;
     std::string fieldType{};
-    size_t parenthesisCounter{1};
+    std::size_t parenthesisCounter{1};
     while(parenthesisCounter != 0) {
         if(recordType[it] == '(') {
             parenthesisCounter++;

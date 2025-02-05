@@ -73,7 +73,7 @@ class BBControlFlowGraph {
     basicBlocks_ = std::move(basicBlocks);
   }
 
-  size_t distance(const std::string& from, const std::string& to) const;
+  std::size_t distance(const std::string& from, const std::string& to) const;
 
   friend std::ostream& operator<<(std::ostream& out, const BBControlFlowGraph& cfg);
 

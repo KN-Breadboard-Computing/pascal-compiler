@@ -1,0 +1,21 @@
+program:
+-> bb0 -> bb2 {
+  num := 0
+  res := 0
+  num := 0
+}
+
+bb0 -> bb2 -> bb4 bb6 {
+  #t3 := num - 0
+  br nonzero #t3 ? bb4 : bb6
+}
+
+bb2 -> bb4 -> bb6 {
+  res := 1
+}
+
+bb4 bb2 -> bb6 -> {
+  halt
+}
+
+

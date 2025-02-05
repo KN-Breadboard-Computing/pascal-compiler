@@ -49,7 +49,7 @@ void RoutineHeadNode::print(std::ostream& out, int tab) const {
   out << std::string(tab, ' ') << "RoutineHeadNode:\n";
   if (constantsPart_ != nullptr) {
     out << std::string(tab + 2, ' ') << "Constants:\n";
-    size_t index{0};
+    std::size_t index{0};
     for (const auto& constant : *constantsPart_) {
       out << std::string(tab + 4, ' ') << "Constant " << index++ << ":\n";
       constant->first->print(out, tab + 6);
@@ -58,7 +58,7 @@ void RoutineHeadNode::print(std::ostream& out, int tab) const {
   }
   if (typesPart_ != nullptr) {
     out << std::string(tab + 2, ' ') << "Types:\n";
-    size_t index{0};
+    std::size_t index{0};
     for (const auto& type : *typesPart_) {
       out << std::string(tab + 4, ' ') << "Type " << index++ << ":\n";
       type->first->print(out, tab + 6);
@@ -67,7 +67,7 @@ void RoutineHeadNode::print(std::ostream& out, int tab) const {
   }
   if (variablesPart_ != nullptr) {
     out << std::string(tab + 2, ' ') << "Variables:\n";
-    size_t index{0};
+    std::size_t index{0};
     for (const auto& variable : *variablesPart_) {
       out << std::string(tab + 4, ' ') << "Group " << index++ << ":\n";
       variable->second->print(out, tab + 6);

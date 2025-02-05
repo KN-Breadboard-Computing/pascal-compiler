@@ -22,21 +22,47 @@ class BBPhi : public BBInstruction {
 
   [[nodiscard]] const std::vector<std::string>& getArgs() const { return args_; }
 
-  virtual void visitDefVariables(std::function<void(const VariableType&)> /*visitor*/) const override {}
+  void setName(const std::string& name) { name_ = name; }
 
-  virtual void visitUseVariables(std::function<void(const VariableType&)> /*visitor*/) const override {}
+  void setArgs(const std::vector<std::string>& args) { args_ = args; }
 
-  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& /*from*/, const VariableType& /*to*/) override {
-    return clone();
+  void addArg(const std::string& arg) { args_.push_back(arg); }
+
+  virtual void visitDefVariables(std::function<void(const VariableType&)> visitor) const override { visitor(name_); }
+
+  virtual void visitUseVariables(std::function<void(const VariableType&)> visitor) const override {
+    for (const auto& arg : args_) {
+      visitor(arg);
+    }
+  }
+
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const VariableType& to) override {
+    const std::string newName = name_ == from ? to : name_;
+    std::vector<std::string> newArgs;
+    for (const auto& arg : args_) {
+      newArgs.push_back(arg == from ? to : arg);
+    }
+
+    return std::make_unique<BBPhi>(newName, newArgs);
   }
 
   virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& /*from*/, const NumericType& /*to*/) override {
     return clone();
   }
 
-  virtual void replaceDefVariables(const VariableType& /*from*/, const VariableType& /*to*/) override {}
+  virtual void replaceDefVariables(const VariableType& from, const VariableType& to) override {
+    if (name_ == from) {
+      name_ = to;
+    }
+  }
 
-  virtual void replaceUseVariables(const VariableType& /*from*/, const VariableType& /*to*/) override {}
+  virtual void replaceUseVariables(const VariableType& from, const VariableType& to) override {
+    for (auto& arg : args_) {
+      if (arg == from) {
+        arg = to;
+      }
+    }
+  }
 
   virtual void replaceLabel(const LabelType& /*from*/, const LabelType& /*to*/) override {}
 

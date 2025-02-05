@@ -27,7 +27,7 @@ void CaseNode::print(std::ostream& out, int tab) const {
   }
 
   expression_->print(out, tab + 2);
-  size_t index{0};
+  std::size_t index{0};
   for (auto& statement : *statements_) {
     out << std::string(tab + 2, ' ') << "Case " << index++ << ":\n";
     out << std::string(tab + 4, ' ') << "Expression:\n";

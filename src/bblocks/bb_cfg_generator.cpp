@@ -521,7 +521,7 @@ void BbCfgGenerator::visit(const ast::RecordTypeNode* node) {
 #ifdef CFG_DEBUG
   std::cout << "Cfg debug: Record Type Node" << std::endl;
 #endif
-  size_t recordSize{0};
+  std::size_t recordSize{0};
   for (const auto* field : *node->getFields()) {
     field->second->accept(this);
     recordSize += typeBytes_[field->second->flat()] * field->first->size();
@@ -606,9 +606,19 @@ void BbCfgGenerator::visit(const ast::RoutineHeadNode* node) {
     type->second->accept(this);
   }
 
-  size_t procedureOffset{0};
+  std::size_t procedureOffset{0};
   for (const auto* var : *node->getVariablesPart()) {
     var->second->accept(this);
+
+    for (const auto* identifier : *var->first) {
+      const std::string& type = ctx->getLookupTable().getVariable(identifier->getName(), ctx->getCurrentScope()).type;
+      if (!ctx->getLookupTable().isBasicType(type)) {
+        continue;
+      }
+      currentBasicBlock_.addInstruction(std::make_unique<BBMoveNV>(0, identifier->getName(), BBInstruction::SourceType::CONSTANT,
+                                                                   BBInstruction::DestinationType::REGISTER));
+    }
+
     procedureOffset += typeBytes_[var->second->flat()] * var->first->size();
   }
   procedureOffsets_[ctx->getCurrentScope()] = procedureOffset;
@@ -650,7 +660,7 @@ void BbCfgGenerator::visit(const ast::EnumerationTypeNode* node) {
 #ifdef CFG_DEBUG
   std::cout << "Cfg debug: Enumeration Type Node" << std::endl;
 #endif
-  for (size_t i = 0; i < node->getIdentifiers()->size(); ++i) {
+  for (std::size_t i = 0; i < node->getIdentifiers()->size(); ++i) {
     enumTranslator_[node->getIdentifiers()->at(i)->getName()] = i;
   }
   typeBytes_[node->flat()] = 1;
@@ -806,9 +816,9 @@ void BbCfgGenerator::removeEmptyBasicBlocks() {
 
 void BbCfgGenerator::removeTemporaryVariables() {
   for (auto& [funName, fun] : functionControlFlowGraphs_) {
-    std::map<std::string, size_t> variableDefs;
-    std::map<std::string, size_t> variableDefsInMove;
-    std::map<std::string, size_t> variableDefsInOperations;
+    std::map<std::string, std::size_t> variableDefs;
+    std::map<std::string, std::size_t> variableDefsInMove;
+    std::map<std::string, std::size_t> variableDefsInOperations;
     for (const auto& [blockLabel, block] : fun.basicBlocks()) {
       for (const auto& instruction : block.getInstructions()) {
         const BBInstruction::Type instructionType = instruction->getType();
@@ -953,7 +963,7 @@ bool BbCfgGenerator::isBoolean(const std::string& expr) {
   return expr == "true" || expr == "false";
 }
 
-size_t BbCfgGenerator::countIndexes(const std::string type) {
+std::size_t BbCfgGenerator::countIndexes(const std::string type) {
   if (type == "integer" || type == "char") {
     return 256;
   }
@@ -969,7 +979,7 @@ size_t BbCfgGenerator::countIndexes(const std::string type) {
   if (type.find("constrange%") == 0) {
     std::string begin{};
     std::string end{};
-    size_t pos;
+    std::size_t pos;
     for (pos = 11; pos < type.size(); pos++) {
       if (type[pos] == '.') {
         break;
@@ -1004,7 +1014,7 @@ size_t BbCfgGenerator::countIndexes(const std::string type) {
 
   if (type.find("enumrange%") == 0) {
     std::string enumName, beginEnum, endEnum;
-    size_t pos{10};
+    std::size_t pos{10};
     for (; pos < type.size(); pos++) {
       if (type[pos] == '%') {
         break;

@@ -1,0 +1,80 @@
+ProgramNode Test:
+  RoutineNode of type MAIN:
+    RoutineHeadNode:
+      Constants:
+      Types:
+      Variables:
+        Group 0:
+          BasicTypeNode INTEGER
+          Identifiers:
+            IdentifierNode: i
+            IdentifierNode: j
+            IdentifierNode: k
+            IdentifierNode: a
+      Routines:
+    RoutineBodyNode:
+      CompoundStatementNode:
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: a
+          SpecialExpressionNode: CONST
+            ConstantInteger<7>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: k
+          SpecialExpressionNode: CONST
+            ConstantInteger<9>
+        WhileNode:
+          MathExpressionNode: LESS
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: i
+            SpecialExpressionNode: CONST
+              ConstantInteger<5>
+          CompoundStatementNode:
+            WhileNode:
+              MathExpressionNode: LESS
+                SpecialExpressionNode: VARIABLE
+                  IdentifierNode: k
+                SpecialExpressionNode: CONST
+                  ConstantInteger<9>
+              CompoundStatementNode:
+                AssignNode
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: j
+                  SpecialExpressionNode: CONST
+                    ConstantInteger<0>
+                WhileNode:
+                  MathExpressionNode: LESS
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: j
+                    SpecialExpressionNode: CONST
+                      ConstantInteger<3>
+                  AssignNode
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: j
+                    MathExpressionNode: ADDITION
+                      SpecialExpressionNode: VARIABLE
+                        IdentifierNode: j
+                      SpecialExpressionNode: CONST
+                        ConstantInteger<2>
+                AssignNode
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: a
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: j
+                AssignNode
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: i
+                  MathExpressionNode: ADDITION
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: i
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: a
+                AssignNode
+                  SpecialExpressionNode: VARIABLE
+                    IdentifierNode: k
+                  MathExpressionNode: ADDITION
+                    SpecialExpressionNode: VARIABLE
+                      IdentifierNode: k
+                    SpecialExpressionNode: CONST
+                      ConstantInteger<1>

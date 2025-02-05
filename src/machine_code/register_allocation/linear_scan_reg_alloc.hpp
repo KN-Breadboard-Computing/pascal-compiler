@@ -18,7 +18,8 @@ class LinearScanRegAlloc {
 
   ~LinearScanRegAlloc() = default;
 
-  void allocateRegisters(size_t registersCount, std::map<std::string, std::vector<std::pair<size_t, size_t>>>& liveRanges);
+  void allocateRegisters(std::size_t registersCount,
+                         std::map<std::string, std::vector<std::pair<std::size_t, std::size_t>>>& liveRanges);
 };
 }  // namespace machine_code
 
