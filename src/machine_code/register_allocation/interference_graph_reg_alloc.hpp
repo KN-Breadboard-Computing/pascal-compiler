@@ -1,14 +1,18 @@
 #ifndef MACHINE_CODE_INTERFERENCE_GRAPH_REG_ALLOC_HPP
 #define MACHINE_CODE_INTERFERENCE_GRAPH_REG_ALLOC_HPP
 
-#include <map>
-#include <string>
-#include <vector>
+#include <set>
+#include <stack>
+
+#include "graph.hpp"
+#include "interval_tree.hpp"
+#include "reg_alloc.hpp"
 
 namespace machine_code {
-class InterferenceGraphRegAlloc {
+class InterferenceGraphRegAlloc : public RegAlloc {
  public:
   InterferenceGraphRegAlloc() = default;
+  InterferenceGraphRegAlloc(int registersCount) : RegAlloc{registersCount} {}
 
   InterferenceGraphRegAlloc(const InterferenceGraphRegAlloc&) = delete;
   InterferenceGraphRegAlloc(InterferenceGraphRegAlloc&&) = default;
@@ -18,7 +22,10 @@ class InterferenceGraphRegAlloc {
 
   ~InterferenceGraphRegAlloc() = default;
 
-  void allocateRegisters(std::size_t registersCount, std::map<std::string, std::vector<std::string>>& interferenceGraph);
+  void allocateRegisters(const std::map<std::string, std::vector<LiveRange>>& liveRanges) override;
+
+ private:
+  void findColoring(Graph interferenceGraph);
 };
 }  // namespace machine_code
 

@@ -31,8 +31,7 @@ TEST(toBbConversion, constants) {
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/constants.bb");
 
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
+  cfgGenerator.optimize();
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/constants.bb.opt");
 }
 
@@ -45,8 +44,7 @@ TEST(toBbConversion, while1) {
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/while1.bb");
 
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
+  cfgGenerator.optimize();
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/while1.bb.opt");
 }
 
@@ -59,8 +57,7 @@ TEST(toBbConversion, while2) {
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/while2.bb");
 
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
+  cfgGenerator.optimize();
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/while2.bb.opt");
 }
 
@@ -73,8 +70,7 @@ TEST(toBbConversion, while3) {
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/while3.bb");
 
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
+  cfgGenerator.optimize();
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/while3.bb.opt");
 }
 
@@ -87,8 +83,7 @@ TEST(toBbConversion, repeat1) {
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/repeat1.bb");
 
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
+  cfgGenerator.optimize();
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/repeat1.bb.opt");
 }
 
@@ -101,8 +96,7 @@ TEST(toBbConversion, repeat2) {
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/repeat2.bb");
 
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
+  cfgGenerator.optimize();
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/repeat2.bb.opt");
 }
 
@@ -115,8 +109,7 @@ TEST(toBbConversion, repeat3) {
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/repeat3.bb");
 
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
+  cfgGenerator.optimize();
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/repeat3.bb.opt");
 }
 
@@ -129,8 +122,7 @@ TEST(toBbConversion, for1) {
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/for1.bb");
 
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
+  cfgGenerator.optimize();
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/for1.bb.opt");
 }
 
@@ -143,8 +135,7 @@ TEST(toBbConversion, for2) {
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/for2.bb");
 
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
+  cfgGenerator.optimize();
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/for2.bb.opt");
 }
 
@@ -157,8 +148,7 @@ TEST(toBbConversion, for3) {
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/for3.bb");
 
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
+  cfgGenerator.optimize();
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/for3.bb.opt");
 }
 
@@ -171,8 +161,7 @@ TEST(toBbConversion, if1) {
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/if1.bb");
 
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
+  cfgGenerator.optimize();
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/if1.bb.opt");
 }
 
@@ -185,8 +174,7 @@ TEST(toBbConversion, if2) {
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/if2.bb");
 
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
+  cfgGenerator.optimize();
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/if2.bb.opt");
 }
 
@@ -199,8 +187,7 @@ TEST(toBbConversion, if3) {
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/if3.bb");
 
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
+  cfgGenerator.optimize();
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/if3.bb.opt");
 }
 

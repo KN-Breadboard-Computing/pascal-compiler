@@ -7,13 +7,15 @@ CXXFLAGS := -Wall -Wextra -pedantic -std=c++20 -O3 -g
 FORMATTER = clang-format -i --style=file
 
 SRCS := $(shell find src -name '*.cpp' | grep -v 'src/main.cpp')
+
 ALL_PROJECT_FILES := $(shell find . -type f \( -name "*.cpp" -o -name "*.hpp" \) ! -path "src/out/*")
 
+COMPILER_CORE_OBJECTS_DIR = core-objects
 COMPILATION_EXAMPLE_DIR = compilation-process
 
-all: lexer parser compiler format
+all: lexer parser core compiler format
 
-test-all: clean-ast-test clean-bb-test clean-ssa-test clean-mc-test test-ast test-bb test-ssa test-mc run-ast-test run-bb-test run-ssa-test run-mc-test
+test: clean-ast-test clean-bb-test clean-ssa-test clean-mc-test core test-ast test-bb test-ssa test-mc run-ast-test run-bb-test run-ssa-test run-mc-test
 
 clean: clean-compiler clean-ast-test clean-bb-test clean-ssa-test clean-mc-test
 
@@ -23,23 +25,37 @@ lexer:
 parser:
 	$(BB) $(BFLAGS) -o src/out/parser.cpp --defines=src/out/parser.hpp -v src/yacc.y
 
+core:
+	rm -f *.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS)
+	rm -rf $(COMPILER_CORE_OBJECTS_DIR)
+	mkdir -p $(COMPILER_CORE_OBJECTS_DIR)
+	mv *.o $(COMPILER_CORE_OBJECTS_DIR)
+
 compiler:
-	$(CXX) $(CXXFLAGS) $(SRCS) src/main.cpp -o compiler
+	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o src/main.cpp -o compiler
 
 generate-example:
 	./compiler $(COMPILATION_EXAMPLE_DIR)/test.pas $(COMPILATION_EXAMPLE_DIR)/test.ast $(COMPILATION_EXAMPLE_DIR)/test.bb $(COMPILATION_EXAMPLE_DIR)/test.ssa $(COMPILATION_EXAMPLE_DIR)/test.mc $(COMPILATION_EXAMPLE_DIR)/test.lr $(COMPILATION_EXAMPLE_DIR)/test.asm $(COMPILATION_EXAMPLE_DIR)/test.bin
 
+debug-example:
+	valgrind ./compiler $(COMPILATION_EXAMPLE_DIR)/test.pas $(COMPILATION_EXAMPLE_DIR)/test.ast $(COMPILATION_EXAMPLE_DIR)/test.bb $(COMPILATION_EXAMPLE_DIR)/test.ssa $(COMPILATION_EXAMPLE_DIR)/test.mc $(COMPILATION_EXAMPLE_DIR)/test.lr $(COMPILATION_EXAMPLE_DIR)/test.asm $(COMPILATION_EXAMPLE_DIR)/test.bin
+
 test-ast:
-	$(CXX) $(CXXFLAGS) $(SRCS) tests/ast_test.cpp tests/main.cpp -lgtest -o ast-test
+	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/ast_test.cpp tests/main.cpp -lgtest -o ast-test
+	./ast-test
 
 test-bb:
-	$(CXX) $(CXXFLAGS) $(SRCS) tests/bb_test.cpp tests/main.cpp -lgtest -o bb-test
+	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/bb_test.cpp tests/main.cpp -lgtest -o bb-test
+	./bb-test
 
 test-ssa:
-	$(CXX) $(CXXFLAGS) $(SRCS) tests/ssa_test.cpp tests/main.cpp -lgtest -o ssa-test
+	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/ssa_test.cpp tests/main.cpp -lgtest -o ssa-test
+	./ssa-test
 
 test-mc:
-	$(CXX) $(CXXFLAGS) $(SRCS) tests/mc_test.cpp tests/main.cpp -lgtest -o mc-test
+	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/mc_test.cpp tests/main.cpp -lgtest -o mc-test
+	./mc-test
 
 run-ast-test:
 	@echo "=== Running AST Tests ==="
@@ -90,3 +106,13 @@ clean-mc-test:
 
 format:
 	$(FORMATTER) $(ALL_PROJECT_FILES)
+
+playground:
+	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/playground.cpp -o playground
+	./playground
+
+clean-playground:
+	rm -f playground
+
+
+.PHONY: core playground

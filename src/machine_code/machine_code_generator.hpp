@@ -14,9 +14,6 @@
 #include <vector>
 
 #include "../bblocks/bb_control_flow_graph.hpp"
-#include "live_ranges_generator.hpp"
-#include "machine_instruction.hpp"
-
 #include "../bblocks/instructions/bb_binary_operation.hpp"
 #include "../bblocks/instructions/bb_branch.hpp"
 #include "../bblocks/instructions/bb_call.hpp"
@@ -26,9 +23,19 @@
 #include "../bblocks/instructions/bb_ret.hpp"
 #include "../bblocks/instructions/bb_unary_operation.hpp"
 
+#include "live_range.hpp"
+#include "live_ranges_generator.hpp"
+#include "machine_instruction.hpp"
+
+#include "register_allocation/interference_graph_reg_alloc.hpp"
+#include "register_allocation/linear_scan_reg_alloc.hpp"
+#include "register_allocation/reg_alloc.hpp"
+
 namespace machine_code {
 class MachineCodeGenerator {
  public:
+  enum RegisterAllocator { LINEAR_SCAN, GRAPH_COLORING };
+
   MachineCodeGenerator() = default;
 
   MachineCodeGenerator(const MachineCodeGenerator&) = delete;
@@ -39,12 +46,22 @@ class MachineCodeGenerator {
 
   ~MachineCodeGenerator() = default;
 
-  void generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg, std::ostream& liveRangesFile);
-  void saveMachineCode(const std::string& filename);
-  void saveAssembly(const std::string& filename);
-  void saveBinary(const std::string& filename);
+  void generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg, RegisterAllocator allocator);
+
+  const std::map<std::string, std::vector<LiveRange>>& getLiveRanges(const std::string& name) const {
+    return liveRanges_.at(name).getLiveRanges();
+  }
+  void saveLiveRanges(std::ostream& output) const;
+
+  const std::map<std::string, std::vector<MachineInstruction>>& getMachineCode() const { return machineCode_; }
+  void saveMachineCode(std::ostream& output);
+
+  void saveAssembly(std::ostream& output);
+  void saveBinary(std::ostream& output);
 
  private:
+  static int registersNumber_;
+
   void enumerateBlockLabels(const std::string& name, const bblocks::BBControlFlowGraph& cfg);
   void generateVariableAddresses(const std::string& name, const bblocks::BBControlFlowGraph& cfg,
                                  const LiveRangesGenerator& liveRanges);
@@ -85,8 +102,10 @@ class MachineCodeGenerator {
   static std::pair<std::string, std::string> getBinaryFullAddress(uint16_t address);
 
   std::map<std::string, std::map<std::string, std::pair<std::size_t, std::size_t>>> blockBounds_;
+  std::map<std::string, std::vector<std::string>> blocksOrder_;
   std::map<std::string, std::vector<MachineInstruction>> machineCode_;
   std::map<std::string, LiveRangesGenerator> liveRanges_;
+  std::map<std::string, std::unique_ptr<RegAlloc>> regAllocators_;
   //  std::map<std::string, std::map<std::string, uint16_t>> variableAddresses_;
   std::map<std::string, uint16_t> variableAddresses_;
   std::map<std::string, std::map<std::string, uint16_t>> labelValues_;

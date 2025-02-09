@@ -78,6 +78,196 @@ std::size_t BBControlFlowGraph::distance(const std::string& from, const std::str
   return distances.at(to);
 }
 
+void BBControlFlowGraph::removeEmptyBasicBlocks() {
+  std::map<std::string, std::string> labelsTranslation;
+  for (const auto& [blockLabel, block] : getBasicBlocks()) {
+    std::string label{blockLabel};
+    std::vector<std::string> renames;
+    while (getBasicBlock(label).empty()) {
+      renames.push_back(label);
+      // assert fun.getOutLinks(label).size() == 1
+      label = getOutLinks(label).front();
+    }
+
+    for (const auto& rename : renames) {
+      labelsTranslation[rename] = label;
+    }
+  }
+
+  std::map<std::string, std::vector<std::string>> updatedSrcDest;
+  for (auto srcDest = getSrcDestLinks().cbegin(); srcDest != getSrcDestLinks().cend(); ++srcDest) {
+    const std::string source =
+        labelsTranslation.find(srcDest->first) != labelsTranslation.end() ? labelsTranslation[srcDest->first] : srcDest->first;
+    updatedSrcDest.insert({source, {}});
+    for (auto dest = srcDest->second.cbegin(); dest != srcDest->second.cend(); ++dest) {
+      const std::string destination = labelsTranslation.find(*dest) != labelsTranslation.end() ? labelsTranslation[*dest] : *dest;
+      if (std::find(updatedSrcDest[source].begin(), updatedSrcDest[source].end(), destination) == updatedSrcDest[source].end() &&
+          source != destination) {
+        updatedSrcDest[source].push_back(destination);
+      }
+    }
+  }
+
+  std::map<std::string, std::vector<std::string>> updatedDestSrc;
+  for (auto destSrc = getDestSrcLinks().cbegin(); destSrc != getDestSrcLinks().cend(); ++destSrc) {
+    const std::string destination =
+        labelsTranslation.find(destSrc->first) != labelsTranslation.end() ? labelsTranslation[destSrc->first] : destSrc->first;
+    updatedDestSrc.insert({destination, {}});
+
+    for (auto src = destSrc->second.begin(); src != destSrc->second.end(); ++src) {
+      const std::string source = labelsTranslation.find(*src) != labelsTranslation.end() ? labelsTranslation[*src] : *src;
+      if (std::find(updatedDestSrc[destination].begin(), updatedDestSrc[destination].end(), source) ==
+              updatedDestSrc[destination].end() &&
+          destination != source) {
+        updatedDestSrc[destination].push_back(source);
+      }
+    }
+  }
+
+  std::map<std::string, BasicBlock> updatedBlocks;
+  for (const auto& [blockLabel, block] : getBasicBlocks()) {
+    if (!block.empty()) {
+      const std::string newLabel =
+          labelsTranslation.find(blockLabel) != labelsTranslation.end() ? labelsTranslation[blockLabel] : blockLabel;
+      updatedBlocks.insert({newLabel, block});
+    }
+  }
+
+  update(updatedSrcDest, updatedDestSrc, updatedBlocks);
+
+  if (labelsTranslation.find(getEntryLabel()) != labelsTranslation.end()) {
+    setEntryLabel(labelsTranslation[getEntryLabel()]);
+  }
+
+  if (labelsTranslation.find(getExitLabel()) != labelsTranslation.end()) {
+    setExitLabel(labelsTranslation[getExitLabel()]);
+  }
+
+  for (auto& block : basicBlocks()) {
+    for (auto& instruction : block.second.instructions()) {
+      for (const auto& labelTranslation : labelsTranslation) {
+        instruction->replaceLabel(labelTranslation.first, labelTranslation.second);
+      }
+    }
+  }
+}
+
+void BBControlFlowGraph::removeSingleUseAssignments(bool onlyTemporaries) {
+  std::map<std::string, std::size_t> variableDefs;
+  std::map<std::string, std::size_t> variableDefsInMove;
+  std::map<std::string, std::size_t> variableDefsInOperations;
+  std::map<std::string, std::size_t> variableUses;
+  std::map<std::string, std::size_t> variableUsesInMove;
+  for (const auto& [blockLabel, block] : basicBlocks()) {
+    for (const auto& instruction : block.getInstructions()) {
+      const BBInstruction::Type instructionType = instruction->getType();
+      instruction->visitDefVariables(
+          [&variableDefs, &variableDefsInMove, &variableDefsInOperations, instructionType](const std::string& var) {
+            if (variableDefs.find(var) == variableDefs.end()) {
+              variableDefs[var] = 0;
+              variableDefsInMove[var] = 0;
+              variableDefsInOperations[var] = 0;
+            }
+
+            variableDefs[var]++;
+            if (instructionType == BBInstruction::Type::MOVE) {
+              variableDefsInMove[var]++;
+            }
+            else if (instructionType == BBInstruction::Type::UNARY_OPERATION ||
+                     instructionType == BBInstruction::Type::BINARY_OPERATION) {
+              variableDefsInOperations[var]++;
+            }
+          });
+
+      instruction->visitUseVariables([&variableUses, &variableUsesInMove, instructionType](const std::string& var) {
+        if (variableUses.find(var) == variableUses.end()) {
+          variableUses[var] = 0;
+        }
+
+        variableUses[var]++;
+        if (instructionType == BBInstruction::Type::MOVE) {
+          variableUsesInMove[var]++;
+        }
+      });
+    }
+  }
+
+  std::map<std::string, VariableReassignment> reassignments;
+
+  std::queue<std::string> blocksToProcess;
+  std::set<std::string> visitedBlocks;
+  blocksToProcess.push(getEntryLabel());
+  visitedBlocks.insert(getEntryLabel());
+  while (!blocksToProcess.empty()) {
+    const std::string blockLabel = blocksToProcess.front();
+    blocksToProcess.pop();
+    BasicBlock blockAfterFirstPass;
+    for (auto& instruction : basicBlock(blockLabel).instructions()) {
+      const std::vector<BBInstruction::TemplateArgumentType> templateTypes = instruction->getTemplateTypes();
+      if (instruction->getType() == BBInstruction::Type::MOVE) {
+        if (templateTypes[1] == BBInstruction::TemplateArgumentType::STRING) {
+          if (templateTypes[0] == BBInstruction::TemplateArgumentType::STRING) {
+            BBMoveVV* move = dynamic_cast<BBMoveVV*>(instruction.get());
+            const VariableType dst = move->getDestination();
+            const VariableType src = move->getSource();
+            if (variableDefs[dst] == 1 && variableDefsInMove[dst] == 1 && (Context::isTempVariable(dst) || !onlyTemporaries)) {
+              reassignments.insert({dst, {BBInstruction::TemplateArgumentType::STRING, 0, src}});
+            }
+            else if (variableDefs[src] == 1 && variableDefsInOperations[src] == 1 && variableUses[src] == 1 &&
+                     variableUses[src] == variableUsesInMove[src] && (Context::isTempVariable(src) || !onlyTemporaries)) {
+              reassignments.insert({src, {BBInstruction::TemplateArgumentType::STRING, 0, dst}});
+            }
+            else {
+              blockAfterFirstPass.addInstruction(instruction->clone());
+            }
+          }
+          else {  // (templateTypes[0] == BBInstruction::TemplateArgumentType::NUMBER)
+            BBMoveNV* move = dynamic_cast<BBMoveNV*>(instruction.get());
+            const VariableType dst = move->getDestination();
+            const NumericType src = move->getSource();
+            if (variableDefs[dst] == 1 && variableDefsInMove[dst] == 1 && (Context::isTempVariable(dst) || !onlyTemporaries)) {
+              reassignments.insert({dst, {BBInstruction::TemplateArgumentType::NUMBER, src, ""}});
+            }
+            else {
+              blockAfterFirstPass.addInstruction(instruction->clone());
+            }
+          }
+        }
+      }
+      else {
+        blockAfterFirstPass.addInstruction(instruction->clone());
+      }
+    }
+
+    BasicBlock blockAfterSecondPass;
+    for (auto& instruction : blockAfterFirstPass.instructions()) {
+      std::unique_ptr<BBInstruction> newInstruction = instruction->clone();
+      for (const auto& reassignment : reassignments) {
+        if (reassignment.second.type == BBInstruction::TemplateArgumentType::STRING) {
+          newInstruction = newInstruction->replaceVariable(reassignment.first, reassignment.second.variable);
+        }
+        else {
+          newInstruction = newInstruction->replaceVariable(reassignment.first, reassignment.second.number);
+        }
+      }
+      blockAfterSecondPass.addInstruction(std::move(newInstruction));
+    }
+
+    setBasicBlock(blockLabel, blockAfterSecondPass);
+
+    for (const auto& outLink : getOutLinks(blockLabel)) {
+      if (visitedBlocks.find(outLink) == visitedBlocks.end()) {
+        blocksToProcess.push(outLink);
+        visitedBlocks.insert(outLink);
+      }
+    }
+  }
+
+  if (!reassignments.empty()) {
+    removeSingleUseAssignments(onlyTemporaries);
+  }
+}
+
 std::ostream& operator<<(std::ostream& out, const BBControlFlowGraph& cfg) {
   std::queue<std::string> labels;
   std::set<std::string> visited;

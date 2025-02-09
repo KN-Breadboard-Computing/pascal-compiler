@@ -53,9 +53,7 @@ int main(int argc, char* argv[]) {
     outputBbFile << name << ":\n" << cfg << std::endl;
   }
 
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
-  cfgGenerator.removeEmptyBasicBlocks();
+  cfgGenerator.optimize();
 
   std::ofstream outputOptimizedBbFile(outputBblocksFileName + ".opt");
   for (const auto& [name, cfg] : cfgGenerator.getControlFlowGraphs()) {
@@ -72,8 +70,7 @@ int main(int argc, char* argv[]) {
     outputSsaFile << name << ":\n" << cfg << std::endl;
   }
 
-  ssaGenerator.propagateConstants();
-  ssaGenerator.removeRedundantAssignments();
+  ssaGenerator.optimize();
 
   std::ofstream outputOptimizedSsaFile(outputSsaFileName + ".opt");
   for (const auto& [name, cfg] : ssaGenerator.getControlFlowGraphs()) {
@@ -88,12 +85,20 @@ int main(int argc, char* argv[]) {
   }
 
   machine_code::MachineCodeGenerator machineCodeGenerator;
-  std::ofstream outputRegisterAllocationFile(outputRegisterAllocationFileName);
-  machineCodeGenerator.generate(ssaGenerator.getControlFlowGraphs(), outputRegisterAllocationFile);
+  machineCodeGenerator.generate(ssaGenerator.getControlFlowGraphs(),
+                                machine_code::MachineCodeGenerator::RegisterAllocator::LINEAR_SCAN);
 
-  machineCodeGenerator.saveMachineCode(outputMachineCodeFileName);
-  machineCodeGenerator.saveAssembly(outputAsmFileName);
-  machineCodeGenerator.saveBinary(outputBinaryAsmFileName);
+  std::ofstream outputRegisterAllocationFile(outputRegisterAllocationFileName);
+  machineCodeGenerator.saveLiveRanges(outputRegisterAllocationFile);
+
+  std::ofstream outputMachineCodeFile(outputMachineCodeFileName);
+  machineCodeGenerator.saveMachineCode(outputMachineCodeFile);
+
+  std::ofstream outputAsmFile(outputAsmFileName);
+  machineCodeGenerator.saveAssembly(outputAsmFile);
+
+  std::ofstream outputBinaryAsmFile(outputBinaryAsmFileName);
+  machineCodeGenerator.saveBinary(outputBinaryAsmFile);
 
   return 0;
 }

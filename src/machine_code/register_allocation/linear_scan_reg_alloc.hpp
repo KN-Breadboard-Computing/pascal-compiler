@@ -1,14 +1,13 @@
 #ifndef MACHINE_CODE_LINEAR_SCAN_REG_ALLOC_HPP
 #define MACHINE_CODE_LINEAR_SCAN_REG_ALLOC_HPP
 
-#include <map>
-#include <string>
-#include <vector>
+#include "reg_alloc.hpp"
 
 namespace machine_code {
-class LinearScanRegAlloc {
+class LinearScanRegAlloc : public RegAlloc {
  public:
   LinearScanRegAlloc() = default;
+  LinearScanRegAlloc(int registersCount);
 
   LinearScanRegAlloc(const LinearScanRegAlloc&) = delete;
   LinearScanRegAlloc(LinearScanRegAlloc&&) = default;
@@ -18,8 +17,14 @@ class LinearScanRegAlloc {
 
   ~LinearScanRegAlloc() = default;
 
-  void allocateRegisters(std::size_t registersCount,
-                         std::map<std::string, std::vector<std::pair<std::size_t, std::size_t>>>& liveRanges);
+  void allocateRegisters(const std::map<std::string, std::vector<LiveRange>>& liveRanges) override;
+
+ private:
+  void expireOldIntervals(const LiveRange& interval);
+  void spillAtInterval(LiveRange& interval);
+
+  std::vector<int> freeRegisters_;
+  std::vector<LiveRange> activeIntervals_;
 };
 }  // namespace machine_code
 

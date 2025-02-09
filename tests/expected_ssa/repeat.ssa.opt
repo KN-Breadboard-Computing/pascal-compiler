@@ -1,0 +1,39 @@
+program:
+-> bb0 -> bb8 {
+  i.0 := 0
+  j.0 := 0
+  k.0 := 0
+}
+
+bb0 bb16 bb13 bb10 -> bb8 -> bb10 {
+  k.1 := phi( k.0 k.2 k.2 k.2 )
+  j.1 := phi( j.0 j.1 j.1 j.2 )
+  i.1 := phi( i.0 i.2 i.2 i.2 )
+  i.2 := i.1 + 1
+  k.2 := k.1 + 1
+}
+
+bb8 -> bb10 -> bb8 bb13 {
+  #t8.0 := k.2 - 5
+  br nonzero #t8.0 ? bb8 : bb13
+}
+
+bb10 -> bb13 -> bb8 bb2 {
+  #t11.0 := i.2 - 10
+  br nonzero #t11.0 ? bb8 : bb2
+}
+
+bb13 -> bb2 -> bb16 {
+  j.2 := j.1 + 1
+}
+
+bb2 -> bb16 -> bb8 bb18 {
+  #t17.0 := j.2 - 5
+  br nonzero #t17.0 ? bb8 : bb18
+}
+
+bb16 -> bb18 -> {
+  halt
+}
+
+

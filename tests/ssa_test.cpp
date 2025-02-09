@@ -30,9 +30,7 @@ TEST(toSsaConversion, whileLoop) {
 
   bblocks::BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
-  cfgGenerator.removeEmptyBasicBlocks();
+  cfgGenerator.optimize();
 
   bblocks::BbSsaGenerator ssaGenerator;
   for (const auto& [name, cfg] : cfgGenerator.getControlFlowGraphs()) {
@@ -41,8 +39,7 @@ TEST(toSsaConversion, whileLoop) {
 
   validateSsaBlocks(ssaGenerator.getControlFlowGraphs(), "tests/expected_ssa/while.ssa");
 
-  ssaGenerator.propagateConstants();
-  ssaGenerator.removeRedundantAssignments();
+  ssaGenerator.optimize();
 
   validateSsaBlocks(ssaGenerator.getControlFlowGraphs(), "tests/expected_ssa/while.ssa.opt");
 
@@ -58,9 +55,7 @@ TEST(toSsaConversion, forLoop) {
 
   bblocks::BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
-  cfgGenerator.removeEmptyBasicBlocks();
+  cfgGenerator.optimize();
 
   bblocks::BbSsaGenerator ssaGenerator;
   for (const auto& [name, cfg] : cfgGenerator.getControlFlowGraphs()) {
@@ -69,8 +64,7 @@ TEST(toSsaConversion, forLoop) {
 
   validateSsaBlocks(ssaGenerator.getControlFlowGraphs(), "tests/expected_ssa/for.ssa");
 
-  ssaGenerator.propagateConstants();
-  ssaGenerator.removeRedundantAssignments();
+  ssaGenerator.optimize();
 
   validateSsaBlocks(ssaGenerator.getControlFlowGraphs(), "tests/expected_ssa/for.ssa.opt");
 
@@ -86,9 +80,7 @@ TEST(toSsaConversion, ifCondition) {
 
   bblocks::BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
-  cfgGenerator.removeEmptyBasicBlocks();
-  cfgGenerator.removeTemporaryVariables();
-  cfgGenerator.removeEmptyBasicBlocks();
+  cfgGenerator.optimize();
 
   bblocks::BbSsaGenerator ssaGenerator;
   for (const auto& [name, cfg] : cfgGenerator.getControlFlowGraphs()) {
@@ -97,12 +89,36 @@ TEST(toSsaConversion, ifCondition) {
 
   validateSsaBlocks(ssaGenerator.getControlFlowGraphs(), "tests/expected_ssa/if.ssa");
 
-  ssaGenerator.propagateConstants();
-  ssaGenerator.removeRedundantAssignments();
+  ssaGenerator.optimize();
 
   validateSsaBlocks(ssaGenerator.getControlFlowGraphs(), "tests/expected_ssa/if.ssa.opt");
 
   ssaGenerator.fromSsa();
 
   validateSsaBlocks(ssaGenerator.getControlFlowGraphs(), "tests/expected_ssa/if.ssa.merged");
+}
+
+TEST(toSsaConversion, repeatLoop) {
+  std::vector<std::string> errors;
+  std::unique_ptr<ast::ProgramNode> program;
+  ASSERT_TRUE(parse("tests/input_ssa/repeat.pas", errors, program));
+
+  bblocks::BbCfgGenerator cfgGenerator;
+  cfgGenerator.generate(program);
+  cfgGenerator.optimize();
+
+  bblocks::BbSsaGenerator ssaGenerator;
+  for (const auto& [name, cfg] : cfgGenerator.getControlFlowGraphs()) {
+    ssaGenerator.toSsa(name, cfg);
+  }
+
+  validateSsaBlocks(ssaGenerator.getControlFlowGraphs(), "tests/expected_ssa/repeat.ssa");
+
+  ssaGenerator.optimize();
+
+  validateSsaBlocks(ssaGenerator.getControlFlowGraphs(), "tests/expected_ssa/repeat.ssa.opt");
+
+  ssaGenerator.fromSsa();
+
+  validateSsaBlocks(ssaGenerator.getControlFlowGraphs(), "tests/expected_ssa/repeat.ssa.merged");
 }

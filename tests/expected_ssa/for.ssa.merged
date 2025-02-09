@@ -1,19 +1,20 @@
 program:
 -> bb0 -> bb2 {
-  sum := 0
 }
 
 bb0 -> bb2 -> bb5 {
-  i := 1
+  sum.2 := 0
+  i.1 := 1
 }
 
 bb2 bb7 -> bb5 -> bb10 bb30 {
-  #t3 := i - 5
-  br positive #t3 ? bb10 : bb30
+  #t3.0 := i.1 - 5
+  br positive #t3.0 ? bb10 : bb30
 }
 
 bb5 -> bb10 -> bb13 {
-  j := 5
+  sum.3 := sum.2
+  j.2 := 5
 }
 
 bb5 -> bb30 -> {
@@ -21,31 +22,32 @@ bb5 -> bb30 -> {
 }
 
 bb10 bb15 -> bb13 -> bb16 bb7 {
-  #t6 := j - 1
-  br negative #t6 ? bb16 : bb7
+  #t6.0 := j.2 - 1
+  br negative #t6.0 ? bb16 : bb7
 }
 
 bb13 -> bb16 -> bb18 {
-  sum := sum + j
+  sum.4 := sum.3 + j.2
 }
 
 bb13 -> bb7 -> bb5 {
-  sum := sum + i
-  i := i + 1
+  sum.2 := sum.3 + i.1
+  i.1 := i.1 + 1
 }
 
 bb16 -> bb18 -> bb24 {
-  #t12 := j - 2
-  br nonzero #t12 ? bb24 : bb24
+  #t12.0 := j.2 - 2
+  br nonzero #t12.0 ? bb24 : bb24
 }
 
 bb18 -> bb24 -> bb15 {
-  #t15 := sum - 34
-  br nonzero #t15 ? bb15 : bb15
+  #t15.0 := sum.4 - 34
+  br nonzero #t15.0 ? bb15 : bb15
 }
 
 bb24 -> bb15 -> bb13 {
-  j := j - 1
+  j.2 := j.2 - 1
+  sum.3 := sum.4
 }
 
 

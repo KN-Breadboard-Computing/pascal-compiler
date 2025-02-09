@@ -1,42 +1,65 @@
 program:
 -> bb0 -> bb2 {
-  i := 0
-  j := 0
-  a := 7
-  k := 9
+  k.2 := 9
+  j.1 := 0
+  i.1 := 0
+  a.2 := 7
 }
 
 bb0 bb7 -> bb2 -> bb7 bb18 {
-  #t4 := i - 5
-  br nonzero #t4 ? bb7 : bb18
+  #t4.0 := i.1 - 5
+  br nonzero #t4.0 ? bb7 : bb18
+  k.4 := k.2
+  j.4 := j.1
+  i.3 := i.1
+  a.3 := a.2
 }
 
 bb2 bb9 -> bb7 -> bb10 bb2 {
-  #t7 := k - 9
-  br nonzero #t7 ? bb10 : bb2
+  #t7.0 := k.4 - 9
+  br nonzero #t7.0 ? bb10 : bb2
+  k.2 := k.4
+  j.1 := j.4
+  i.1 := i.3
+  a.2 := a.3
 }
 
-bb2 -> bb18 -> {
-  halt
+bb2 -> bb18 -> bb20 {
+  k.3 := a.2 + 9
+  j.2 := j.1
 }
 
 bb7 -> bb10 -> bb12 {
-  j := 0
+  j.6 := 0
+}
+
+bb18 bb22 -> bb20 -> bb22 bb24 {
+  #t28.0 := k.3 - 4
+  br nonzero #t28.0 ? bb22 : bb24
 }
 
 bb10 bb14 -> bb12 -> bb14 bb9 {
-  #t11 := j - 3
-  br nonzero #t11 ? bb14 : bb9
+  #t11.0 := j.6 - 3
+  br nonzero #t11.0 ? bb14 : bb9
+}
+
+bb20 -> bb22 -> bb20 {
+  j.2 := j.2 + 1
+}
+
+bb20 -> bb24 -> {
+  halt
 }
 
 bb12 -> bb14 -> bb12 {
-  j := j + 2
+  j.6 := j.6 + 2
 }
 
 bb12 -> bb9 -> bb7 {
-  a := j
-  i := i + a
-  k := k + 1
+  i.3 := i.3 + j.6
+  k.4 := k.4 + 1
+  j.4 := j.6
+  a.3 := j.6
 }
 
 

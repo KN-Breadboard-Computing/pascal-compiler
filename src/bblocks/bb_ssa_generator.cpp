@@ -188,66 +188,52 @@ void BbSsaGenerator::toSsa(const std::string& name, const BBControlFlowGraph& gr
 
 void BbSsaGenerator::fromSsa() {
   for (auto& [name, cfg] : functionControlFlowGraphs_) {
-    for (auto& block : cfg.basicBlocks()) {
-      block.second.instructions().erase(std::remove_if(block.second.instructions().begin(), block.second.instructions().end(),
-                                                       [](const std::unique_ptr<BBInstruction>& instruction) {
-                                                         return instruction->getType() == BBInstruction::Type::PHI;
-                                                       }),
-                                        block.second.instructions().end());
-      for (auto& instruction : block.second.instructions()) {
-        std::set<VariableType> vars;
-        instruction->visitDefVariables([&vars](const VariableType& var) { vars.insert(var); });
-        instruction->visitUseVariables([&vars](const VariableType& var) { vars.insert(var); });
+    // iterate over block in bfs order
+    std::queue<std::string> bfsQueue;
+    std::set<std::string> visited;
+    bfsQueue.push(cfg.getEntryLabel());
+    visited.insert(cfg.getEntryLabel());
 
-        for (const auto& var : vars) {
-          instruction = instruction->replaceVariable(var, removeVariableCounter(var));
+    while (!bfsQueue.empty()) {
+      const std::string label = bfsQueue.front();
+      bfsQueue.pop();
+
+      for (const auto& childLabel : cfg.getOutLinks(label)) {
+        if (visited.find(childLabel) == visited.end()) {
+          bfsQueue.push(childLabel);
+          visited.insert(childLabel);
         }
       }
+
+      BasicBlock newBlock;
+      for (const auto& instruction : cfg.basicBlocks().at(label).getInstructions()) {
+        if (instruction->getType() == BBInstruction::Type::PHI) {
+          BBPhi* phi = dynamic_cast<BBPhi*>(instruction.get());
+          const std::string var = phi->getName();
+          for (const auto& pred : phiCompletions_[name][label][removeVariableCounter(var)]) {
+            cfg.basicBlocks()
+                .at(pred.first)
+                .addInstruction(std::make_unique<BBMoveVV>(appendVariableCounter(removeVariableCounter(var), pred.second), var,
+                                                           BBInstruction::SourceType::REGISTER,
+                                                           BBInstruction::DestinationType::REGISTER));
+          }
+        }
+        else {
+          newBlock.addInstruction(instruction->clone());
+        }
+      }
+
+      cfg.basicBlocks().at(label) = newBlock;
     }
+
+    cfg.removeSingleUseAssignments(false);
   }
 }
 
-//void BbSsaGenerator::fromSsa() { <- This function is not used, because generate additional variables
-//  for (auto& [name, cfg] : functionControlFlowGraphs_) {
-//    // iterate over block in bfs order
-//    std::queue<std::string> bfsQueue;
-//    std::set<std::string> visited;
-//    bfsQueue.push(cfg.getEntryLabel());
-//    visited.insert(cfg.getEntryLabel());
-//
-//    while (!bfsQueue.empty()) {
-//      const std::string label = bfsQueue.front();
-//      bfsQueue.pop();
-//
-//      for (const auto& childLabel : cfg.getOutLinks(label)) {
-//        if (visited.find(childLabel) == visited.end()) {
-//          bfsQueue.push(childLabel);
-//          visited.insert(childLabel);
-//        }
-//      }
-//
-//      BasicBlock newBlock;
-//      for (const auto& instruction : cfg.basicBlocks().at(label).getInstructions()) {
-//        if (instruction->getType() == BBInstruction::Type::PHI) {
-//          BBPhi* phi = dynamic_cast<BBPhi*>(instruction.get());
-//          const std::string var = phi->getName();
-//          for (const auto& pred : phiCompletions_[name][label][removeVariableCounter(var)]) {
-//            cfg.basicBlocks()
-//                .at(pred.first)
-//                .addInstruction(std::make_unique<BBMoveVV>(appendVariableCounter(removeVariableCounter(var), pred.second), var,
-//                                                           BBInstruction::SourceType::REGISTER,
-//                                                           BBInstruction::DestinationType::REGISTER));
-//          }
-//        }
-//        else {
-//          newBlock.addInstruction(instruction->clone());
-//        }
-//      }
-//
-//      cfg.basicBlocks().at(label) = newBlock;
-//    }
-//  }
-//}
+void BbSsaGenerator::optimize() {
+  removeRedundantAssignments();
+  propagateConstants();
+}
 
 void BbSsaGenerator::removeRedundantAssignments() {
   for (auto& [name, cfg] : functionControlFlowGraphs_) {
@@ -380,47 +366,4 @@ void BbSsaGenerator::renameVariables(
     }
   }
 }
-
-//void BbSsaGenerator::removeAssignChains(BBControlFlowGraph& cfg) {
-//  std::map<std::string, std::pair<std::size_t, std::size_t>> varDefs;
-//  for (const auto& block : cfg.basicBlocks()) {
-//    for (const auto& instruction : block.second.getInstructions()) {
-//      instruction->visitDefVariables([&varDefs, &instruction](const VariableType& var) {
-//        if (varDefs.find(var) == varDefs.end()) {
-//          varDefs.insert({var, {0, 0}});
-//        }
-//        varDefs[var].first++;
-//        if (instruction->getType() == BBInstruction::Type::MOVE) {
-//          varDefs[var].second++;
-//        }
-//      });
-//    }
-//  }
-//
-//  std::map<std::string, std::pair<std::size_t, std::size_t>> varUses;
-//  for (const auto& block : cfg.basicBlocks()) {
-//    for (const auto& instruction : block.second.getInstructions()) {
-//      instruction->visitUseVariables([&varUses, &instruction](const VariableType& var) {
-//        if (varUses.find(var) == varUses.end()) {
-//          varUses.insert({var, {0, 0}});
-//        }
-//        varUses[var].first++;
-//        if (instruction->getType() == BBInstruction::Type::MOVE) {
-//          varUses[var].second++;
-//        }
-//      });
-//    }
-//  }
-//
-//  std::cout << "Defs" << std::endl;
-//  for (const auto& [var, defs] : varDefs) {
-//    std::cout << var << " " << defs.first << " " << defs.second << std::endl;
-//  }
-//
-//  std::cout << "Uses" << std::endl;
-//  for (const auto& [var, uses] : varUses) {
-//    std::cout << var << " " << uses.first << " " << uses.second << std::endl;
-//  }
-//}
-
 }  // namespace bblocks

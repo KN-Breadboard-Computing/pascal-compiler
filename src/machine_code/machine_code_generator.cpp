@@ -1,7 +1,9 @@
 #include "machine_code_generator.hpp"
 
 namespace machine_code {
-void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg, std::ostream& liveRangesFile) {
+int MachineCodeGenerator::registersNumber_{2};
+
+void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg, RegisterAllocator allocator) {
   for (const auto& [functionName, controlFlowGraph] : cfg) {
     // enumerate labels of blocks
     enumerateBlockLabels(functionName, controlFlowGraph);
@@ -9,9 +11,18 @@ void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBContr
     // calculate live ranges
     liveRanges_.insert({functionName, LiveRangesGenerator{}});
     liveRanges_[functionName].generate(controlFlowGraph, blockBounds_[functionName]);
-    liveRangesFile << "Function: " << functionName << std::endl;
-    liveRanges_[functionName].saveLiveRanges(liveRangesFile);
-    liveRangesFile << std::endl;
+
+    // allocate registers
+    switch (allocator) {
+      case RegisterAllocator::LINEAR_SCAN:
+        regAllocators_[functionName] = std::make_unique<LinearScanRegAlloc>(registersNumber_);
+        break;
+      case RegisterAllocator::GRAPH_COLORING:
+        regAllocators_[functionName] = std::make_unique<InterferenceGraphRegAlloc>(registersNumber_);
+        break;
+    }
+
+    regAllocators_[functionName]->allocateRegisters(liveRanges_.at(functionName).getLiveRanges());
 
     // calculate variable addresses
     generateVariableAddresses(functionName, controlFlowGraph, liveRanges_[functionName]);
@@ -50,21 +61,23 @@ void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBContr
   }
 }
 
-void MachineCodeGenerator::saveMachineCode(const std::string& filename) {
-  std::fstream file;
-  file.open(filename, std::ios::out);
+void MachineCodeGenerator::saveLiveRanges(std::ostream& output) const {
+  for (const auto& [functionName, liveRanges] : liveRanges_) {
+    liveRanges.saveLiveRanges(output);
+    output << std::endl;
+    regAllocators_.at(functionName)->saveAllocatedRegisters(output);
+  }
+}
 
+void MachineCodeGenerator::saveMachineCode(std::ostream& output) {
   for (const auto& [functionName, instructions] : machineCode_) {
     for (const auto& instruction : instructions) {
-      file << instruction.toString() << "\n";
+      output << instruction.toString() << "\n";
     }
   }
 }
 
-void MachineCodeGenerator::saveAssembly(const std::string& filename) {
-  std::fstream file;
-  file.open(filename, std::ios::out);
-
+void MachineCodeGenerator::saveAssembly(std::ostream& output) {
   for (const auto& [functionName, instructions] : machineCode_) {
     for (const auto& instruction : instructions) {
       if (instruction.getType() == MachineInstruction::Type::LABEL) {
@@ -76,15 +89,12 @@ void MachineCodeGenerator::saveAssembly(const std::string& filename) {
         const auto addr = MachineCodeGenerator::getBinaryFullAddress(value);
         instructionCopy.replaceOperand(label, {addr.first, addr.second});
       }
-      file << instructionCopy.toAssembly() << "\n";
+      output << instructionCopy.toAssembly() << "\n";
     }
   }
 }
 
-void MachineCodeGenerator::saveBinary(const std::string& filename) {
-  std::fstream file;
-  file.open(filename, std::ios::out | std::ios::binary);
-
+void MachineCodeGenerator::saveBinary(std::ostream& output) {
   for (const auto& [functionName, instructions] : machineCode_) {
     for (const auto& instruction : instructions) {
       if (instruction.getType() == MachineInstruction::Type::LABEL) {
@@ -98,11 +108,11 @@ void MachineCodeGenerator::saveBinary(const std::string& filename) {
       }
 
       const uint8_t byte = static_cast<uint8_t>(std::stoi(instructionCopy.getBinaryCode(), nullptr, 2));
-      file.write(reinterpret_cast<const char*>(&byte), sizeof(byte));
+      output.write(reinterpret_cast<const char*>(&byte), sizeof(byte));
 
       for (const auto& operand : instructionCopy.getOperands()) {
         const uint8_t word = static_cast<uint8_t>(std::stoi(operand, nullptr, 2));
-        file.write(reinterpret_cast<const char*>(&word), sizeof(word));
+        output.write(reinterpret_cast<const char*>(&word), sizeof(word));
       }
     }
   }
@@ -112,19 +122,26 @@ void MachineCodeGenerator::enumerateBlockLabels(const std::string& name, const b
   std::map<std::string, std::pair<std::size_t, std::size_t>> bounds;
   std::size_t labelCounter = 0;
 
-  std::queue<std::string> blocksToProcess;
+  blocksOrder_.insert({name, std::vector<std::string>{}});
+  std::stack<std::string> blocksToProcess;
   std::set<std::string> visitedBlocks;
 
   blocksToProcess.push(cfg.getEntryLabel());
   visitedBlocks.insert(cfg.getEntryLabel());
   while (!blocksToProcess.empty()) {
-    const std::string blockLabel = blocksToProcess.front();
+    const std::string blockLabel = blocksToProcess.top();
     blocksToProcess.pop();
+    blocksOrder_[name].push_back(blockLabel);
 
     bounds.insert({blockLabel, {labelCounter, labelCounter + cfg.getBasicBlock(blockLabel).getInstructions().size() - 1}});
     labelCounter += cfg.getBasicBlock(blockLabel).getInstructions().size();
 
-    for (const auto& outLink : cfg.getOutLinks(blockLabel)) {
+    std::vector<std::string> outLinks = cfg.getOutLinks(blockLabel);
+    std::sort(outLinks.begin(), outLinks.end(), [](const std::string& a, const std::string& b) {
+      return std::atoi(a.substr(2, a.size() - 2).c_str()) > std::atoi(b.substr(2, b.size() - 2).c_str());
+    });
+
+    for (const auto& outLink : outLinks) {
       if (visitedBlocks.find(outLink) == visitedBlocks.end()) {
         blocksToProcess.push(outLink);
         visitedBlocks.insert(outLink);

@@ -1,44 +1,35 @@
 program:
 -> bb0 -> bb2 {
-  num := 0
 }
 
 bb0 -> bb2 -> bb5 bb17 {
-  #t3 := num - 0
-  br nonzero #t3 ? bb5 : bb17
+  #t3.0 := 0 - 0
+  br nonzero #t3.0 ? bb5 : bb17
 }
 
 bb2 -> bb5 -> bb7 {
-  res1 := 1
-  res2 := 2
 }
 
 bb2 -> bb17 -> bb19 bb21 {
-  #t13 := num - 0
-  br nonzero #t13 ? bb19 : bb21
+  #t13.0 := 0 - 0
+  br nonzero #t13.0 ? bb19 : bb21
 }
 
 bb5 -> bb7 -> bb9 bb11 {
-  #t8 := res1 - 1
-  br nonzero #t8 ? bb9 : bb11
+  #t8.0 := 1 - 1
+  br nonzero #t8.0 ? bb9 : bb11
 }
 
 bb17 -> bb19 -> bb24 {
-  res1 := 2
-  res2 := 1
 }
 
 bb17 -> bb21 -> bb24 {
-  res1 := 3
-  res2 := 3
 }
 
 bb7 -> bb9 -> bb24 {
-  res1 := 2
 }
 
 bb7 -> bb11 -> bb24 {
-  res1 := 3
 }
 
 bb11 bb9 bb19 bb21 -> bb24 -> {

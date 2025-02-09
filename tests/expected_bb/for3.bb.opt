@@ -4,19 +4,16 @@ program:
   sum := 0
 }
 
-bb0 -> bb2 -> bb4 {
+bb0 -> bb2 -> bb5 {
   i := 1
 }
 
-bb2 -> bb4 -> bb5 {
-}
-
-bb4 bb7 -> bb5 -> bb10 bb30 {
+bb2 bb7 -> bb5 -> bb10 bb30 {
   #t3 := i - 5
   br positive #t3 ? bb10 : bb30
 }
 
-bb5 -> bb10 -> bb12 {
+bb5 -> bb10 -> bb13 {
   j := 5
 }
 
@@ -24,10 +21,7 @@ bb5 -> bb30 -> {
   halt
 }
 
-bb10 -> bb12 -> bb13 {
-}
-
-bb12 bb15 -> bb13 -> bb16 bb7 {
+bb10 bb15 -> bb13 -> bb16 bb7 {
   #t6 := j - 1
   br negative #t6 ? bb16 : bb7
 }

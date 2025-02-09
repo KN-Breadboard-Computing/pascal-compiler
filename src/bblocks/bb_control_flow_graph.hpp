@@ -1,6 +1,7 @@
 #ifndef BBLOCKS_BB_CONTROL_FLOW_GRAPH_HPP
 #define BBLOCKS_BB_CONTROL_FLOW_GRAPH_HPP
 
+#include <algorithm>
 #include <map>
 #include <memory>
 #include <ostream>
@@ -8,6 +9,7 @@
 #include <vector>
 
 #include "../ast/program_node.hpp"
+#include "../context/context.hpp"
 #include "basic_block.hpp"
 
 #undef CFG_DEBUG
@@ -19,6 +21,11 @@ class BBControlFlowGraph {
 
   explicit BBControlFlowGraph(const std::string& entryLabel) : entryLabel_{entryLabel}, exitLabel_{entryLabel} {
     addBBlock(entryLabel, BasicBlock{});
+  }
+
+  explicit BBControlFlowGraph(const std::string& entryLabel, BasicBlock basicBlock)
+      : entryLabel_{entryLabel}, exitLabel_{entryLabel} {
+    addBBlock(entryLabel, std::move(basicBlock));
   }
 
   BBControlFlowGraph(const BBControlFlowGraph&) = default;
@@ -77,7 +84,16 @@ class BBControlFlowGraph {
 
   friend std::ostream& operator<<(std::ostream& out, const BBControlFlowGraph& cfg);
 
+  void removeEmptyBasicBlocks();
+  void removeSingleUseAssignments(bool onlyTemporaries);
+
  private:
+  struct VariableReassignment {
+    BBInstruction::TemplateArgumentType type;
+    NumericType number;
+    VariableType variable;
+  };
+
   std::string entryLabel_;
   std::string exitLabel_;
   std::map<std::string, BasicBlock> basicBlocks_;

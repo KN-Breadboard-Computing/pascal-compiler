@@ -4,14 +4,11 @@ program:
   sum := 0
 }
 
-bb0 -> bb2 -> bb4 {
+bb0 -> bb2 -> bb5 {
   count := 1
 }
 
-bb2 -> bb4 -> bb5 {
-}
-
-bb4 bb7 -> bb5 -> bb7 bb9 {
+bb2 bb7 -> bb5 -> bb7 bb9 {
   #t3 := count - 100
   br positive #t3 ? bb7 : bb9
 }

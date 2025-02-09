@@ -94,11 +94,11 @@ requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstr
       if (source_ == from && destination_ == from) {
         return std::make_unique<BBUnaryOperation<NumericType, NumericType>>(to, to, newSourceType, destinationType_, operation_);
       }
-      else if (source_ == from) {
+      if (source_ == from) {
         return std::make_unique<BBUnaryOperation<NumericType, VariableType>>(to, destination_, newSourceType, destinationType_,
                                                                              operation_);
       }
-      else if (destination_ == from) {
+      if (destination_ == from) {
         return std::make_unique<BBUnaryOperation<ArgT, NumericType>>(source_, to, sourceType_, destinationType_, operation_);
       }
 

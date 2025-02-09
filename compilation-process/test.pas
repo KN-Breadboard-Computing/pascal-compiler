@@ -17,4 +17,10 @@ begin
           k := k+1;
       end;
   end;
+
+  i := 9;
+  k := a + i;
+
+  while k < 4 do
+    j := j+1;
 end.

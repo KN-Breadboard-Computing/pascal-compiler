@@ -78,3 +78,30 @@ ProgramNode Test:
                       IdentifierNode: k
                     SpecialExpressionNode: CONST
                       ConstantInteger<1>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: i
+          SpecialExpressionNode: CONST
+            ConstantInteger<9>
+        AssignNode
+          SpecialExpressionNode: VARIABLE
+            IdentifierNode: k
+          MathExpressionNode: ADDITION
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: a
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: i
+        WhileNode:
+          MathExpressionNode: LESS
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: k
+            SpecialExpressionNode: CONST
+              ConstantInteger<4>
+          AssignNode
+            SpecialExpressionNode: VARIABLE
+              IdentifierNode: j
+            MathExpressionNode: ADDITION
+              SpecialExpressionNode: VARIABLE
+                IdentifierNode: j
+              SpecialExpressionNode: CONST
+                ConstantInteger<1>

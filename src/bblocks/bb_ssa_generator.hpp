@@ -28,8 +28,7 @@ class BbSsaGenerator {
   void toSsa(const std::string& name, const BBControlFlowGraph& graph);
   void fromSsa();
 
-  void removeRedundantAssignments();
-  void propagateConstants();
+  void optimize();
 
  private:
   static std::string appendVariableCounter(const std::string& var, std::size_t index);
@@ -39,6 +38,9 @@ class BbSsaGenerator {
                        std::map<std::string, std::size_t>& variableCounters,
                        std::map<std::string, std::stack<std::size_t>>& variableStacks,
                        std::map<std::string, std::map<std::string, std::map<std::string, std::size_t>>>& phiCompletions);
+
+  void removeRedundantAssignments();
+  void propagateConstants();
 
   std::map<std::string, BBControlFlowGraph> functionControlFlowGraphs_;
   std::map<std::string, std::map<std::string, std::map<std::string, std::map<std::string, std::size_t>>>> phiCompletions_;
