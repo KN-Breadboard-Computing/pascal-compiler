@@ -5,14 +5,11 @@ int MachineCodeGenerator::registersNumber_{2};
 
 void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg, RegisterAllocator allocator) {
   for (const auto& [functionName, controlFlowGraph] : cfg) {
-    // enumerate labels of blocks
     enumerateBlockLabels(functionName, controlFlowGraph);
 
-    // calculate live ranges
     liveRanges_.insert({functionName, LiveRangesGenerator{}});
     liveRanges_[functionName].generate(controlFlowGraph, blockBounds_[functionName]);
 
-    // allocate registers
     switch (allocator) {
       case RegisterAllocator::LINEAR_SCAN:
         regAllocators_[functionName] = std::make_unique<LinearScanRegAlloc>(registersNumber_);
@@ -21,16 +18,9 @@ void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBContr
         regAllocators_[functionName] = std::make_unique<InterferenceGraphRegAlloc>(registersNumber_);
         break;
     }
-
     regAllocators_[functionName]->allocateRegisters(liveRanges_.at(functionName).getLiveRanges());
 
-    // calculate variable addresses
-    generateVariableAddresses(functionName, controlFlowGraph, liveRanges_[functionName]);
-
-    std::cout << "Variable addresses for " << functionName << std::endl;
-    for (const auto& [variable, address] : variableAddresses_) {
-      std::cout << variable << " " << address << std::endl;
-    }
+    generateVariableOffsets(functionName);
 
     // generate machine code
     machineCode_.insert({functionName, std::vector<MachineInstruction>{}});
@@ -66,6 +56,10 @@ void MachineCodeGenerator::saveLiveRanges(std::ostream& output) const {
     liveRanges.saveLiveRanges(output);
     output << std::endl;
     regAllocators_.at(functionName)->saveAllocatedRegisters(output);
+    output << std::endl;
+    for (const auto& [variable, offset] : variableOffsets_.at(functionName)) {
+      output << variable << " offset " << offset << std::endl;
+    }
   }
 }
 
@@ -119,10 +113,11 @@ void MachineCodeGenerator::saveBinary(std::ostream& output) {
 }
 
 void MachineCodeGenerator::enumerateBlockLabels(const std::string& name, const bblocks::BBControlFlowGraph& cfg) {
+  blocksOrder_.insert({name, std::vector<std::string>{}});
+
   std::map<std::string, std::pair<std::size_t, std::size_t>> bounds;
   std::size_t labelCounter = 0;
 
-  blocksOrder_.insert({name, std::vector<std::string>{}});
   std::stack<std::string> blocksToProcess;
   std::set<std::string> visitedBlocks;
 
@@ -135,6 +130,10 @@ void MachineCodeGenerator::enumerateBlockLabels(const std::string& name, const b
 
     bounds.insert({blockLabel, {labelCounter, labelCounter + cfg.getBasicBlock(blockLabel).getInstructions().size() - 1}});
     labelCounter += cfg.getBasicBlock(blockLabel).getInstructions().size();
+
+    if (blockLabel == cfg.getExitLabel()) {
+      continue;
+    }
 
     std::vector<std::string> outLinks = cfg.getOutLinks(blockLabel);
     std::sort(outLinks.begin(), outLinks.end(), [](const std::string& a, const std::string& b) {
@@ -152,16 +151,18 @@ void MachineCodeGenerator::enumerateBlockLabels(const std::string& name, const b
   blockBounds_.insert({name, bounds});
 }
 
-void MachineCodeGenerator::generateVariableAddresses(const std::string& /*name*/, const bblocks::BBControlFlowGraph& /*cfg*/,
-                                                     const LiveRangesGenerator& liveRanges) {
-  //  variableAddresses_.insert({name, std::map<std::string, uint16_t>{}});
+void MachineCodeGenerator::generateVariableOffsets(const std::string& name) {
+  variableOffsets_.insert({name, std::map<std::string, uint16_t>{}});
 
-  constexpr std::size_t beginningAddress = 129;
-  uint16_t address = beginningAddress;
-  for (const auto& [variable, range] : liveRanges.getLiveRanges()) {
-    variableAddresses_.insert({variable, address});
-    address++;
+  std::size_t offset = 0;
+  for (const auto& [var, reg] : regAllocators_[name]->getAllocatedRegisters()) {
+    if (reg == -1) {
+      variableOffsets_[name].insert({var, offset});
+      offset += 1;
+    }
   }
+
+  currentFunctionVariableOffsets_ = variableOffsets_[name];
 }
 
 void MachineCodeGenerator::calculateLabelValues(const std::string& name) {
@@ -294,7 +295,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMove(const bblocks
       throw std::runtime_error("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto srcAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[src]);
+      const auto srcAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src]);
       if (srcAddr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {srcAddr.first.value(), srcAddr.second}));
       }
@@ -310,7 +311,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMove(const bblocks
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[dest]);
+      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
       if (destAddr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
       }
@@ -336,7 +337,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMove(const bblocks
       throw std::runtime_error("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto srcAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[src]);
+      const auto srcAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src]);
       if (srcAddr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {srcAddr.first.value(), srcAddr.second}));
       }
@@ -380,7 +381,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMove(const bblocks
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[dest]);
+      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
       if (destAddr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
       }
@@ -434,7 +435,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(con
       throw std::runtime_error("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto srcAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[src]);
+      const auto srcAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src]);
       if (srcAddr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {srcAddr.first.value(), srcAddr.second}));
       }
@@ -474,7 +475,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(con
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[dest]);
+      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
       if (destAddr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
       }
@@ -500,7 +501,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(con
       throw std::runtime_error("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto srcAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[src]);
+      const auto srcAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src]);
       if (srcAddr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {srcAddr.first.value(), srcAddr.second}));
       }
@@ -592,7 +593,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(con
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[dest]);
+      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
       if (destAddr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
       }
@@ -671,7 +672,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
       throw std::runtime_error("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[src1]);
+      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src1]);
       if (src1Addr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {src1Addr.first.value(), src1Addr.second}));
       }
@@ -690,7 +691,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
       throw std::runtime_error("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[src2]);
+      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src2]);
       if (src2Addr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_ABS, {src2Addr.first.value(), src2Addr.second}));
       }
@@ -728,7 +729,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[dest]);
+      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
       if (destAddr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
       }
@@ -755,7 +756,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
       throw std::runtime_error("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[src1]);
+      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src1]);
       if (src1Addr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {src1Addr.first.value(), src1Addr.second}));
       }
@@ -774,7 +775,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
       throw std::runtime_error("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[src2]);
+      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src2]);
       if (src2Addr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_ABS, {src2Addr.first.value(), src2Addr.second}));
       }
@@ -831,7 +832,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
       throw std::runtime_error("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[src1]);
+      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src1]);
       if (src1Addr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {src1Addr.first.value(), src1Addr.second}));
       }
@@ -882,7 +883,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[dest]);
+      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
       if (destAddr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
       }
@@ -909,7 +910,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
       throw std::runtime_error("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[src1]);
+      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src1]);
       if (src1Addr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {src1Addr.first.value(), src1Addr.second}));
       }
@@ -992,7 +993,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
       throw std::runtime_error("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[src2]);
+      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src2]);
       if (src2Addr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_ABS, {src2Addr.first.value(), src2Addr.second}));
       }
@@ -1030,7 +1031,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[dest]);
+      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
       if (destAddr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
       }
@@ -1070,7 +1071,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
       throw std::runtime_error("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[src2]);
+      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src2]);
       if (src2Addr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_ABS, {src2Addr.first.value(), src2Addr.second}));
       }
@@ -1172,7 +1173,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[dest]);
+      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
       if (destAddr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
       }
@@ -1262,7 +1263,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBranch(const bbloc
     case bblocks::BBInstruction::SourceType::CONSTANT:
       throw std::runtime_error("Constant cannot be string type");
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto valAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[value]);
+      const auto valAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[value]);
       if (valAddr.first.has_value()) {
         instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {valAddr.first.value(), valAddr.second}));
       }

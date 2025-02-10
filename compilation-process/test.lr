@@ -143,3 +143,7 @@ j.6 -> 2
 k.2 -> 2
 k.3 -> 2
 k.4 -> 1
+
+a.2 offset 0
+a.3 offset 1
+i.3 offset 2

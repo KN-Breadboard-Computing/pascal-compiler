@@ -16,10 +16,10 @@ enum BBBinaryOperationEnum { ADD, SUB, MUL, DIV, MOD, AND, OR, XOR };
 template <typename Arg1T, typename Arg2T, typename DestT>
 requires BinaryOperationArgs<Arg1T, Arg2T, DestT> class BBBinaryOperation : public BBInstruction {
  public:
-  BBBinaryOperation() : BBInstruction(Type::BINARY_OPERATION) {}
+  BBBinaryOperation() : BBInstruction(Type::BINARY_OPERATION, true) {}
   BBBinaryOperation(Arg1T source1, Arg2T source2, DestT destination, SourceType source1Type, SourceType source2Type,
                     DestinationType destination_type, BBBinaryOperationEnum Operation)
-      : BBInstruction(Type::BINARY_OPERATION),
+      : BBInstruction(Type::BINARY_OPERATION, true),
         source1_{source1},
         source2_{source2},
         destination_{destination},

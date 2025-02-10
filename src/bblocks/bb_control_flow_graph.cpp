@@ -83,9 +83,8 @@ void BBControlFlowGraph::removeEmptyBasicBlocks() {
   for (const auto& [blockLabel, block] : getBasicBlocks()) {
     std::string label{blockLabel};
     std::vector<std::string> renames;
-    while (getBasicBlock(label).empty()) {
+    while (getBasicBlock(label).empty() && label != getExitLabel()) {
       renames.push_back(label);
-      // assert fun.getOutLinks(label).size() == 1
       label = getOutLinks(label).front();
     }
 
@@ -192,6 +191,13 @@ void BBControlFlowGraph::removeSingleUseAssignments(bool onlyTemporaries) {
     }
   }
 
+  std::set<std::string> onlyDefinedVariables;
+  for (const auto& [var, def] : variableDefs) {
+    if (variableUses.find(var) == variableUses.end() || variableUses[var] == 0) {
+      onlyDefinedVariables.insert(var);
+    }
+  }
+
   std::map<std::string, VariableReassignment> reassignments;
 
   std::queue<std::string> blocksToProcess;
@@ -203,6 +209,17 @@ void BBControlFlowGraph::removeSingleUseAssignments(bool onlyTemporaries) {
     blocksToProcess.pop();
     BasicBlock blockAfterFirstPass;
     for (auto& instruction : basicBlock(blockLabel).instructions()) {
+      std::set<std::string> definedVariables;
+      instruction->visitDefVariables([&definedVariables](const std::string& var) { definedVariables.insert(var); });
+      if (definedVariables.size() == 1 && onlyDefinedVariables.find(*definedVariables.begin()) != onlyDefinedVariables.end()) {
+        if (instruction->canBeOptimizedOut()) {
+          continue;
+        }
+        else {
+          onlyDefinedVariables.erase(*definedVariables.begin());
+        }
+      }
+
       const std::vector<BBInstruction::TemplateArgumentType> templateTypes = instruction->getTemplateTypes();
       if (instruction->getType() == BBInstruction::Type::MOVE) {
         if (templateTypes[1] == BBInstruction::TemplateArgumentType::STRING) {
@@ -263,7 +280,7 @@ void BBControlFlowGraph::removeSingleUseAssignments(bool onlyTemporaries) {
     }
   }
 
-  if (!reassignments.empty()) {
+  if (!reassignments.empty() || !onlyDefinedVariables.empty()) {
     removeSingleUseAssignments(onlyTemporaries);
   }
 }

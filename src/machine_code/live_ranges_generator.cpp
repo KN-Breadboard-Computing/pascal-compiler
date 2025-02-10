@@ -263,6 +263,9 @@ void LiveRangesGenerator::computeLiveRangesForVariableAndBlock(const std::string
       ranges.push_back(currentRange);
     }
   }
+  else if (!defs.empty()) {
+    ranges.push_back(LiveRange{variable, {LiveRange::Action{LiveRange::Action::Type::DEF, defs[0], label}}});
+  }
 }
 
 void LiveRangesGenerator::computeAllBlockChains(const bblocks::BBControlFlowGraph& cfg, const std::string& variable,

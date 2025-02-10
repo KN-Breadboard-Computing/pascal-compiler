@@ -13,9 +13,9 @@ concept MoveArgs = requires {
 template <typename SrcT, typename DestT>
 requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
  public:
-  BBMove() : BBInstruction(Type::MOVE) {}
+  BBMove() : BBInstruction(Type::MOVE, true) {}
   BBMove(SrcT source, DestT destination, SourceType sourceType, DestinationType destinationType)
-      : BBInstruction(Type::MOVE),
+      : BBInstruction(Type::MOVE, true),
         source_{source},
         destination_{destination},
         sourceType_{sourceType},

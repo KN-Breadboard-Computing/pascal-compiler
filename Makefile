@@ -8,7 +8,7 @@ FORMATTER = clang-format -i --style=file
 
 SRCS := $(shell find src -name '*.cpp' | grep -v 'src/main.cpp')
 
-ALL_PROJECT_FILES := $(shell find . -type f \( -name "*.cpp" -o -name "*.hpp" \) ! -path "src/out/*")
+ALL_PROJECT_FILES := $(shell find . -type f \( -name "*.cpp" -o -name "*.hpp" \) ! -path "src/out/*" ! -path "*/tests/json.hpp")
 
 COMPILER_CORE_OBJECTS_DIR = core-objects
 COMPILATION_EXAMPLE_DIR = compilation-process
@@ -111,8 +111,12 @@ playground:
 	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/playground.cpp -o playground
 	./playground
 
+debug-playground:
+	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/playground.cpp -o playground
+	valgrind ./playground
+
 clean-playground:
 	rm -f playground
 
 
-.PHONY: core playground
+.PHONY: core playground format

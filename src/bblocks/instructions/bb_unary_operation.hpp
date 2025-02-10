@@ -15,10 +15,10 @@ enum class BBUnaryOperationEnum { NEG, NOT, INC, DEC, SHL, SHR, SAR };
 template <typename ArgT, typename DestT>
 requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstruction {
  public:
-  BBUnaryOperation() : BBInstruction(Type::UNARY_OPERATION) {}
+  BBUnaryOperation() : BBInstruction(Type::UNARY_OPERATION, true) {}
   BBUnaryOperation(ArgT source, DestT destination, SourceType sourceType, DestinationType destinationType,
                    BBUnaryOperationEnum operation)
-      : BBInstruction(Type::UNARY_OPERATION),
+      : BBInstruction(Type::UNARY_OPERATION, true),
         source_{source},
         destination_{destination},
         sourceType_{sourceType},

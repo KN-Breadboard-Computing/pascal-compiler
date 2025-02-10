@@ -10,4 +10,6 @@ begin
     res := 1
   else
     res := 2;
+
+  Write(res);
 end.

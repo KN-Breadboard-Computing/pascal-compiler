@@ -19,6 +19,7 @@ bb2 -> bb6 -> bb8 {
 }
 
 bb4 bb6 -> bb8 -> {
+  call write( res )
   halt
 }
 

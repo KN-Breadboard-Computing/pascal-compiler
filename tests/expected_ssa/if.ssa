@@ -3,50 +3,57 @@ program:
   num.0 := 0
   res1.0 := 0
   res2.0 := 0
-  num.1 := 0
+  call read( &#t0.0 )
+  res1.1 := #t0.0
+  call read( &#t1.0 )
+  res2.1 := #t1.0
+  call read( &#t2.0 )
+  num.1 := #t2.0
 }
 
 bb0 -> bb2 -> bb5 bb17 {
-  #t3.0 := num.1 - 0
-  br nonzero #t3.0 ? bb5 : bb17
+  #t5.0 := num.1 - 0
+  br nonzero #t5.0 ? bb5 : bb17
 }
 
 bb2 -> bb5 -> bb7 {
-  res1.4 := 1
-  res2.4 := 2
+  res1.5 := 1
+  res2.5 := 2
 }
 
 bb2 -> bb17 -> bb19 bb21 {
-  #t13.0 := num.1 - 0
-  br nonzero #t13.0 ? bb19 : bb21
+  #t15.0 := num.1 - 0
+  br nonzero #t15.0 ? bb19 : bb21
 }
 
 bb5 -> bb7 -> bb9 bb11 {
-  #t8.0 := res1.4 - 1
-  br nonzero #t8.0 ? bb9 : bb11
+  #t10.0 := res1.5 - 1
+  br nonzero #t10.0 ? bb9 : bb11
 }
 
 bb17 -> bb19 -> bb24 {
-  res1.1 := 2
-  res2.1 := 1
+  res1.2 := 2
+  res2.2 := 1
 }
 
 bb17 -> bb21 -> bb24 {
-  res1.2 := 3
-  res2.2 := 3
+  res1.3 := 3
+  res2.3 := 3
 }
 
 bb7 -> bb9 -> bb24 {
-  res1.6 := 2
+  res1.7 := 2
 }
 
 bb7 -> bb11 -> bb24 {
-  res1.5 := 3
+  res1.6 := 3
 }
 
 bb11 bb9 bb19 bb21 -> bb24 -> {
-  res2.3 := phi( res2.4 res2.1 res2.2 res2.4 )
-  res1.3 := phi( res1.5 res1.1 res1.2 res1.6 )
+  res2.4 := phi( res2.5 res2.2 res2.3 res2.5 )
+  res1.4 := phi( res1.6 res1.2 res1.3 res1.7 )
+  call write( res1.4 )
+  call write( res2.4 )
   halt
 }
 

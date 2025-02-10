@@ -1,8 +1,5 @@
 program:
--> bb0 -> bb2 {
-}
-
-bb0 -> bb2 -> bb5 {
+-> bb2 -> bb5 {
   sum.2 := 0
   i.1 := 1
 }

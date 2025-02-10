@@ -227,45 +227,58 @@ void BbSsaGenerator::fromSsa() {
     }
 
     cfg.removeSingleUseAssignments(false);
+    cfg.removeEmptyBasicBlocks();
   }
 }
 
 void BbSsaGenerator::optimize() {
   removeRedundantAssignments();
-  propagateConstants();
+  //  propagateConstants();
+
+  for (auto& [name, cfg] : functionControlFlowGraphs_) {
+    cfg.removeEmptyBasicBlocks();
+  }
 }
 
 void BbSsaGenerator::removeRedundantAssignments() {
   for (auto& [name, cfg] : functionControlFlowGraphs_) {
-    std::set<std::string> defs;
-    std::set<std::string> uses;
-    for (const auto& block : cfg.basicBlocks()) {
-      for (const auto& instruction : block.second.getInstructions()) {
-        instruction->visitDefVariables([&defs](const VariableType& var) { defs.insert(var); });
-        instruction->visitUseVariables([&uses](const VariableType& var) { uses.insert(var); });
-      }
-    }
-
-    std::vector<std::string> redundantDefs;
-    std::set_difference(defs.begin(), defs.end(), uses.begin(), uses.end(), std::inserter(redundantDefs, redundantDefs.begin()));
-
-    for (auto& block : cfg.basicBlocks()) {
-      BasicBlock newBlock;
-
-      for (const auto& instruction : block.second.getInstructions()) {
-        bool isRedundant = false;
-        instruction->visitDefVariables([&redundantDefs, &isRedundant](const VariableType& var) {
-          if (std::find(redundantDefs.begin(), redundantDefs.end(), var) != redundantDefs.end()) {
-            isRedundant = true;
-          }
-        });
-
-        if (!isRedundant) {
-          newBlock.addInstruction(instruction->clone());
+    bool changed = true;
+    while (changed) {
+      changed = false;
+      std::set<std::string> defs;
+      std::set<std::string> uses;
+      for (const auto& block : cfg.basicBlocks()) {
+        for (const auto& instruction : block.second.getInstructions()) {
+          instruction->visitDefVariables([&defs](const VariableType& var) { defs.insert(var); });
+          instruction->visitUseVariables([&uses](const VariableType& var) { uses.insert(var); });
         }
       }
 
-      block.second = newBlock;
+      std::vector<std::string> redundantDefs;
+      std::set_difference(defs.begin(), defs.end(), uses.begin(), uses.end(),
+                          std::inserter(redundantDefs, redundantDefs.begin()));
+
+      for (auto& block : cfg.basicBlocks()) {
+        BasicBlock newBlock;
+
+        for (const auto& instruction : block.second.getInstructions()) {
+          bool isRedundant = false;
+          instruction->visitDefVariables([&redundantDefs, &isRedundant, &instruction](const VariableType& var) {
+            if (std::find(redundantDefs.begin(), redundantDefs.end(), var) != redundantDefs.end()) {
+              isRedundant = instruction->canBeOptimizedOut();
+            }
+          });
+
+          if (!isRedundant) {
+            newBlock.addInstruction(instruction->clone());
+          }
+          else {
+            changed = true;
+          }
+        }
+
+        block.second = newBlock;
+      }
     }
   }
 }

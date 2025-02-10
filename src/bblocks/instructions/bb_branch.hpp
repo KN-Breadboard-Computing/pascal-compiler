@@ -16,9 +16,9 @@ enum class BBBranchCondition { ANY, NEGATIVE, POSITIVE, ODD, EVEN, ZERO, NONZERO
 template <typename ArgT>
 requires BranchArgs<ArgT> class BBBranch : public BBInstruction {
  public:
-  BBBranch() : BBInstruction(Type::BRANCH) {}
+  BBBranch() : BBInstruction(Type::BRANCH, true) {}
   BBBranch(ArgT value, SourceType valueType, BBBranchCondition condition, LabelType trueLabel, LabelType falseLabel)
-      : BBInstruction(Type::BRANCH),
+      : BBInstruction(Type::BRANCH, true),
         value_{value},
         valueType_{valueType},
         condition_{condition},

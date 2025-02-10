@@ -6,9 +6,9 @@
 namespace bblocks {
 class BBPhi : public BBInstruction {
  public:
-  BBPhi() : BBInstruction(Type::PHI) {}
+  BBPhi() : BBInstruction(Type::PHI, true) {}
   BBPhi(std::string name, std::vector<std::string> args)
-      : BBInstruction(Type::PHI), name_{std::move(name)}, args_{std::move(args)} {}
+      : BBInstruction(Type::PHI, true), name_{std::move(name)}, args_{std::move(args)} {}
 
   BBPhi(const BBPhi&) = default;
   BBPhi(BBPhi&&) noexcept = default;

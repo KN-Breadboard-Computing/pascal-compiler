@@ -40,29 +40,31 @@ void BbCfgGenerator::visit(const ast::BuiltinCallNode* node) {
   const ast::BuiltinCallNode::FunctionName funName = node->getFunctionName();
   switch (funName) {
     case ast::BuiltinCallNode::READ: {
-      currentBasicBlock_.addInstruction(std::make_unique<BBCall>("read", std::vector<std::string>{ctx->generateTempVariable()}));
+      std::vector<BBCall::Argument> args{};
+      args.emplace_back(BBCall::Argument::Type::VARIABLE_DEF, ctx->generateTempVariable(), 0);
+      currentBasicBlock_.addInstruction(std::make_unique<BBCall>("read", args, false));
       generateVariableMove(node->getArguments()->getArguments().front(), ctx->getLastTempVariable());
       break;
     }
     case ast::BuiltinCallNode::READLN: {
-      std::make_unique<BBCall>("readln", std::vector<std::string>{});
+      std::make_unique<BBCall>("readln", std::vector<BBCall::Argument>{}, false);
       break;
     }
     case ast::BuiltinCallNode::WRITE:
     case ast::BuiltinCallNode::WRITELN: {
-      std::vector<std::string> args{};
+      std::vector<BBCall::Argument> args{};
       for (auto* arg : node->getArguments()->getArguments()) {
         if (arg->getInferredType() == "string") {
-          ast::StringConstantNode* constant = dynamic_cast<ast::StringConstantNode*>(arg);
-          args.emplace_back(constant->getValue());
+          //          ast::StringConstantNode* constant = dynamic_cast<ast::StringConstantNode*>(arg);
+          //          args.emplace_back(constant->getValue());
         }
         else {
           arg->accept(this);
-          args.emplace_back(ctx->getLastTempVariable());
+          args.emplace_back(BBCall::Argument::Type::VARIABLE_USE, ctx->getLastTempVariable(), 0);
         }
       }
       currentBasicBlock_.addInstruction(
-          std::make_unique<BBCall>(funName == ast::BuiltinCallNode::WRITE ? "write" : "writeln", args));
+          std::make_unique<BBCall>(funName == ast::BuiltinCallNode::WRITE ? "write" : "writeln", args, false));
       break;
     }
     case ast::BuiltinCallNode::MEMORY_READ:
@@ -72,9 +74,12 @@ void BbCfgGenerator::visit(const ast::BuiltinCallNode* node) {
       node->getArguments()->getArguments().at(1)->accept(this);
       const std::string low = ctx->getLastTempVariable();
 
+      std::vector<BBCall::Argument> args{};
+      args.emplace_back(BBCall::Argument::Type::VARIABLE_USE, high, 0);
+      args.emplace_back(BBCall::Argument::Type::VARIABLE_USE, low, 0);
+      args.emplace_back(BBCall::Argument::Type::VARIABLE_DEF, ctx->generateTempVariable(), 0);
       currentBasicBlock_.addInstruction(
-          std::make_unique<BBCall>(funName == ast::BuiltinCallNode::MEMORY_READ ? "mload" : "sload",
-                                   std::vector<std::string>{high, low, ctx->generateTempVariable()}));
+          std::make_unique<BBCall>(funName == ast::BuiltinCallNode::MEMORY_READ ? "mload" : "sload", args, false));
       generateVariableMove(node->getArguments()->getArguments().at(2), ctx->getLastTempVariable());
     }
     case ast::BuiltinCallNode::MEMORY_WRITE:
@@ -86,8 +91,12 @@ void BbCfgGenerator::visit(const ast::BuiltinCallNode* node) {
       node->getArguments()->getArguments().at(2)->accept(this);
       const std::string valVar = ctx->getLastTempVariable();
 
-      currentBasicBlock_.addInstruction(std::make_unique<BBCall>(
-          funName == ast::BuiltinCallNode::MEMORY_READ ? "mstore" : "sstore", std::vector<std::string>{high, low, valVar}));
+      std::vector<BBCall::Argument> args{};
+      args.emplace_back(BBCall::Argument::Type::VARIABLE_USE, high, 0);
+      args.emplace_back(BBCall::Argument::Type::VARIABLE_USE, low, 0);
+      args.emplace_back(BBCall::Argument::Type::VARIABLE_USE, valVar, 0);
+      currentBasicBlock_.addInstruction(
+          std::make_unique<BBCall>(funName == ast::BuiltinCallNode::MEMORY_READ ? "mstore" : "sstore", args, false));
     }
   }
 }
@@ -285,7 +294,11 @@ void BbCfgGenerator::visit(const ast::SpecialExpressionNode* node) {
       }
 
       const std::string fullName = ctx->getLookupTable().getRoutine(function->getName(), ctx->getCurrentScope()).fullName;
-      currentBasicBlock_.addInstruction(std::make_unique<BBCall>(fullName, args));
+      std::vector<BBCall::Argument> translatedArgs{};
+      for (const auto& arg : args) {
+        translatedArgs.emplace_back(BBCall::Argument::Type::VARIABLE_USE, arg, 0);
+      }
+      currentBasicBlock_.addInstruction(std::make_unique<BBCall>(fullName, translatedArgs, true));
       break;
     }
     case ast::SpecialExpressionNode::ARRAY_ACCESS: {

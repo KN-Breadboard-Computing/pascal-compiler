@@ -63,8 +63,7 @@ class MachineCodeGenerator {
   static int registersNumber_;
 
   void enumerateBlockLabels(const std::string& name, const bblocks::BBControlFlowGraph& cfg);
-  void generateVariableAddresses(const std::string& name, const bblocks::BBControlFlowGraph& cfg,
-                                 const LiveRangesGenerator& liveRanges);
+  void generateVariableOffsets(const std::string& name);
   void calculateLabelValues(const std::string& name);
 
   std::vector<MachineInstruction> generate(const std::unique_ptr<bblocks::BBInstruction>& instruction);
@@ -106,9 +105,10 @@ class MachineCodeGenerator {
   std::map<std::string, std::vector<MachineInstruction>> machineCode_;
   std::map<std::string, LiveRangesGenerator> liveRanges_;
   std::map<std::string, std::unique_ptr<RegAlloc>> regAllocators_;
-  //  std::map<std::string, std::map<std::string, uint16_t>> variableAddresses_;
-  std::map<std::string, uint16_t> variableAddresses_;
+  std::map<std::string, std::map<std::string, uint16_t>> variableOffsets_;
   std::map<std::string, std::map<std::string, uint16_t>> labelValues_;
+
+  std::map<std::string, uint16_t> currentFunctionVariableOffsets_;
 };
 }  // namespace machine_code
 

@@ -22,8 +22,8 @@ class BBInstruction {
   enum class DestinationType { REGISTER, MEMORY };
   enum class TemplateArgumentType { STRING, NUMBER };
 
-  BBInstruction() : type_{Type::UNSPECIFIED} {}
-  BBInstruction(Type type) : type_{type} {}
+  BBInstruction() : type_{Type::UNSPECIFIED}, canBeOptimizedOut_{true} {}
+  BBInstruction(Type type, bool canBeOptimizedOut) : type_{type}, canBeOptimizedOut_{canBeOptimizedOut} {}
 
   BBInstruction(const BBInstruction&) = default;
   BBInstruction(BBInstruction&&) noexcept = default;
@@ -34,6 +34,7 @@ class BBInstruction {
   virtual ~BBInstruction() = default;
 
   Type getType() const { return type_; }
+  bool canBeOptimizedOut() const { return canBeOptimizedOut_; }
 
   // visit all variables that are defined by this instruction
   virtual void visitDefVariables(std::function<void(const VariableType&)> visitor) const = 0;
@@ -63,8 +64,9 @@ class BBInstruction {
     return out;
   }
 
- private:
+ protected:
   Type type_;
+  bool canBeOptimizedOut_;
 };
 
 }  // namespace bblocks

@@ -31,6 +31,8 @@ bb3 -> bb4 -> bb5 {
 }
 
 bb5 -> bb6 -> {
+  #t5 := res
+  call write( #t5 )
   halt
 }
 

@@ -5,7 +5,10 @@ var
   res1, res2: Integer;
 
 begin
-  num := 0;
+  Read(res1);
+  Read(res2);
+  Read(num);
+
   if num > 0 then
     begin
         res1 := 1;
@@ -25,4 +28,7 @@ begin
         res1 := 3;
         res2 := 3;
     end;
+
+    Write(res1);
+    Write(res2);
 end.

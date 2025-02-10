@@ -6,7 +6,7 @@
 namespace bblocks {
 class BBHalt : public BBInstruction {
  public:
-  BBHalt() : BBInstruction(Type::HALT) {}
+  BBHalt() : BBInstruction(Type::HALT, false) {}
 
   BBHalt(const BBHalt&) = default;
   BBHalt(BBHalt&&) noexcept = default;

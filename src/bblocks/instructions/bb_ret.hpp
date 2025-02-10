@@ -6,7 +6,7 @@
 namespace bblocks {
 class BBRet : public BBInstruction {
  public:
-  BBRet() : BBInstruction(Type::RET) {}
+  BBRet() : BBInstruction(Type::RET, false) {}
 
   BBRet(const BBRet&) = default;
   BBRet(BBRet&&) noexcept = default;
