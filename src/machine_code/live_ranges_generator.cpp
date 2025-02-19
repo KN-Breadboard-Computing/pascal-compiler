@@ -65,6 +65,37 @@ void LiveRangesGenerator::saveLiveRanges(std::ostream& output) const {
       output << range << std::endl;
     }
   }
+  output << std::endl;
+
+  output << "Plot:" << std::endl;
+  std::size_t maxPos = 0;
+  for (const auto& [label, ranges] : liveRanges_) {
+    for (const auto& range : ranges) {
+      if (maxPos < range.back().instructionEnumerator) {
+        maxPos = range.back().instructionEnumerator;
+      }
+    }
+  }
+
+  for (const auto& [label, ranges] : liveRanges_) {
+    std::string line(maxPos + 1, '_');
+    for (const auto& range : ranges) {
+      for (const auto& action : range.getActions()) {
+        switch (action.type) {
+          case LiveRange::Action::Type::DEF:
+            line[action.instructionEnumerator] = 'd';
+            break;
+          case LiveRange::Action::Type::USE:
+            line[action.instructionEnumerator] = 'u';
+            break;
+          case LiveRange::Action::Type::HOLD:
+            line[action.instructionEnumerator] = '-';
+            break;
+        }
+      }
+    }
+    output << line << " " << label << std::endl;
+  }
 }
 
 void LiveRangesGenerator::addDefsAndUses(const std::string& label, const bblocks::BasicBlock& block,

@@ -7,9 +7,12 @@
 #include "../src/bblocks/bb_cfg_generator.hpp"
 #include "../src/bblocks/bb_ssa_generator.hpp"
 
-bool parse(const std::string& inputFileName, std::vector<std::string>& errors, std::unique_ptr<ast::ProgramNode>& program);
+using namespace ast;
+using namespace bblocks;
 
-void validateSsaBlocks(const std::map<std::string, bblocks::BBControlFlowGraph> controlFlowGraphs,
+bool parse(const std::string& inputFileName, std::vector<std::string>& errors, std::unique_ptr<ProgramNode>& program);
+
+void validateSsaBlocks(const std::map<std::string, BBControlFlowGraph> controlFlowGraphs,
                        const std::string& expectedSsaFilename) {
   std::stringstream ssaStream;
   for (const auto& [name, cfg] : controlFlowGraphs) {
@@ -25,14 +28,14 @@ void validateSsaBlocks(const std::map<std::string, bblocks::BBControlFlowGraph> 
 
 TEST(toSsaConversion, whileLoop) {
   std::vector<std::string> errors;
-  std::unique_ptr<ast::ProgramNode> program;
+  std::unique_ptr<ProgramNode> program;
   ASSERT_TRUE(parse("tests/input_ssa/while.pas", errors, program));
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   cfgGenerator.optimize();
 
-  bblocks::BbSsaGenerator ssaGenerator;
+  BbSsaGenerator ssaGenerator;
   for (const auto& [name, cfg] : cfgGenerator.getControlFlowGraphs()) {
     ssaGenerator.toSsa(name, cfg);
   }
@@ -50,14 +53,14 @@ TEST(toSsaConversion, whileLoop) {
 
 TEST(toSsaConversion, forLoop) {
   std::vector<std::string> errors;
-  std::unique_ptr<ast::ProgramNode> program;
+  std::unique_ptr<ProgramNode> program;
   ASSERT_TRUE(parse("tests/input_ssa/for.pas", errors, program));
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   cfgGenerator.optimize();
 
-  bblocks::BbSsaGenerator ssaGenerator;
+  BbSsaGenerator ssaGenerator;
   for (const auto& [name, cfg] : cfgGenerator.getControlFlowGraphs()) {
     ssaGenerator.toSsa(name, cfg);
   }
@@ -75,14 +78,14 @@ TEST(toSsaConversion, forLoop) {
 
 TEST(toSsaConversion, ifCondition) {
   std::vector<std::string> errors;
-  std::unique_ptr<ast::ProgramNode> program;
+  std::unique_ptr<ProgramNode> program;
   ASSERT_TRUE(parse("tests/input_ssa/if.pas", errors, program));
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   cfgGenerator.optimize();
 
-  bblocks::BbSsaGenerator ssaGenerator;
+  BbSsaGenerator ssaGenerator;
   for (const auto& [name, cfg] : cfgGenerator.getControlFlowGraphs()) {
     ssaGenerator.toSsa(name, cfg);
   }
@@ -100,14 +103,14 @@ TEST(toSsaConversion, ifCondition) {
 
 TEST(toSsaConversion, repeatLoop) {
   std::vector<std::string> errors;
-  std::unique_ptr<ast::ProgramNode> program;
+  std::unique_ptr<ProgramNode> program;
   ASSERT_TRUE(parse("tests/input_ssa/repeat.pas", errors, program));
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   cfgGenerator.optimize();
 
-  bblocks::BbSsaGenerator ssaGenerator;
+  BbSsaGenerator ssaGenerator;
   for (const auto& [name, cfg] : cfgGenerator.getControlFlowGraphs()) {
     ssaGenerator.toSsa(name, cfg);
   }

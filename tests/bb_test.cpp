@@ -6,9 +6,11 @@
 #include "../src/ast/program_node.hpp"
 #include "../src/bblocks/bb_cfg_generator.hpp"
 
+using namespace bblocks;
+
 bool parse(const std::string& inputFileName, std::vector<std::string>& errors, std::unique_ptr<ast::ProgramNode>& program);
 
-void validateBasicBlocks(const std::map<std::string, bblocks::BBControlFlowGraph> controlFlowGraphs,
+void validateBasicBlocks(const std::map<std::string, BBControlFlowGraph> controlFlowGraphs,
                          const std::string& expectedBbFilename) {
   std::stringstream bbStream;
   for (const auto& [name, cfg] : controlFlowGraphs) {
@@ -27,7 +29,7 @@ TEST(toBbConversion, constants) {
   std::unique_ptr<ast::ProgramNode> program;
   parse("tests/input_bb/constants.pas", errors, program);
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/constants.bb");
 
@@ -40,7 +42,7 @@ TEST(toBbConversion, while1) {
   std::unique_ptr<ast::ProgramNode> program;
   parse("tests/input_bb/while1.pas", errors, program);
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/while1.bb");
 
@@ -53,7 +55,7 @@ TEST(toBbConversion, while2) {
   std::unique_ptr<ast::ProgramNode> program;
   parse("tests/input_bb/while2.pas", errors, program);
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/while2.bb");
 
@@ -66,7 +68,7 @@ TEST(toBbConversion, while3) {
   std::unique_ptr<ast::ProgramNode> program;
   parse("tests/input_bb/while3.pas", errors, program);
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/while3.bb");
 
@@ -79,7 +81,7 @@ TEST(toBbConversion, repeat1) {
   std::unique_ptr<ast::ProgramNode> program;
   parse("tests/input_bb/repeat1.pas", errors, program);
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/repeat1.bb");
 
@@ -92,7 +94,7 @@ TEST(toBbConversion, repeat2) {
   std::unique_ptr<ast::ProgramNode> program;
   parse("tests/input_bb/repeat2.pas", errors, program);
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/repeat2.bb");
 
@@ -105,7 +107,7 @@ TEST(toBbConversion, repeat3) {
   std::unique_ptr<ast::ProgramNode> program;
   parse("tests/input_bb/repeat3.pas", errors, program);
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/repeat3.bb");
 
@@ -118,7 +120,7 @@ TEST(toBbConversion, for1) {
   std::unique_ptr<ast::ProgramNode> program;
   parse("tests/input_bb/for1.pas", errors, program);
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/for1.bb");
 
@@ -131,7 +133,7 @@ TEST(toBbConversion, for2) {
   std::unique_ptr<ast::ProgramNode> program;
   parse("tests/input_bb/for2.pas", errors, program);
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/for2.bb");
 
@@ -144,7 +146,7 @@ TEST(toBbConversion, for3) {
   std::unique_ptr<ast::ProgramNode> program;
   parse("tests/input_bb/for3.pas", errors, program);
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/for3.bb");
 
@@ -157,7 +159,7 @@ TEST(toBbConversion, if1) {
   std::unique_ptr<ast::ProgramNode> program;
   parse("tests/input_bb/if1.pas", errors, program);
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/if1.bb");
 
@@ -170,7 +172,7 @@ TEST(toBbConversion, if2) {
   std::unique_ptr<ast::ProgramNode> program;
   parse("tests/input_bb/if2.pas", errors, program);
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/if2.bb");
 
@@ -183,7 +185,7 @@ TEST(toBbConversion, if3) {
   std::unique_ptr<ast::ProgramNode> program;
   parse("tests/input_bb/if3.pas", errors, program);
 
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
   validateBasicBlocks(cfgGenerator.getControlFlowGraphs(), "tests/expected_bb/if3.bb");
 
@@ -195,7 +197,7 @@ TEST(toBBConversion, types) {
   std::vector<std::string> errors;
   std::unique_ptr<ast::ProgramNode> program;
   parse("tests/input_bb/types.pas", errors, program);
-  bblocks::BbCfgGenerator cfgGenerator;
+  BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
 
   const std::map<std::string, std::size_t> expectedEnums{{"Mon", 0}, {"Tue", 1}, {"Wed", 2}, {"Thu", 3},

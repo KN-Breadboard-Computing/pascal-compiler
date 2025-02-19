@@ -3,8 +3,10 @@
 namespace machine_code {
 int MachineCodeGenerator::registersNumber_{2};
 
-void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg, RegisterAllocator allocator) {
+void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg, RegisterAllocator allocator,
+                                    uint16_t variablesOffset) {
   for (const auto& [functionName, controlFlowGraph] : cfg) {
+    currentScope = functionName;
     enumerateBlockLabels(functionName, controlFlowGraph);
 
     liveRanges_.insert({functionName, LiveRangesGenerator{}});
@@ -20,7 +22,7 @@ void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBContr
     }
     regAllocators_[functionName]->allocateRegisters(liveRanges_.at(functionName).getLiveRanges());
 
-    generateVariableOffsets(functionName);
+    generateVariableAddresses(functionName, variablesOffset);
 
     // generate machine code
     machineCode_.insert({functionName, std::vector<MachineInstruction>{}});
@@ -33,7 +35,7 @@ void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBContr
       const auto& block = controlFlowGraph.getBasicBlock(blockLabel);
       blocksToProcess.pop();
 
-      machineCode_[functionName].push_back(MachineInstruction(MachineInstruction::LABEL, {blockLabel}));
+      machineCode_[functionName].emplace_back(MachineInstruction::LABEL, std::vector<std::string>{blockLabel});
       for (const auto& instruction : block.getInstructions()) {
         const std::vector<MachineInstruction> ins = generate(instruction);
         machineCode_[functionName].insert(machineCode_[functionName].end(), ins.begin(), ins.end());
@@ -57,8 +59,8 @@ void MachineCodeGenerator::saveLiveRanges(std::ostream& output) const {
     output << std::endl;
     regAllocators_.at(functionName)->saveAllocatedRegisters(output);
     output << std::endl;
-    for (const auto& [variable, offset] : variableOffsets_.at(functionName)) {
-      output << variable << " offset " << offset << std::endl;
+    for (const auto& [variable, offset] : variableAddresses_.at(functionName)) {
+      output << variable << " address " << offset << std::endl;
     }
   }
 }
@@ -151,18 +153,16 @@ void MachineCodeGenerator::enumerateBlockLabels(const std::string& name, const b
   blockBounds_.insert({name, bounds});
 }
 
-void MachineCodeGenerator::generateVariableOffsets(const std::string& name) {
-  variableOffsets_.insert({name, std::map<std::string, uint16_t>{}});
+void MachineCodeGenerator::generateVariableAddresses(const std::string& name, uint16_t variablesOffset) {
+  variableAddresses_.insert({name, std::map<std::string, uint16_t>{}});
 
-  std::size_t offset = 0;
+  std::size_t address = variablesOffset;
   for (const auto& [var, reg] : regAllocators_[name]->getAllocatedRegisters()) {
     if (reg == -1) {
-      variableOffsets_[name].insert({var, offset});
-      offset += 1;
+      variableAddresses_[name].insert({var, address});
+      address += 1;
     }
   }
-
-  currentFunctionVariableOffsets_ = variableOffsets_[name];
 }
 
 void MachineCodeGenerator::calculateLabelValues(const std::string& name) {
@@ -191,7 +191,6 @@ std::vector<MachineInstruction> MachineCodeGenerator::generate(const std::unique
             case bblocks::BBInstruction::TemplateArgumentType::NUMBER:
               return generateMove(*dynamic_cast<bblocks::BBMoveVN*>(instruction.get()));
           }
-          break;
         case bblocks::BBInstruction::TemplateArgumentType::NUMBER:
           switch (templateArguments[1]) {
             case bblocks::BBInstruction::TemplateArgumentType::STRING:
@@ -210,7 +209,6 @@ std::vector<MachineInstruction> MachineCodeGenerator::generate(const std::unique
             case bblocks::BBInstruction::TemplateArgumentType::NUMBER:
               return generateUnaryOperation(*dynamic_cast<bblocks::BBUnaryOperationVN*>(instruction.get()));
           }
-          break;
         case bblocks::BBInstruction::TemplateArgumentType::NUMBER:
           switch (templateArguments[1]) {
             case bblocks::BBInstruction::TemplateArgumentType::STRING:
@@ -231,7 +229,6 @@ std::vector<MachineInstruction> MachineCodeGenerator::generate(const std::unique
                 case bblocks::BBInstruction::TemplateArgumentType::NUMBER:
                   return generateBinaryOperation(*dynamic_cast<bblocks::BBBinaryOperationVVN*>(instruction.get()));
               }
-              break;
             case bblocks::BBInstruction::TemplateArgumentType::NUMBER:
               switch (templateArguments[2]) {
                 case bblocks::BBInstruction::TemplateArgumentType::STRING:
@@ -240,7 +237,6 @@ std::vector<MachineInstruction> MachineCodeGenerator::generate(const std::unique
                   return generateBinaryOperation(*dynamic_cast<bblocks::BBBinaryOperationVNN*>(instruction.get()));
               }
           }
-          break;
         case bblocks::BBInstruction::TemplateArgumentType::NUMBER:
           switch (templateArguments[1]) {
             case bblocks::BBInstruction::TemplateArgumentType::STRING:
@@ -250,7 +246,6 @@ std::vector<MachineInstruction> MachineCodeGenerator::generate(const std::unique
                 case bblocks::BBInstruction::TemplateArgumentType::NUMBER:
                   return generateBinaryOperation(*dynamic_cast<bblocks::BBBinaryOperationNVN*>(instruction.get()));
               }
-              break;
             case bblocks::BBInstruction::TemplateArgumentType::NUMBER:
               switch (templateArguments[2]) {
                 case bblocks::BBInstruction::TemplateArgumentType::STRING:
@@ -280,386 +275,899 @@ std::vector<MachineInstruction> MachineCodeGenerator::generate(const std::unique
     }
     case bblocks::BBInstruction::Type::PHI:
     case bblocks::BBInstruction::Type::UNSPECIFIED: {
-      throw std::runtime_error("Unspecified instruction type");
+      throw std::invalid_argument("Unspecified instruction type");
     }
   }
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateMove(const bblocks::BBMoveVV& instruction) {
-  std::vector<MachineInstruction> instructions;
   const std::string src = instruction.getSource();
+  const int srcReg = regAllocators_.at(currentScope)->getAllocatedRegisters().at(src);
   const std::string dest = instruction.getDestination();
+  const int destReg = regAllocators_.at(currentScope)->getAllocatedRegisters().at(dest);
 
   switch (instruction.getSourceType()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      throw std::runtime_error("Constant cannot be string type");
+      throw std::invalid_argument("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto srcAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src]);
-      if (srcAddr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {srcAddr.first.value(), srcAddr.second}));
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          if (srcReg != -1 && destReg != -1) {
+            return generateMoveRegReg(srcReg, destReg);
+          }
+          else if (srcReg != -1) {
+            return generateMoveRegMem(srcReg, variableAddresses_[currentScope].at(dest));
+          }
+          else if (destReg != -1) {
+            return generateMoveMemReg(variableAddresses_[currentScope].at(src), destReg);
+          }
+          else {
+            return generateMoveMemMem(variableAddresses_[currentScope].at(src), variableAddresses_[currentScope].at(dest));
+          }
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          if (srcReg != -1 && destReg != -1) {
+            return generateMoveRegMemImmReg(srcReg, destReg);
+          }
+          else if (srcReg != -1) {
+            return generateMoveRegMemImmMem(srcReg, variableAddresses_[currentScope].at(dest));
+          }
+          else if (destReg != -1) {
+            return generateMoveMemMemImmReg(variableAddresses_[currentScope].at(src), destReg);
+          }
+          else {
+            return generateMoveMemMemImmMem(variableAddresses_[currentScope].at(src), variableAddresses_[currentScope].at(dest));
+          }
+        }
       }
-      else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS_ZP, {srcAddr.second}));
-      }
-      break;
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
-      break;
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          if (srcReg != -1 && destReg != -1) {
+            return generateMoveMemImmRegReg(srcReg, destReg);
+          }
+          else if (srcReg != -1) {
+            return generateMoveMemImmRegMem(srcReg, variableAddresses_[currentScope].at(dest));
+          }
+          else if (destReg != -1) {
+            return generateMoveMemImmMemReg(variableAddresses_[currentScope].at(src), destReg);
+          }
+          else {
+            return generateMoveMemImmMemMem(variableAddresses_[currentScope].at(src), variableAddresses_[currentScope].at(dest));
+          }
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          if (srcReg != -1 && destReg != -1) {
+            return generateMoveMemImmRegMemImmReg(srcReg, destReg);
+          }
+          else if (srcReg != -1) {
+            return generateMoveMemImmRegMemImmMem(srcReg, variableAddresses_[currentScope].at(dest));
+          }
+          else if (destReg != -1) {
+            return generateMoveMemImmMemMemImmReg(variableAddresses_[currentScope].at(src), destReg);
+          }
+          else {
+            return generateMoveMemImmMemMemImmMem(variableAddresses_[currentScope].at(src),
+                                                  variableAddresses_[currentScope].at(dest));
+          }
+        }
+      }
     }
   }
-
-  switch (instruction.getDestinationType()) {
-    case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
-      if (destAddr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
-      }
-      else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A_ZP, {destAddr.second}));
-      }
-      break;
-    }
-    case bblocks::BBInstruction::DestinationType::MEMORY:
-      break;
-  }
-
-  return instructions;
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateMove(const bblocks::BBMoveVN& instruction) {
-  std::vector<MachineInstruction> instructions;
   const std::string src = instruction.getSource();
-  const int dest = instruction.getDestination();
+  const int srcReg = regAllocators_.at(currentScope)->getAllocatedRegisters().at(src);
+  const uint16_t dest = instruction.getDestination();
 
   switch (instruction.getSourceType()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      throw std::runtime_error("Constant cannot be string type");
+      throw std::invalid_argument("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto srcAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src]);
-      if (srcAddr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {srcAddr.first.value(), srcAddr.second}));
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          throw std::invalid_argument("Register cannot be number type");
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          if (srcReg != -1) {
+            return generateMoveRegMem(srcReg, dest);
+          }
+          else {
+            return generateMoveMemMem(variableAddresses_[currentScope].at(src), dest);
+          }
+        }
       }
-      else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS_ZP, {srcAddr.second}));
-      }
-      break;
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
-      break;
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          throw std::invalid_argument("Register cannot be number type");
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          if(srcReg != -1) {
+            return generateMoveMemImmRegMem(srcReg, dest);
+          }
+          else {
+            return generateMoveMemImmMemMem(variableAddresses_[currentScope].at(src), dest);
+          }
+        }
+      }
     }
   }
-
-  switch (instruction.getDestinationType()) {
-    case bblocks::BBInstruction::DestinationType::REGISTER:
-      throw std::runtime_error("Register cannot be number type");
-    case bblocks::BBInstruction::DestinationType::MEMORY:
-      break;
-  }
-
-  return instructions;
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateMove(const bblocks::BBMoveNV& instruction) {
-  std::vector<MachineInstruction> instructions;
-  const int src = instruction.getSource();
+  const uint16_t src = instruction.getSource();
   const std::string dest = instruction.getDestination();
+  const int destReg = regAllocators_.at(currentScope)->getAllocatedRegisters().at(dest);
 
   switch (instruction.getSourceType()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_IMM, {MachineCodeGenerator::getBinaryAnyInt(src)}));
-      break;
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          if (destReg != -1) {
+            return generateMoveConstReg(static_cast<uint8_t>(src), destReg);
+          }
+          else {
+            return generateMoveConstMem(static_cast<uint8_t>(src), variableAddresses_.at(currentScope).at(dest));
+          }
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          if (destReg != -1) {
+            return generateMoveConstMemImmReg(static_cast<uint8_t>(src), destReg);
+          }
+          else {
+            return generateMoveConstMemImmMem(static_cast<uint8_t>(src), variableAddresses_.at(currentScope).at(dest));
+          }
+        }
+      }
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
-      break;
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          if (destReg != -1) {
+            return generateMoveMemReg(src, destReg);
+          }
+          else {
+            return generateMoveMemMem(src, variableAddresses_.at(currentScope).at(dest));
+          }
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          if (destReg != -1) {
+            return generateMoveMemImmReg(src, destReg);
+          }
+          else {
+            return generateMoveMemImmMem(src, variableAddresses_.at(currentScope).at(dest));
+          }
+        }
+      }
     }
   }
-
-  switch (instruction.getDestinationType()) {
-    case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
-      if (destAddr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
-      }
-      else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A_ZP, {destAddr.second}));
-      }
-      break;
-    }
-    case bblocks::BBInstruction::DestinationType::MEMORY:
-      break;
-  }
-
-  return instructions;
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateMove(const bblocks::BBMoveNN& instruction) {
-  std::vector<MachineInstruction> instructions;
-  const int src = instruction.getSource();
-  const int dest = instruction.getDestination();
+  const uint16_t src = instruction.getSource();
+  const uint16_t dest = instruction.getDestination();
 
   switch (instruction.getSourceType()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_IMM, {MachineCodeGenerator::getBinaryAnyInt(src)}));
-      break;
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          throw std::runtime_error("Register cannot be number type");
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          return generateMoveConstMem(static_cast<uint8_t>(src), dest);
+        }
+      }
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
-      break;
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          throw std::runtime_error("Register cannot be number type");
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          return generateMoveMemMem(src, dest);
+        }
+      }
     }
   }
+}
 
-  switch (instruction.getDestinationType()) {
-    case bblocks::BBInstruction::DestinationType::REGISTER:
-      throw std::runtime_error("Register cannot be number type");
-    case bblocks::BBInstruction::DestinationType::MEMORY:
-      break;
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegReg(int src, int dest) {
+  std::cout << "mov reg reg" << std::endl;
+  std::vector<MachineInstruction> instructions;
+  if (src == 1 && dest == 2) {
+    instructions.emplace_back(MachineInstruction::MOV_B_A);
+  }
+  else if (src == 2 && dest == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_A_B);
   }
 
   return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegMem(int src, uint16_t dest) {
+  std::cout << "mov reg mem" << std::endl;
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
+  if (src == 1) {
+    if (destAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
+                                std::vector<std::string>{destAddress.second, destAddress.first.value()});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddress.second});
+    }
+  }
+  else if (src == 2) {
+    if (destAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_B,
+                                std::vector<std::string>{destAddress.second, destAddress.first.value()});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_B_ZP, std::vector<std::string>{destAddress.second});
+    }
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegMemImmReg(int src, int immDest) {
+  std::cout << "mov reg mem imm reg" << std::endl;
+  std::vector<MachineInstruction> instructions;
+  if (immDest == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_TL_A);
+  }
+  else if (immDest == 2) {
+    instructions.emplace_back(MachineInstruction::MOV_TL_B);
+  }
+  if (src == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_B_A);
+  }
+  else if (src == 2) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_TL_B);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegMemImmMem(int src, uint16_t immDest) {
+  std::cout << "mov reg mem imm mem" << std::endl;
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
+  if (destAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS,
+                              std::vector<std::string>{destAddress.second, destAddress.first.value()});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{destAddress.second});
+  }
+  instructions.emplace_back(MachineInstruction::POP_TL);
+  if (src == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_TL_A);
+  }
+  else if (src == 2) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_TL_B);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemReg(uint16_t src, int dest) {
+  std::cout << "mov mem reg" << std::endl;
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
+  if (dest == 1) {
+    if (srcAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS,
+                                std::vector<std::string>{srcAddress.second, srcAddress.first.value()});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
+    }
+  }
+  else if (dest == 2) {
+    if (srcAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS,
+                                std::vector<std::string>{srcAddress.second, srcAddress.first.value()});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{srcAddress.second});
+    }
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegReg(int immSrc, int dest) {
+  std::cout << "mov mem imm reg reg" << std::endl;
+  std::vector<MachineInstruction> instructions;
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemReg(uint16_t immSrc, int dest) {
+  std::cout << "mov mem imm mem reg" << std::endl;
+  std::vector<MachineInstruction> instructions;
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemMem(uint16_t src, uint16_t dest) {
+  std::cout << "mov mem mem" << std::endl;
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
+  if (srcAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS,
+                              std::vector<std::string>{srcAddress.second, srcAddress.first.value()});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
+  }
+
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
+  if (destAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::POP_MEM,
+                              std::vector<std::string>{destAddress.second, destAddress.first.value()});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::POP_MEM_ZP, std::vector<std::string>{destAddress.second});
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegMem(int immSrc, uint16_t dest) {
+  std::cout << "mov mem imm reg mem" << std::endl;
+  std::vector<MachineInstruction> instructions;
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemMem(int immSrc, uint16_t dest) {
+  std::cout << "mov mem imm mem mem" << std::endl;
+  std::vector<MachineInstruction> instructions;
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemMemImmReg(uint16_t src, int immDest) {
+  std::cout << "mov mem mem imm reg" << std::endl;
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
+  if (srcAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS,
+                              std::vector<std::string>{srcAddress.second, srcAddress.first.value()});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
+  }
+  instructions.emplace_back(MachineInstruction::POP_TL);
+  if (immDest == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_A_TL);
+  }
+  else if (immDest == 2) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_B_TL);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemMemImmMem(uint16_t src, uint16_t immDest) {
+  std::cout << "mov mem mem imm mem" << std::endl;
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
+  if (srcAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS,
+                              std::vector<std::string>{srcAddress.second, srcAddress.first.value()});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
+  }
+  instructions.emplace_back(MachineInstruction::POP_TH);
+  if (destAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS,
+                              std::vector<std::string>{destAddress.second, destAddress.first.value()});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{destAddress.second});
+  }
+  instructions.emplace_back(MachineInstruction::POP_TL);
+  instructions.emplace_back(MachineInstruction::MOV_AT_TL_TH);
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegMemImmReg(int immSrc, int immDest) {
+  std::cout << "mov mem imm reg mem imm reg" << std::endl;
+  std::vector<MachineInstruction> instructions;
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegMemImmMem(int immSrc, uint16_t immDest) {
+  std::cout << "mov mem imm reg mem imm mem" << std::endl;
+  std::vector<MachineInstruction> instructions;
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemMemImmReg(uint16_t immSrc, int immDest) {
+  std::cout << "mov mem imm mem mem imm reg" << std::endl;
+  std::vector<MachineInstruction> instructions;
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemMemImmMem(uint16_t immSrc, uint16_t immDest) {
+  std::cout << "mov mem imm mem mem imm mem" << std::endl;
+  std::vector<MachineInstruction> instructions;
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveConstReg(uint8_t src, int dest) {
+  std::cout << "mov const reg" << std::endl;
+  std::vector<MachineInstruction> instructions;
+  if (src == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_A_IMM, std::vector<std::string>{getBinaryUint(src)});
+  }
+  else if (src == 2) {
+    instructions.emplace_back(MachineInstruction::MOV_B_IMM, std::vector<std::string>{getBinaryUint(src)});
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveConstMem(uint8_t src, uint16_t dest) {
+  std::cout << "mov const mem" << std::endl;
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
+  if (destAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_IMM,
+                              std::vector<std::string>{destAddress.second, destAddress.first.value(), getBinaryUint(src)});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_IMM_ZP,
+                              std::vector<std::string>{destAddress.second, getBinaryUint(src)});
+  }
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveConstMemImmReg(uint8_t src, int immDest) {
+  std::cout << "mov const mem imm reg" << std::endl;
+  std::vector<MachineInstruction> instructions;
+  if (immDest == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_A_IMM, std::vector<std::string>{getBinaryUint(src)});
+  }
+  else if (immDest == 2) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_B_IMM, std::vector<std::string>{getBinaryUint(src)});
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveConstMemImmMem(uint8_t src, uint16_t immDest) {
+  std::cout << "mov const mem imm mem" << std::endl;
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
+  if (destAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS,
+                              std::vector<std::string>{destAddress.second, destAddress.first.value()});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{destAddress.second});
+  }
+  instructions.emplace_back(MachineInstruction::POP_TL);
+  instructions.emplace_back(MachineInstruction::MOV_AT_TL_IMM, std::vector<std::string>{getBinaryUint(src)});
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(const bblocks::BBUnaryOperationVV& instruction) {
-  std::vector<MachineInstruction> instructions;
   const std::string src = instruction.getSource();
+  const int srcReg = regAllocators_.at(currentScope)->getAllocatedRegisters().at(src);
   const std::string dest = instruction.getDestination();
+  const int destReg = regAllocators_.at(currentScope)->getAllocatedRegisters().at(dest);
+  const bblocks::BBUnaryOperationEnum operation = instruction.getOperation();
 
   switch (instruction.getSourceType()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      throw std::runtime_error("Constant cannot be string type");
+      throw std::invalid_argument("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto srcAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src]);
-      if (srcAddr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {srcAddr.first.value(), srcAddr.second}));
-      }
-      else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS_ZP, {srcAddr.second}));
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          return generateUnaryOperationRegReg(srcReg, destReg, operation);
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          break;
+        }
       }
       break;
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
-      break;
-    }
-  }
-
-  switch (instruction.getOperation()) {
-    case bblocks::BBUnaryOperationEnum::NEG:
-      instructions.push_back(MachineInstruction(MachineInstruction::NEG_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::NOT:
-      instructions.push_back(MachineInstruction(MachineInstruction::INV_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::INC:
-      instructions.push_back(MachineInstruction(MachineInstruction::INC_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::DEC:
-      instructions.push_back(MachineInstruction(MachineInstruction::DEC_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::SHL:
-      instructions.push_back(MachineInstruction(MachineInstruction::SHL_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::SHR:
-      instructions.push_back(MachineInstruction(MachineInstruction::SHR_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::SAR:
-      instructions.push_back(MachineInstruction(MachineInstruction::DIV2_A_A));
-      break;
-  }
-
-  switch (instruction.getDestinationType()) {
-    case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
-      if (destAddr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
-      }
-      else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A_ZP, {destAddr.second}));
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          break;
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          break;
+        }
       }
       break;
     }
-    case bblocks::BBInstruction::DestinationType::MEMORY:
-      break;
   }
-
-  return instructions;
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(const bblocks::BBUnaryOperationVN& instruction) {
-  std::vector<MachineInstruction> instructions;
   const std::string src = instruction.getSource();
+  const int srcReg = regAllocators_.at(currentScope)->getAllocatedRegisters().at(src);
   const int dest = instruction.getDestination();
+  const bblocks::BBUnaryOperationEnum operation = instruction.getOperation();
 
   switch (instruction.getSourceType()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      throw std::runtime_error("Constant cannot be string type");
+      throw std::invalid_argument("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto srcAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src]);
-      if (srcAddr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {srcAddr.first.value(), srcAddr.second}));
-      }
-      else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS_ZP, {srcAddr.second}));
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          throw std::invalid_argument("Register cannot be number type");
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          return generateUnaryOperationRegMem(srcReg, dest, operation);
+        }
       }
       break;
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          throw std::invalid_argument("Register cannot be number type");
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          break;
+        }
+      }
       break;
     }
   }
-
-  switch (instruction.getOperation()) {
-    case bblocks::BBUnaryOperationEnum::NEG:
-      instructions.push_back(MachineInstruction(MachineInstruction::NEG_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::NOT:
-      instructions.push_back(MachineInstruction(MachineInstruction::INV_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::INC:
-      instructions.push_back(MachineInstruction(MachineInstruction::INC_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::DEC:
-      instructions.push_back(MachineInstruction(MachineInstruction::DEC_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::SHL:
-      instructions.push_back(MachineInstruction(MachineInstruction::SHL_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::SHR:
-      instructions.push_back(MachineInstruction(MachineInstruction::SHR_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::SAR:
-      instructions.push_back(MachineInstruction(MachineInstruction::DIV2_A_A));
-      break;
-  }
-
-  switch (instruction.getDestinationType()) {
-    case bblocks::BBInstruction::DestinationType::REGISTER:
-      throw std::runtime_error("Register cannot be number type");
-    case bblocks::BBInstruction::DestinationType::MEMORY:
-      break;
-  }
-
-  return instructions;
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(const bblocks::BBUnaryOperationNV& instruction) {
-  std::vector<MachineInstruction> instructions;
   const int src = instruction.getSource();
   const std::string dest = instruction.getDestination();
+  const int destReg = regAllocators_.at(currentScope)->getAllocatedRegisters().at(dest);
 
   switch (instruction.getSourceType()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_IMM, {MachineCodeGenerator::getBinaryAnyInt(src)}));
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          break;
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY:
+          break;
+      }
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
-      break;
-    }
-  }
-
-  switch (instruction.getOperation()) {
-    case bblocks::BBUnaryOperationEnum::NEG:
-      instructions.push_back(MachineInstruction(MachineInstruction::NEG_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::NOT:
-      instructions.push_back(MachineInstruction(MachineInstruction::INV_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::INC:
-      instructions.push_back(MachineInstruction(MachineInstruction::INC_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::DEC:
-      instructions.push_back(MachineInstruction(MachineInstruction::DEC_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::SHL:
-      instructions.push_back(MachineInstruction(MachineInstruction::SHL_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::SHR:
-      instructions.push_back(MachineInstruction(MachineInstruction::SHR_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::SAR:
-      instructions.push_back(MachineInstruction(MachineInstruction::DIV2_A_A));
-      break;
-  }
-
-  switch (instruction.getDestinationType()) {
-    case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
-      if (destAddr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
-      }
-      else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A_ZP, {destAddr.second}));
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          break;
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY:
+          break;
       }
       break;
     }
-    case bblocks::BBInstruction::DestinationType::MEMORY:
-      break;
   }
-
-  return instructions;
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(const bblocks::BBUnaryOperationNN& instruction) {
-  std::vector<MachineInstruction> instructions;
   const int src = instruction.getSource();
   const int dest = instruction.getDestination();
 
   switch (instruction.getSourceType()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_IMM, {MachineCodeGenerator::getBinaryAnyInt(src)}));
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          throw std::invalid_argument("Register cannot be number type");
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          break;
+        }
+      }
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
+      switch (instruction.getDestinationType()) {
+        case bblocks::BBInstruction::DestinationType::REGISTER: {
+          throw std::invalid_argument("Register cannot be number type");
+        }
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          break;
+        }
+      }
       break;
     }
   }
+}
 
-  switch (instruction.getOperation()) {
-    case bblocks::BBUnaryOperationEnum::NEG:
-      instructions.push_back(MachineInstruction(MachineInstruction::NEG_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::NOT:
-      instructions.push_back(MachineInstruction(MachineInstruction::INV_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::INC:
-      instructions.push_back(MachineInstruction(MachineInstruction::INC_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::DEC:
-      instructions.push_back(MachineInstruction(MachineInstruction::DEC_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::SHL:
-      instructions.push_back(MachineInstruction(MachineInstruction::SHL_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::SHR:
-      instructions.push_back(MachineInstruction(MachineInstruction::SHR_A_A));
-      break;
-    case bblocks::BBUnaryOperationEnum::SAR:
-      instructions.push_back(MachineInstruction(MachineInstruction::DIV2_A_A));
-      break;
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegReg(int src, int dest,
+                                                                                   bblocks::BBUnaryOperationEnum type) {
+  std::vector<MachineInstruction> instructions;
+  if (src == 1 && dest == 1) {
+    switch (type) {
+      case bblocks::BBUnaryOperationEnum::NEG:
+        instructions.emplace_back(MachineInstruction::NEG_A_A);
+        break;
+      case bblocks::BBUnaryOperationEnum::NOT:
+        instructions.emplace_back(MachineInstruction::INV_A_A);
+        break;
+      case bblocks::BBUnaryOperationEnum::INC:
+        instructions.emplace_back(MachineInstruction::INC_A);
+        break;
+      case bblocks::BBUnaryOperationEnum::DEC:
+        instructions.emplace_back(MachineInstruction::DEC_A);
+        break;
+      case bblocks::BBUnaryOperationEnum::SHL:
+        instructions.emplace_back(MachineInstruction::SHL_A_A);
+        break;
+      case bblocks::BBUnaryOperationEnum::SHR:
+        instructions.emplace_back(MachineInstruction::SHR_A_A);
+        break;
+      case bblocks::BBUnaryOperationEnum::SAR:
+        instructions.emplace_back(MachineInstruction::DIV2_A_A);
+        break;
+    }
   }
-
-  switch (instruction.getDestinationType()) {
-    case bblocks::BBInstruction::DestinationType::REGISTER:
-      throw std::runtime_error("Register cannot be number type");
-    case bblocks::BBInstruction::DestinationType::MEMORY:
-      break;
+  else if (src == 1 && dest == 2) {
+    switch (type) {
+      case bblocks::BBUnaryOperationEnum::NEG:
+        instructions.emplace_back(MachineInstruction::NEG_B_A);
+        break;
+      case bblocks::BBUnaryOperationEnum::NOT:
+        instructions.emplace_back(MachineInstruction::INV_B_A);
+        break;
+      case bblocks::BBUnaryOperationEnum::INC:
+        instructions.emplace_back(MachineInstruction::INC_B);
+        break;
+      case bblocks::BBUnaryOperationEnum::DEC:
+        instructions.emplace_back(MachineInstruction::DEC_B);
+        break;
+      case bblocks::BBUnaryOperationEnum::SHL:
+        instructions.emplace_back(MachineInstruction::SHL_B_A);
+        break;
+      case bblocks::BBUnaryOperationEnum::SHR:
+        instructions.emplace_back(MachineInstruction::SHR_B_A);
+        break;
+      case bblocks::BBUnaryOperationEnum::SAR:
+        instructions.emplace_back(MachineInstruction::DIV2_B_A);
+        break;
+    }
+  }
+  else if (src == 2 && dest == 1) {
+    switch (type) {
+      case bblocks::BBUnaryOperationEnum::NEG:
+        instructions.emplace_back(MachineInstruction::NEG_A_B);
+        break;
+      case bblocks::BBUnaryOperationEnum::NOT:
+        instructions.emplace_back(MachineInstruction::INV_A_B);
+        break;
+      case bblocks::BBUnaryOperationEnum::INC:
+        instructions.emplace_back(MachineInstruction::INC_A);
+        break;
+      case bblocks::BBUnaryOperationEnum::DEC:
+        instructions.emplace_back(MachineInstruction::DEC_A);
+        break;
+      case bblocks::BBUnaryOperationEnum::SHL:
+        instructions.emplace_back(MachineInstruction::SHL_A_B);
+        break;
+      case bblocks::BBUnaryOperationEnum::SHR:
+        instructions.emplace_back(MachineInstruction::SHR_A_B);
+        break;
+      case bblocks::BBUnaryOperationEnum::SAR:
+        instructions.emplace_back(MachineInstruction::DIV2_A_B);
+        break;
+    }
+  }
+  else if (src == 2 && dest == 2) {
+    switch (type) {
+      case bblocks::BBUnaryOperationEnum::NEG:
+        instructions.emplace_back(MachineInstruction::NEG_B_B);
+        break;
+      case bblocks::BBUnaryOperationEnum::NOT:
+        instructions.emplace_back(MachineInstruction::INV_B_B);
+        break;
+      case bblocks::BBUnaryOperationEnum::INC:
+        instructions.emplace_back(MachineInstruction::INC_B);
+        break;
+      case bblocks::BBUnaryOperationEnum::DEC:
+        instructions.emplace_back(MachineInstruction::DEC_B);
+        break;
+      case bblocks::BBUnaryOperationEnum::SHL:
+        instructions.emplace_back(MachineInstruction::SHL_B_B);
+        break;
+      case bblocks::BBUnaryOperationEnum::SHR:
+        instructions.emplace_back(MachineInstruction::SHR_B_B);
+        break;
+      case bblocks::BBUnaryOperationEnum::SAR:
+        instructions.emplace_back(MachineInstruction::DIV2_B_B);
+        break;
+    }
   }
 
   return instructions;
 }
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegMem(int src, uint16_t dest,
+                                                                                   bblocks::BBUnaryOperationEnum type) {
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
+  if (src == 1) {
+    switch (type) {
+      case bblocks::BBUnaryOperationEnum::NEG:
+        if (destAddress.first.has_value()) {
+          instructions.emplace_back(MachineInstruction::NEG_MEM_A,
+                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+        }
+        else {
+          instructions.emplace_back(MachineInstruction::NEG_MEM_A, std::vector<std::string>{destAddress.second});
+        }
+        break;
+      case bblocks::BBUnaryOperationEnum::NOT:
+        if (destAddress.first.has_value()) {
+          instructions.emplace_back(MachineInstruction::INV_MEM_A,
+                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+        }
+        else {
+          instructions.emplace_back(MachineInstruction::INV_MEM_A, std::vector<std::string>{destAddress.second});
+        }
+        break;
+      case bblocks::BBUnaryOperationEnum::INC:
+        if (destAddress.first.has_value()) {
+          instructions.emplace_back(MachineInstruction::INC_A,
+                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+        }
+        else {
+          instructions.emplace_back(MachineInstruction::INC_A, std::vector<std::string>{destAddress.second});
+        }
+        break;
+      case bblocks::BBUnaryOperationEnum::DEC:
+        if (destAddress.first.has_value()) {
+          instructions.emplace_back(MachineInstruction::DEC_A,
+                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+        }
+        else {
+          instructions.emplace_back(MachineInstruction::DEC_A, std::vector<std::string>{destAddress.second});
+        }
+        break;
+      case bblocks::BBUnaryOperationEnum::SHL:
+        if (destAddress.first.has_value()) {
+          instructions.emplace_back(MachineInstruction::SHL_MEM_A,
+                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+        }
+        else {
+          instructions.emplace_back(MachineInstruction::SHL_MEM_A, std::vector<std::string>{destAddress.second});
+        }
+        break;
+      case bblocks::BBUnaryOperationEnum::SHR:
+        if (destAddress.first.has_value()) {
+          instructions.emplace_back(MachineInstruction::SHR_MEM_A,
+                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+        }
+        else {
+          instructions.emplace_back(MachineInstruction::SHR_MEM_A, std::vector<std::string>{destAddress.second});
+        }
+        break;
+      case bblocks::BBUnaryOperationEnum::SAR:
+        if (destAddress.first.has_value()) {
+          instructions.emplace_back(MachineInstruction::DIV2_MEM_A,
+                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+        }
+        else {
+          instructions.emplace_back(MachineInstruction::DIV2_MEM_A, std::vector<std::string>{destAddress.second});
+        }
+        break;
+    }
+  }
+  else if (src == 2) {
+    switch (type) {
+      case bblocks::BBUnaryOperationEnum::NEG:
+        if (destAddress.first.has_value()) {
+          instructions.emplace_back(MachineInstruction::NEG_MEM_B,
+                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+        }
+        else {
+          instructions.emplace_back(MachineInstruction::NEG_MEM_B, std::vector<std::string>{destAddress.second});
+        }
+        break;
+      case bblocks::BBUnaryOperationEnum::NOT:
+        if (destAddress.first.has_value()) {
+          instructions.emplace_back(MachineInstruction::INV_MEM_B,
+                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+        }
+        else {
+          instructions.emplace_back(MachineInstruction::INV_MEM_B, std::vector<std::string>{destAddress.second});
+        }
+        break;
+      case bblocks::BBUnaryOperationEnum::INC:
+        if (destAddress.first.has_value()) {
+          instructions.emplace_back(MachineInstruction::INC_B,
+                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+        }
+        else {
+          instructions.emplace_back(MachineInstruction::INC_B, std::vector<std::string>{destAddress.second});
+        }
+        break;
+      case bblocks::BBUnaryOperationEnum::DEC:
+        if (destAddress.first.has_value()) {
+          instructions.emplace_back(MachineInstruction::DEC_B,
+                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+        }
+        else {
+          instructions.emplace_back(MachineInstruction::DEC_B, std::vector<std::string>{destAddress.second});
+        }
+        break;
+      case bblocks::BBUnaryOperationEnum::SHL:
+        if (destAddress.first.has_value()) {
+          instructions.emplace_back(MachineInstruction::SHL_MEM_B,
+                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+        }
+        else {
+          instructions.emplace_back(MachineInstruction::SHL_MEM_B, std::vector<std::string>{destAddress.second});
+        }
+        break;
+      case bblocks::BBUnaryOperationEnum::SHR:
+        if (destAddress.first.has_value()) {
+          instructions.emplace_back(MachineInstruction::SHR_MEM_B,
+                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+        }
+        else {
+          instructions.emplace_back(MachineInstruction::SHR_MEM_B, std::vector<std::string>{destAddress.second});
+        }
+        break;
+      case bblocks::BBUnaryOperationEnum::SAR:
+        if (destAddress.first.has_value()) {
+          instructions.emplace_back(MachineInstruction::DIV2_MEM_B,
+                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+        }
+        else {
+          instructions.emplace_back(MachineInstruction::DIV2_MEM_B, std::vector<std::string>{destAddress.second});
+        }
+        break;
+    }
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationMemReg(uint16_t src, int dest,
+                                                                                   bblocks::BBUnaryOperationEnum type) {}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationMemMem(uint16_t src, uint16_t dest,
+                                                                                   bblocks::BBUnaryOperationEnum type) {}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationConstReg(uint8_t src, int dest,
+                                                                                     bblocks::BBUnaryOperationEnum type) {}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationConstMem(uint8_t src, uint16_t dest,
+                                                                                     bblocks::BBUnaryOperationEnum type) {}
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(const bblocks::BBBinaryOperationVVV& instruction) {
   std::vector<MachineInstruction> instructions;
@@ -669,15 +1177,16 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource1Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      throw std::runtime_error("Constant cannot be string type");
+      throw std::invalid_argument("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src1]);
+      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src1]);
       if (src1Addr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {src1Addr.first.value(), src1Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_A_ABS,
+                                  std::vector<std::string>{src1Addr.first.value(), src1Addr.second});
       }
       else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS_ZP, {src1Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{src1Addr.second});
       }
       break;
     }
@@ -688,15 +1197,16 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource2Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      throw std::runtime_error("Constant cannot be string type");
+      throw std::invalid_argument("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src2]);
+      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src2]);
       if (src2Addr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_ABS, {src2Addr.first.value(), src2Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_B_ABS,
+                                  std::vector<std::string>{src2Addr.first.value(), src2Addr.second});
       }
       else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_ABS_ZP, {src2Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{src2Addr.second});
       }
       break;
     }
@@ -707,34 +1217,35 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getOperation()) {
     case bblocks::ADD:
-      instructions.push_back(MachineInstruction(MachineInstruction::ADD_A));
+      instructions.emplace_back(MachineInstruction::ADD_A);
       break;
     case bblocks::SUB:
-      instructions.push_back(MachineInstruction(MachineInstruction::SUB_A_AB));
+      instructions.emplace_back(MachineInstruction::SUB_A_AB);
       break;
     case bblocks::MUL:
     case bblocks::DIV:
     case bblocks::MOD:
-      throw std::runtime_error("Unimplemented");
+      throw std::invalid_argument("Unimplemented");
     case bblocks::AND:
-      instructions.push_back(MachineInstruction(MachineInstruction::AND_A));
+      instructions.emplace_back(MachineInstruction::AND_A);
       break;
     case bblocks::OR:
-      instructions.push_back(MachineInstruction(MachineInstruction::OR_A));
+      instructions.emplace_back(MachineInstruction::OR_A);
       break;
     case bblocks::XOR:
-      instructions.push_back(MachineInstruction(MachineInstruction::XOR_A));
+      instructions.emplace_back(MachineInstruction::XOR_A);
       break;
   }
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
+      const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][dest]);
       if (destAddr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
+                                  std::vector<std::string>{destAddr.first.value(), destAddr.second});
       }
       else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A_ZP, {destAddr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddr.second});
       }
       break;
     }
@@ -753,15 +1264,16 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource1Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      throw std::runtime_error("Constant cannot be string type");
+      throw std::invalid_argument("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src1]);
+      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src1]);
       if (src1Addr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {src1Addr.first.value(), src1Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_A_ABS,
+                                  std::vector<std::string>{src1Addr.first.value(), src1Addr.second});
       }
       else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS_ZP, {src1Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{src1Addr.second});
       }
       break;
     }
@@ -772,15 +1284,16 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource2Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      throw std::runtime_error("Constant cannot be string type");
+      throw std::invalid_argument("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src2]);
+      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src2]);
       if (src2Addr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_ABS, {src2Addr.first.value(), src2Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_B_ABS,
+                                  std::vector<std::string>{src2Addr.first.value(), src2Addr.second});
       }
       else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_ABS_ZP, {src2Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{src2Addr.second});
       }
       break;
     }
@@ -791,29 +1304,29 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getOperation()) {
     case bblocks::ADD:
-      instructions.push_back(MachineInstruction(MachineInstruction::ADD_A));
+      instructions.emplace_back(MachineInstruction::ADD_A);
       break;
     case bblocks::SUB:
-      instructions.push_back(MachineInstruction(MachineInstruction::SUB_A_AB));
+      instructions.emplace_back(MachineInstruction::SUB_A_AB);
       break;
     case bblocks::MUL:
     case bblocks::DIV:
     case bblocks::MOD:
-      throw std::runtime_error("Unimplemented");
+      throw std::invalid_argument("Unimplemented");
     case bblocks::AND:
-      instructions.push_back(MachineInstruction(MachineInstruction::AND_A));
+      instructions.emplace_back(MachineInstruction::AND_A);
       break;
     case bblocks::OR:
-      instructions.push_back(MachineInstruction(MachineInstruction::OR_A));
+      instructions.emplace_back(MachineInstruction::OR_A);
       break;
     case bblocks::XOR:
-      instructions.push_back(MachineInstruction(MachineInstruction::XOR_A));
+      instructions.emplace_back(MachineInstruction::XOR_A);
       break;
   }
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER:
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     case bblocks::BBInstruction::DestinationType::MEMORY:
       break;
   }
@@ -829,15 +1342,16 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource1Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      throw std::runtime_error("Constant cannot be string type");
+      throw std::invalid_argument("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src1]);
+      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src1]);
       if (src1Addr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {src1Addr.first.value(), src1Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_A_ABS,
+                                  std::vector<std::string>{src1Addr.first.value(), src1Addr.second});
       }
       else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS_ZP, {src1Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{src1Addr.second});
       }
       break;
     }
@@ -848,11 +1362,12 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource2Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_IMM, {MachineCodeGenerator::getBinaryAnyInt(src2)}));
+      instructions.emplace_back(MachineInstruction::MOV_B_IMM,
+                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src2)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
       break;
@@ -861,34 +1376,35 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getOperation()) {
     case bblocks::ADD:
-      instructions.push_back(MachineInstruction(MachineInstruction::ADD_A));
+      instructions.emplace_back(MachineInstruction::ADD_A);
       break;
     case bblocks::SUB:
-      instructions.push_back(MachineInstruction(MachineInstruction::SUB_A_AB));
+      instructions.emplace_back(MachineInstruction::SUB_A_AB);
       break;
     case bblocks::MUL:
     case bblocks::DIV:
     case bblocks::MOD:
-      throw std::runtime_error("Unimplemented");
+      throw std::invalid_argument("Unimplemented");
     case bblocks::AND:
-      instructions.push_back(MachineInstruction(MachineInstruction::AND_A));
+      instructions.emplace_back(MachineInstruction::AND_A);
       break;
     case bblocks::OR:
-      instructions.push_back(MachineInstruction(MachineInstruction::OR_A));
+      instructions.emplace_back(MachineInstruction::OR_A);
       break;
     case bblocks::XOR:
-      instructions.push_back(MachineInstruction(MachineInstruction::XOR_A));
+      instructions.emplace_back(MachineInstruction::XOR_A);
       break;
   }
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
+      const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][dest]);
       if (destAddr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
+                                  std::vector<std::string>{destAddr.first.value(), destAddr.second});
       }
       else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A_ZP, {destAddr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddr.second});
       }
       break;
     }
@@ -907,15 +1423,16 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource1Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      throw std::runtime_error("Constant cannot be string type");
+      throw std::invalid_argument("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src1]);
+      const auto src1Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src1]);
       if (src1Addr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {src1Addr.first.value(), src1Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_A_ABS,
+                                  std::vector<std::string>{src1Addr.first.value(), src1Addr.second});
       }
       else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS_ZP, {src1Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{src1Addr.second});
       }
       break;
     }
@@ -926,11 +1443,12 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource2Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_IMM, {MachineCodeGenerator::getBinaryAnyInt(src2)}));
+      instructions.emplace_back(MachineInstruction::MOV_B_IMM,
+                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src2)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
       break;
@@ -939,29 +1457,29 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getOperation()) {
     case bblocks::ADD:
-      instructions.push_back(MachineInstruction(MachineInstruction::ADD_A));
+      instructions.emplace_back(MachineInstruction::ADD_A);
       break;
     case bblocks::SUB:
-      instructions.push_back(MachineInstruction(MachineInstruction::SUB_A_AB));
+      instructions.emplace_back(MachineInstruction::SUB_A_AB);
       break;
     case bblocks::MUL:
     case bblocks::DIV:
     case bblocks::MOD:
-      throw std::runtime_error("Unimplemented");
+      throw std::invalid_argument("Unimplemented");
     case bblocks::AND:
-      instructions.push_back(MachineInstruction(MachineInstruction::AND_A));
+      instructions.emplace_back(MachineInstruction::AND_A);
       break;
     case bblocks::OR:
-      instructions.push_back(MachineInstruction(MachineInstruction::OR_A));
+      instructions.emplace_back(MachineInstruction::OR_A);
       break;
     case bblocks::XOR:
-      instructions.push_back(MachineInstruction(MachineInstruction::XOR_A));
+      instructions.emplace_back(MachineInstruction::XOR_A);
       break;
   }
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER:
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     case bblocks::BBInstruction::DestinationType::MEMORY:
       break;
   }
@@ -977,11 +1495,12 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource1Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_IMM, {MachineCodeGenerator::getBinaryAnyInt(src1)}));
+      instructions.emplace_back(MachineInstruction::MOV_A_IMM,
+                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src1)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
       break;
@@ -990,15 +1509,16 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource2Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      throw std::runtime_error("Constant cannot be string type");
+      throw std::invalid_argument("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src2]);
+      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src2]);
       if (src2Addr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_ABS, {src2Addr.first.value(), src2Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_B_ABS,
+                                  std::vector<std::string>{src2Addr.first.value(), src2Addr.second});
       }
       else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_ABS_ZP, {src2Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{src2Addr.second});
       }
       break;
     }
@@ -1009,34 +1529,35 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getOperation()) {
     case bblocks::ADD:
-      instructions.push_back(MachineInstruction(MachineInstruction::ADD_A));
+      instructions.emplace_back(MachineInstruction::ADD_A);
       break;
     case bblocks::SUB:
-      instructions.push_back(MachineInstruction(MachineInstruction::SUB_A_AB));
+      instructions.emplace_back(MachineInstruction::SUB_A_AB);
       break;
     case bblocks::MUL:
     case bblocks::DIV:
     case bblocks::MOD:
-      throw std::runtime_error("Unimplemented");
+      throw std::invalid_argument("Unimplemented");
     case bblocks::AND:
-      instructions.push_back(MachineInstruction(MachineInstruction::AND_A));
+      instructions.emplace_back(MachineInstruction::AND_A);
       break;
     case bblocks::OR:
-      instructions.push_back(MachineInstruction(MachineInstruction::OR_A));
+      instructions.emplace_back(MachineInstruction::OR_A);
       break;
     case bblocks::XOR:
-      instructions.push_back(MachineInstruction(MachineInstruction::XOR_A));
+      instructions.emplace_back(MachineInstruction::XOR_A);
       break;
   }
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
+      const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][dest]);
       if (destAddr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
+                                  std::vector<std::string>{destAddr.first.value(), destAddr.second});
       }
       else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A_ZP, {destAddr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddr.second});
       }
       break;
     }
@@ -1055,11 +1576,12 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource1Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_IMM, {MachineCodeGenerator::getBinaryAnyInt(src1)}));
+      instructions.emplace_back(MachineInstruction::MOV_A_IMM,
+                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src1)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
       break;
@@ -1068,15 +1590,16 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource2Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      throw std::runtime_error("Constant cannot be string type");
+      throw std::invalid_argument("Constant cannot be string type");
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[src2]);
+      const auto src2Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src2]);
       if (src2Addr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_ABS, {src2Addr.first.value(), src2Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_B_ABS,
+                                  std::vector<std::string>{src2Addr.first.value(), src2Addr.second});
       }
       else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_ABS_ZP, {src2Addr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{src2Addr.second});
       }
       break;
     }
@@ -1087,29 +1610,29 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getOperation()) {
     case bblocks::ADD:
-      instructions.push_back(MachineInstruction(MachineInstruction::ADD_A));
+      instructions.emplace_back(MachineInstruction::ADD_A);
       break;
     case bblocks::SUB:
-      instructions.push_back(MachineInstruction(MachineInstruction::SUB_A_AB));
+      instructions.emplace_back(MachineInstruction::SUB_A_AB);
       break;
     case bblocks::MUL:
     case bblocks::DIV:
     case bblocks::MOD:
-      throw std::runtime_error("Unimplemented");
+      throw std::invalid_argument("Unimplemented");
     case bblocks::AND:
-      instructions.push_back(MachineInstruction(MachineInstruction::AND_A));
+      instructions.emplace_back(MachineInstruction::AND_A);
       break;
     case bblocks::OR:
-      instructions.push_back(MachineInstruction(MachineInstruction::OR_A));
+      instructions.emplace_back(MachineInstruction::OR_A);
       break;
     case bblocks::XOR:
-      instructions.push_back(MachineInstruction(MachineInstruction::XOR_A));
+      instructions.emplace_back(MachineInstruction::XOR_A);
       break;
   }
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER:
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     case bblocks::BBInstruction::DestinationType::MEMORY:
       break;
   }
@@ -1125,11 +1648,12 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource1Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_IMM, {MachineCodeGenerator::getBinaryAnyInt(src1)}));
+      instructions.emplace_back(MachineInstruction::MOV_A_IMM,
+                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src1)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
       break;
@@ -1138,11 +1662,12 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource2Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_IMM, {MachineCodeGenerator::getBinaryAnyInt(src2)}));
+      instructions.emplace_back(MachineInstruction::MOV_B_IMM,
+                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src2)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
       break;
@@ -1151,34 +1676,35 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getOperation()) {
     case bblocks::ADD:
-      instructions.push_back(MachineInstruction(MachineInstruction::ADD_A));
+      instructions.emplace_back(MachineInstruction::ADD_A);
       break;
     case bblocks::SUB:
-      instructions.push_back(MachineInstruction(MachineInstruction::SUB_A_AB));
+      instructions.emplace_back(MachineInstruction::SUB_A_AB);
       break;
     case bblocks::MUL:
     case bblocks::DIV:
     case bblocks::MOD:
-      throw std::runtime_error("Unimplemented");
+      throw std::invalid_argument("Unimplemented");
     case bblocks::AND:
-      instructions.push_back(MachineInstruction(MachineInstruction::AND_A));
+      instructions.emplace_back(MachineInstruction::AND_A);
       break;
     case bblocks::OR:
-      instructions.push_back(MachineInstruction(MachineInstruction::OR_A));
+      instructions.emplace_back(MachineInstruction::OR_A);
       break;
     case bblocks::XOR:
-      instructions.push_back(MachineInstruction(MachineInstruction::XOR_A));
+      instructions.emplace_back(MachineInstruction::XOR_A);
       break;
   }
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER: {
-      const auto destAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[dest]);
+      const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][dest]);
       if (destAddr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A, {destAddr.first.value(), destAddr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
+                                  std::vector<std::string>{destAddr.first.value(), destAddr.second});
       }
       else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_AT_ABS_A_ZP, {destAddr.second}));
+        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddr.second});
       }
       break;
     }
@@ -1197,11 +1723,12 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource1Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_IMM, {MachineCodeGenerator::getBinaryAnyInt(src1)}));
+      instructions.emplace_back(MachineInstruction::MOV_A_IMM,
+                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src1)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
       break;
@@ -1210,11 +1737,12 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource2Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.push_back(MachineInstruction(MachineInstruction::MOV_B_IMM, {MachineCodeGenerator::getBinaryAnyInt(src2)}));
+      instructions.emplace_back(MachineInstruction::MOV_B_IMM,
+                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src2)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
       break;
@@ -1223,29 +1751,29 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getOperation()) {
     case bblocks::ADD:
-      instructions.push_back(MachineInstruction(MachineInstruction::ADD_A));
+      instructions.emplace_back(MachineInstruction::ADD_A);
       break;
     case bblocks::SUB:
-      instructions.push_back(MachineInstruction(MachineInstruction::SUB_A_AB));
+      instructions.emplace_back(MachineInstruction::SUB_A_AB);
       break;
     case bblocks::MUL:
     case bblocks::DIV:
     case bblocks::MOD:
-      throw std::runtime_error("Unimplemented");
+      throw std::invalid_argument("Unimplemented");
     case bblocks::AND:
-      instructions.push_back(MachineInstruction(MachineInstruction::AND_A));
+      instructions.emplace_back(MachineInstruction::AND_A);
       break;
     case bblocks::OR:
-      instructions.push_back(MachineInstruction(MachineInstruction::OR_A));
+      instructions.emplace_back(MachineInstruction::OR_A);
       break;
     case bblocks::XOR:
-      instructions.push_back(MachineInstruction(MachineInstruction::XOR_A));
+      instructions.emplace_back(MachineInstruction::XOR_A);
       break;
   }
 
   switch (instruction.getDestinationType()) {
     case bblocks::BBInstruction::DestinationType::REGISTER:
-      throw std::runtime_error("Register cannot be number type");
+      throw std::invalid_argument("Register cannot be number type");
     case bblocks::BBInstruction::DestinationType::MEMORY:
       break;
   }
@@ -1253,160 +1781,167 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
   return instructions;
 }
 
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationRegRegReg(int src1, int src2, int dest,
+                                                                                       bblocks::BBBinaryOperationEnum type) {}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationRegRegMem(int src1, int src2, uint16_t dest,
+                                                                                       bblocks::BBBinaryOperationEnum type) {}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationRegMemReg(int src1, uint16_t src2, int dest,
+                                                                                       bblocks::BBBinaryOperationEnum type) {}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationRegMemMem(int src1, uint16_t src2, uint16_t dest,
+                                                                                       bblocks::BBBinaryOperationEnum type) {}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationMemRegReg(uint16_t src1, int src2, int dest,
+                                                                                       bblocks::BBBinaryOperationEnum type) {}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationMemRegMem(uint16_t src1, int src2, uint16_t dest,
+                                                                                       bblocks::BBBinaryOperationEnum type) {}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationMemMemReg(uint16_t src1, uint16_t src2, int dest,
+                                                                                       bblocks::BBBinaryOperationEnum type) {}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationMemMemMem(uint16_t src1, uint16_t src2,
+                                                                                       uint16_t dest,
+                                                                                       bblocks::BBBinaryOperationEnum type) {}
+
 std::vector<MachineInstruction> MachineCodeGenerator::generateBranch(const bblocks::BBBranchV& instruction) {
-  std::vector<MachineInstruction> instructions;
   const std::string value = instruction.getValue();
-  const std::string trueLabel = instruction.getTrueLabel();
-  const std::string falseLabel = instruction.getFalseLabel();
-
-  switch (instruction.getValueType()) {
-    case bblocks::BBInstruction::SourceType::CONSTANT:
-      throw std::runtime_error("Constant cannot be string type");
-    case bblocks::BBInstruction::SourceType::REGISTER: {
-      const auto valAddr = MachineCodeGenerator::getBinaryAddress(currentFunctionVariableOffsets_[value]);
-      if (valAddr.first.has_value()) {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS, {valAddr.first.value(), valAddr.second}));
-      }
-      else {
-        instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_ABS_ZP, {valAddr.second}));
-      }
-      break;
-    }
-    case bblocks::BBInstruction::SourceType::MEMORY:
-      break;
-  }
-
-  instructions.push_back(MachineInstruction(MachineInstruction::CLR_B));
-  instructions.push_back(MachineInstruction(MachineInstruction::CMP_A_B));
-
-  switch (instruction.getCondition()) {
-    case bblocks::BBBranchCondition::ANY:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {trueLabel}));
-      break;
-    case bblocks::BBBranchCondition::NEGATIVE:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::POSITIVE:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_NS, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::ODD:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_P, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::EVEN:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_NP, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::ZERO:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_Z, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::NONZERO:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_NZ, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::CARRY:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_C, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::NOCARRY:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_NC, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::OVERFLOW:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_O, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::NOOVERFLOW:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_NO, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-  }
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateBranch(const bblocks::BBBranchN& instruction) {
-  std::vector<MachineInstruction> instructions;
-  const int value = instruction.getValue();
+  const int valueReg = regAllocators_.at(currentScope)->getAllocatedRegisters().at(value);
+  const bblocks::BBBranchCondition condition = instruction.getCondition();
   const std::string trueLabel = instruction.getTrueLabel();
   const std::string falseLabel = instruction.getFalseLabel();
 
   switch (instruction.getValueType()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.push_back(MachineInstruction(MachineInstruction::MOV_A_IMM, {MachineCodeGenerator::getBinaryAnyInt(value)}));
-      break;
+      throw std::invalid_argument("Constant cannot be string type");
     }
-    case bblocks::BBInstruction::SourceType::REGISTER:
-      throw std::runtime_error("Register cannot be number type");
-    case bblocks::BBInstruction::SourceType::MEMORY:
-      break;
+    case bblocks::BBInstruction::SourceType::REGISTER: {
+      if (valueReg != -1) {
+        return generateBranchReg(valueReg, condition, trueLabel, falseLabel);
+      }
+      else {
+        return generateBranchMem(variableAddresses_.at(currentScope).at(value), condition, trueLabel, falseLabel);
+      }
+    }
+    case bblocks::BBInstruction::SourceType::MEMORY: {
+      if (valueReg != -1) {}
+      else {}
+    }
   }
+}
 
-  instructions.push_back(MachineInstruction(MachineInstruction::CLR_B));
-  instructions.push_back(MachineInstruction(MachineInstruction::CMP_A_B));
+std::vector<MachineInstruction> MachineCodeGenerator::generateBranch(const bblocks::BBBranchN& instruction) {
+  const uint16_t value = instruction.getValue();
+  const bblocks::BBBranchCondition condition = instruction.getCondition();
+  const std::string trueLabel = instruction.getTrueLabel();
+  const std::string falseLabel = instruction.getFalseLabel();
 
-  switch (instruction.getCondition()) {
-    case bblocks::BBBranchCondition::ANY:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {trueLabel}));
-      break;
-    case bblocks::BBBranchCondition::NEGATIVE:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_S, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::POSITIVE:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_NS, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::ODD:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_P, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::EVEN:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_NP, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::ZERO:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_Z, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::NONZERO:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_NZ, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::CARRY:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_C, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::NOCARRY:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_NC, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::OVERFLOW:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_O, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
-    case bblocks::BBBranchCondition::NOOVERFLOW:
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM_NO, {trueLabel}));
-      instructions.push_back(MachineInstruction(MachineInstruction::JMP_IMM, {falseLabel}));
-      break;
+  switch (instruction.getValueType()) {
+    case bblocks::BBInstruction::SourceType::CONSTANT: {
+      return generateBranchConst(static_cast<uint8_t>(value), condition, trueLabel, falseLabel);
+    }
+    case bblocks::BBInstruction::SourceType::REGISTER: {
+      throw std::invalid_argument("Register cannot be number type");
+    }
+    case bblocks::BBInstruction::SourceType::MEMORY: {
+      return generateBranchMem(value, condition, trueLabel, falseLabel);
+    }
   }
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateBranchReg(int val, bblocks::BBBranchCondition condition,
+                                                                        const std::string& trueLabel,
+                                                                        const std::string& falseLabel) {
+  std::vector<MachineInstruction> instructions;
+  if (val == 1) {}
+  else if (val == 2) {}
+
+  appendBranchJumps(instructions, condition, trueLabel, falseLabel);
 
   return instructions;
 }
 
+std::vector<MachineInstruction> MachineCodeGenerator::generateBranchMem(uint16_t val, bblocks::BBBranchCondition condition,
+                                                                        const std::string& trueLabel,
+                                                                        const std::string& falseLabel) {
+  std::vector<MachineInstruction> instructions;
+
+  appendBranchJumps(instructions, condition, trueLabel, falseLabel);
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateBranchConst(uint8_t val, bblocks::BBBranchCondition condition,
+                                                                          const std::string& trueLabel,
+                                                                          const std::string& falseLabel) {
+  std::vector<MachineInstruction> instructions;
+
+  appendBranchJumps(instructions, condition, trueLabel, falseLabel);
+
+  return instructions;
+}
+
+void MachineCodeGenerator::appendBranchJumps(std::vector<MachineInstruction>& instructions, bblocks::BBBranchCondition condition,
+                                             const std::string& trueLabel, const std::string& falseLabel) {
+  switch (condition) {
+    case bblocks::BBBranchCondition::ANY:
+      instructions.emplace_back(MachineInstruction::JMP_IMM, std::vector<std::string>{trueLabel});
+      break;
+    case bblocks::BBBranchCondition::NEGATIVE:
+      instructions.emplace_back(MachineInstruction::JMP_IMM, std::vector<std::string>{trueLabel});
+      instructions.emplace_back(MachineInstruction::JMP_IMM, std::vector<std::string>{falseLabel});
+      break;
+    case bblocks::BBBranchCondition::POSITIVE:
+      instructions.emplace_back(MachineInstruction::JMP_IMM_NS, std::vector<std::string>{trueLabel});
+      instructions.emplace_back(MachineInstruction::JMP_IMM, std::vector<std::string>{falseLabel});
+      break;
+    case bblocks::BBBranchCondition::ODD:
+      instructions.emplace_back(MachineInstruction::JMP_IMM_P, std::vector<std::string>{trueLabel});
+      instructions.emplace_back(MachineInstruction::JMP_IMM, std::vector<std::string>{falseLabel});
+      break;
+    case bblocks::BBBranchCondition::EVEN:
+      instructions.emplace_back(MachineInstruction::JMP_IMM_NP, std::vector<std::string>{trueLabel});
+      instructions.emplace_back(MachineInstruction::JMP_IMM, std::vector<std::string>{falseLabel});
+      break;
+    case bblocks::BBBranchCondition::ZERO:
+      instructions.emplace_back(MachineInstruction::JMP_IMM_Z, std::vector<std::string>{trueLabel});
+      instructions.emplace_back(MachineInstruction::JMP_IMM, std::vector<std::string>{falseLabel});
+      break;
+    case bblocks::BBBranchCondition::NONZERO:
+      instructions.emplace_back(MachineInstruction::JMP_IMM_NZ, std::vector<std::string>{trueLabel});
+      instructions.emplace_back(MachineInstruction::JMP_IMM, std::vector<std::string>{falseLabel});
+      break;
+    case bblocks::BBBranchCondition::CARRY:
+      instructions.emplace_back(MachineInstruction::JMP_IMM_C, std::vector<std::string>{trueLabel});
+      instructions.emplace_back(MachineInstruction::JMP_IMM, std::vector<std::string>{falseLabel});
+      break;
+    case bblocks::BBBranchCondition::NOCARRY:
+      instructions.emplace_back(MachineInstruction::JMP_IMM_NC, std::vector<std::string>{trueLabel});
+      instructions.emplace_back(MachineInstruction::JMP_IMM, std::vector<std::string>{falseLabel});
+      break;
+    case bblocks::BBBranchCondition::OVERFLOW:
+      instructions.emplace_back(MachineInstruction::JMP_IMM_O, std::vector<std::string>{trueLabel});
+      instructions.emplace_back(MachineInstruction::JMP_IMM, std::vector<std::string>{falseLabel});
+      break;
+    case bblocks::BBBranchCondition::NOOVERFLOW:
+      instructions.emplace_back(MachineInstruction::JMP_IMM_NO, std::vector<std::string>{trueLabel});
+      instructions.emplace_back(MachineInstruction::JMP_IMM, std::vector<std::string>{falseLabel});
+      break;
+  }
+}
+
 std::vector<MachineInstruction> MachineCodeGenerator::generateCall(const bblocks::BBCall& /*instruction*/) {
-  return {MachineInstruction(MachineInstruction::JMP_FUN)};
+  return {MachineInstruction::JMP_FUN};
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateRet(const bblocks::BBRet& /*instruction*/) {
-  return {MachineInstruction(MachineInstruction::JMP_RET)};
+  return {MachineInstruction::JMP_RET};
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateHalt(const bblocks::BBHalt& /*instruction*/) {
-  return {MachineInstruction(MachineInstruction::HALT)};
+  return {MachineInstruction::HALT};
 }
 
 std::string MachineCodeGenerator::getBinaryInt(int8_t number) {
