@@ -57,6 +57,14 @@ test-mc:
 	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/mc_test.cpp tests/main.cpp -lgtest -o mc-test
 	./mc-test
 
+test-ssa-end-to-end:
+	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/ssa_end_to_end_test.cpp ../emulator/src/emulator.c ../emulator/src/config.c ../emulator/src/cJSON.c tests/main.cpp -lgtest -o ssa-end-to-end-test
+	./ssa-end-to-end-test
+
+test-program-end-to-end:
+	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/program_end_to_end_test.cpp ../emulator/src/emulator.c ../emulator/src/config.c ../emulator/src/cJSON.c tests/main.cpp -lgtest -o program-end-to-end-test
+	./program-end-to-end-test
+
 run-ast-test:
 	@echo "=== Running AST Tests ==="
 	@./ast-test | \
@@ -85,6 +93,20 @@ run-mc-test:
 	grep -c 'OK' | \
   	awk '{print "Passed count:", $$1}'
 
+run-ssa-end-to-end-test:
+	@echo "=== Running SSA End-to-End Tests ==="
+	@./ssa-end-to-end-test | \
+	tee >(grep '^Total' | awk '{print $$0}' >&2) | \
+	grep -c 'OK' | \
+  	awk '{print "Passed count:", $$1}'
+
+run-program-end-to-end-test:
+	@echo "=== Running Program End-to-End Tests ==="
+	@./program-end-to-end-test | \
+	tee >(grep '^Total' | awk '{print $$0}' >&2) | \
+	grep -c 'OK' | \
+  	awk '{print "Passed count:", $$1}'
+
 test-end-to-end:
 	./compiler $(COMPILATION_EXAMPLE_DIR)/test.pas $(COMPILATION_EXAMPLE_DIR)/test.ast $(COMPILATION_EXAMPLE_DIR)/test.bb $(COMPILATION_EXAMPLE_DIR)/test.ssa $(COMPILATION_EXAMPLE_DIR)/test.mc $(COMPILATION_EXAMPLE_DIR)/test.lr $(COMPILATION_EXAMPLE_DIR)/test.asm $(COMPILATION_EXAMPLE_DIR)/test.bin
 	../emulator/build/cli_app/EmulatorCliApp -i ../computer/config/instructions.json -f $(COMPILATION_EXAMPLE_DIR)/test.bin
@@ -104,6 +126,12 @@ clean-ssa-test:
 clean-mc-test:
 	rm -f mc-test
 
+clean-ssa-end-to-end-test:
+	rm -f ssa-end-to-end-test
+
+clean-program-end-to-end-test:
+	rm -f program-end-to-end-test
+
 format:
 	$(FORMATTER) $(ALL_PROJECT_FILES)
 
@@ -119,4 +147,4 @@ clean-playground:
 	rm -f playground
 
 
-.PHONY: core playground format
+.PHONY: core playground debug-playground format

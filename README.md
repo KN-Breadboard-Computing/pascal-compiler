@@ -348,3 +348,16 @@ ArrayElement := ArrayName[IndexExppression];
 ```
 RecordField := RecordName.FieldName;
 ```
+
+# TODO
+Handle the following case: ```src1``` is used but not defined in the example below. This crashes the compiling process. Constructed AST does not allow this, but the compiler should handle it gracefully.
+```
+BasicBlock basicBlock;
+basicBlock.addInstruction(
+  std::make_unique<BBMoveNV>(42, "src2",BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
+basicBlock.addInstruction(
+  std::make_unique<BBMoveNV>(42, "src3", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
+
+std::vector<MachineInstruction> machineInstructions;
+translateBasicBlockToMachineCode({}, {"src1", "src2", "src3"}, std::move(basicBlock), 1 << 5, machineInstructions);
+```

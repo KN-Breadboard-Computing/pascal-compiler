@@ -284,7 +284,7 @@ void BbSsaGenerator::removeRedundantAssignments() {
 }
 
 void BbSsaGenerator::propagateConstants() {
-//  for (auto& [name, cfg] : functionControlFlowGraphs_) {}
+  //  for (auto& [name, cfg] : functionControlFlowGraphs_) {}
 }
 
 std::string BbSsaGenerator::appendVariableCounter(const std::string& var, std::size_t index) {

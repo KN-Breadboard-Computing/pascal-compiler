@@ -58,6 +58,8 @@ class MachineCodeGenerator {
   void saveMachineCode(std::ostream& output);
 
   void saveAssembly(std::ostream& output);
+
+  std::vector<uint8_t> getBinaryCode();
   void saveBinary(std::ostream& output);
 
  private:
@@ -82,7 +84,7 @@ class MachineCodeGenerator {
   std::vector<MachineInstruction> generateMoveMemImmMemReg(uint16_t immSrc, int dest);
   std::vector<MachineInstruction> generateMoveMemMem(uint16_t src, uint16_t dest);
   std::vector<MachineInstruction> generateMoveMemImmRegMem(int immSrc, uint16_t dest);
-  std::vector<MachineInstruction> generateMoveMemImmMemMem(int immSrc, uint16_t dest);
+  std::vector<MachineInstruction> generateMoveMemImmMemMem(uint16_t immSrc, uint16_t dest);
   std::vector<MachineInstruction> generateMoveMemMemImmReg(uint16_t src, int immDest);
   std::vector<MachineInstruction> generateMoveMemMemImmMem(uint16_t src, uint16_t immDest);
   std::vector<MachineInstruction> generateMoveMemImmRegMemImmReg(int immSrc, int immDest);
