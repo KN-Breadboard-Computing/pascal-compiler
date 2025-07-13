@@ -74,8 +74,21 @@ void translateBasicBlockToMachineCode(const std::vector<std::string>& readVariab
   }
   std::cout << std::endl;
 
-  std::cout << "Binary Code:" << std::endl;
+  std::vector<std::string> assembly = machineCodeGenerator.getAssembly();
+  assembly.erase(assembly.begin(), assembly.begin() + readVariableStepsNumber * readVariables.size());
+  assembly.erase(assembly.end() - writeVariableStepsNumber * writeVariables.size() - 1, assembly.end());
+
+  std::cout << "Assembly Code:" << std::endl;
+  for (const auto& instruction : assembly) {
+    std::cout << instruction << std::endl;
+  }
+  std::cout << std::endl;
+
   std::vector<uint8_t> binaryCode = machineCodeGenerator.getBinaryCode();
+  binaryCode.erase(binaryCode.begin(), binaryCode.begin() + readVariableStepsNumber * readVariables.size());
+  binaryCode.erase(binaryCode.end() - writeVariableStepsNumber * writeVariables.size() - 1, binaryCode.end());
+
+  std::cout << "Binary Code:" << std::endl;
   for (const auto& byte : binaryCode) {
     std::cout << std::hex << static_cast<int>(byte) << " ";
   }
@@ -84,25 +97,13 @@ void translateBasicBlockToMachineCode(const std::vector<std::string>& readVariab
 
 int main() {
   //  BasicBlock basicBlock1;
-  //  basicBlock1.addInstruction(
-  //      std::make_unique<BBMoveNV>(42, "src2", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
-  //  basicBlock1.addInstruction(
-  //      std::make_unique<BBMoveNV>(42, "src3", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
   //  std::vector<MachineInstruction> machineInstructions1;
-  //  translateBasicBlockToMachineCode({"src1",}, {"src1", "src2", "src3"}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  //  translateBasicBlockToMachineCode({}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 5, machineInstructions1);
 
-  BasicBlock basicBlock1;
-  basicBlock1.addInstruction(std::make_unique<BBMoveNN>(42, 37, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNN>(42, 1410, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNN>(1410, 37, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNN>(1920, 1410, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
-  std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({}, {}, std::move(basicBlock1), 1 << 5, machineInstructions1);
-
-
+  //  BasicBlock basicBlock2;
+  //  std::vector<MachineInstruction> machineInstructions2;
+  //  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {}, std::move(basicBlock2),
+  //                                   1 << 5, machineInstructions2);
 
   return 0;
 }

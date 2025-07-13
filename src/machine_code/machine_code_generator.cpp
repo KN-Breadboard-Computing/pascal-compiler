@@ -65,7 +65,7 @@ void MachineCodeGenerator::saveLiveRanges(std::ostream& output) const {
   }
 }
 
-void MachineCodeGenerator::saveMachineCode(std::ostream& output) {
+void MachineCodeGenerator::saveMachineCode(std::ostream& output) const {
   for (const auto& [functionName, instructions] : machineCode_) {
     for (const auto& instruction : instructions) {
       output << instruction.toString() << "\n";
@@ -73,7 +73,8 @@ void MachineCodeGenerator::saveMachineCode(std::ostream& output) {
   }
 }
 
-void MachineCodeGenerator::saveAssembly(std::ostream& output) {
+std::vector<std::string> MachineCodeGenerator::getAssembly() const {
+  std::vector<std::string> assemblyCode;
   for (const auto& [functionName, instructions] : machineCode_) {
     for (const auto& instruction : instructions) {
       if (instruction.getType() == MachineInstruction::Type::LABEL) {
@@ -81,7 +82,25 @@ void MachineCodeGenerator::saveAssembly(std::ostream& output) {
       }
 
       MachineInstruction instructionCopy = instruction;
-      for (const auto& [label, value] : labelValues_[functionName]) {
+      for (const auto& [label, value] : labelValues_.at(functionName)) {
+        const auto addr = MachineCodeGenerator::getBinaryFullAddress(value);
+        instructionCopy.replaceOperand(label, {addr.first, addr.second});
+      }
+      assemblyCode.push_back(instructionCopy.toAssembly());
+    }
+  }
+  return assemblyCode;
+}
+
+void MachineCodeGenerator::saveAssembly(std::ostream& output) const {
+  for (const auto& [functionName, instructions] : machineCode_) {
+    for (const auto& instruction : instructions) {
+      if (instruction.getType() == MachineInstruction::Type::LABEL) {
+        continue;
+      }
+
+      MachineInstruction instructionCopy = instruction;
+      for (const auto& [label, value] : labelValues_.at(functionName)) {
         const auto addr = MachineCodeGenerator::getBinaryFullAddress(value);
         instructionCopy.replaceOperand(label, {addr.first, addr.second});
       }
@@ -90,7 +109,7 @@ void MachineCodeGenerator::saveAssembly(std::ostream& output) {
   }
 }
 
-std::vector<uint8_t> MachineCodeGenerator::getBinaryCode() {
+std::vector<uint8_t> MachineCodeGenerator::getBinaryCode() const {
   std::vector<uint8_t> binaryCode;
   for (const auto& [functionName, instructions] : machineCode_) {
     for (const auto& instruction : instructions) {
@@ -99,7 +118,7 @@ std::vector<uint8_t> MachineCodeGenerator::getBinaryCode() {
       }
 
       MachineInstruction instructionCopy = instruction;
-      for (const auto& [label, value] : labelValues_[functionName]) {
+      for (const auto& [label, value] : labelValues_.at(functionName)) {
         const auto& addr = MachineCodeGenerator::getBinaryFullAddress(value);
         instructionCopy.replaceOperand(label, {addr.first, addr.second});
       }
@@ -117,7 +136,7 @@ std::vector<uint8_t> MachineCodeGenerator::getBinaryCode() {
   return binaryCode;
 }
 
-void MachineCodeGenerator::saveBinary(std::ostream& output) {
+void MachineCodeGenerator::saveBinary(std::ostream& output) const {
   for (const auto& [functionName, instructions] : machineCode_) {
     for (const auto& instruction : instructions) {
       if (instruction.getType() == MachineInstruction::Type::LABEL) {
@@ -125,7 +144,7 @@ void MachineCodeGenerator::saveBinary(std::ostream& output) {
       }
 
       MachineInstruction instructionCopy = instruction;
-      for (const auto& [label, value] : labelValues_[functionName]) {
+      for (const auto& [label, value] : labelValues_.at(functionName)) {
         const auto& addr = MachineCodeGenerator::getBinaryFullAddress(value);
         instructionCopy.replaceOperand(label, {addr.first, addr.second});
       }
@@ -208,6 +227,7 @@ void MachineCodeGenerator::calculateLabelValues(const std::string& name) {
 
 std::vector<MachineInstruction> MachineCodeGenerator::generate(const std::unique_ptr<bblocks::BBInstruction>& instruction) {
   const std::vector<bblocks::BBInstruction::TemplateArgumentType>& templateArguments = instruction->getTemplateTypes();
+
   switch (instruction->getType()) {
     case bblocks::BBInstruction::Type::MOVE: {
       switch (templateArguments[0]) {
@@ -487,7 +507,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMove(const bblocks
     case bblocks::BBInstruction::SourceType::CONSTANT: {
       switch (instruction.getDestinationType()) {
         case bblocks::BBInstruction::DestinationType::REGISTER: {
-          throw std::runtime_error("Register cannot be number type");
+          throw std::invalid_argument("Register cannot be number type");
         }
         case bblocks::BBInstruction::DestinationType::MEMORY: {
           return generateMoveConstMem(static_cast<uint8_t>(src), dest);
@@ -500,7 +520,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMove(const bblocks
     case bblocks::BBInstruction::SourceType::MEMORY: {
       switch (instruction.getDestinationType()) {
         case bblocks::BBInstruction::DestinationType::REGISTER: {
-          throw std::runtime_error("Register cannot be number type");
+          throw std::invalid_argument("Register cannot be number type");
         }
         case bblocks::BBInstruction::DestinationType::MEMORY: {
           return generateMoveMemMem(src, dest);
@@ -510,371 +530,13 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMove(const bblocks
   }
 }
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegReg(int src, int dest) {
-  std::cout << "mov reg reg" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  if (src == 1 && dest == 2) {
-    instructions.emplace_back(MachineInstruction::MOV_B_A);
-  }
-  else if (src == 2 && dest == 1) {
-    instructions.emplace_back(MachineInstruction::MOV_A_B);
-  }
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegMem(int src, uint16_t dest) {
-  std::cout << "mov reg mem" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
-  if (src == 1) {
-    if (destAddress.first.has_value()) {
-      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
-                                std::vector<std::string>{destAddress.second, destAddress.first.value()});
-    }
-    else {
-      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddress.second});
-    }
-  }
-  else if (src == 2) {
-    if (destAddress.first.has_value()) {
-      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_B,
-                                std::vector<std::string>{destAddress.second, destAddress.first.value()});
-    }
-    else {
-      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_B_ZP, std::vector<std::string>{destAddress.second});
-    }
-  }
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegMemImmReg(int src, int immDest) {
-  std::cout << "mov reg mem imm reg" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  if (immDest == 1) {
-    instructions.emplace_back(MachineInstruction::MOV_TL_A);
-  }
-  else if (immDest == 2) {
-    instructions.emplace_back(MachineInstruction::MOV_TL_B);
-  }
-  if (src == 1) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_B_A);
-  }
-  else if (src == 2) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_TL_B);
-  }
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegMemImmMem(int src, uint16_t immDest) {
-  std::cout << "mov reg mem imm mem" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
-  if (destAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{destAddress.second, destAddress.first.value()});
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{destAddress.second});
-  }
-  instructions.emplace_back(MachineInstruction::POP_TL);
-  if (src == 1) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_TL_A);
-  }
-  else if (src == 2) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_TL_B);
-  }
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemReg(uint16_t src, int dest) {
-  std::cout << "mov mem reg" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
-  if (dest == 1) {
-    if (srcAddress.first.has_value()) {
-      instructions.emplace_back(MachineInstruction::MOV_A_ABS,
-                                std::vector<std::string>{srcAddress.second, srcAddress.first.value()});
-    }
-    else {
-      instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
-    }
-  }
-  else if (dest == 2) {
-    if (srcAddress.first.has_value()) {
-      instructions.emplace_back(MachineInstruction::MOV_B_ABS,
-                                std::vector<std::string>{srcAddress.second, srcAddress.first.value()});
-    }
-    else {
-      instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{srcAddress.second});
-    }
-  }
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegReg(int immSrc, int dest) {
-  std::cout << "mov mem imm reg reg" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  if (immSrc == 1) {
-    instructions.emplace_back(MachineInstruction::MOV_TL_AT_A);
-  }
-  else if (immSrc == 2) {
-    instructions.emplace_back(MachineInstruction::MOV_TL_AT_B);
-  }
-  if (dest == 1) {
-    instructions.emplace_back(MachineInstruction::MOV_A_TL);
-  }
-  else if (dest == 2) {
-    instructions.emplace_back(MachineInstruction::MOV_B_TL);
-  }
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemReg(uint16_t immSrc, int dest) {
-  std::cout << "mov mem imm mem reg" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(immSrc);
-  if (srcAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{srcAddress.second, srcAddress.first.value()});
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
-  }
-  instructions.emplace_back(MachineInstruction::POP_TL);
-  if (dest == 1) {
-    instructions.emplace_back(MachineInstruction::MOV_A_AT_TL);
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::MOV_B_AT_TL);
-  }
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemMem(uint16_t src, uint16_t dest) {
-  std::cout << "mov mem mem" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
-  if (srcAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{srcAddress.second, srcAddress.first.value()});
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
-  }
-
-  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
-  if (destAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::POP_MEM,
-                              std::vector<std::string>{destAddress.second, destAddress.first.value()});
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::POP_MEM_ZP, std::vector<std::string>{destAddress.second});
-  }
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegMem(int immSrc, uint16_t dest) {
-  std::cout << "mov mem imm reg mem" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
-  if (immSrc == 1) {
-    instructions.emplace_back(MachineInstruction::MOV_TL_AT_A);
-  }
-  else if (immSrc == 2) {
-    instructions.emplace_back(MachineInstruction::MOV_TL_AT_B);
-  }
-  instructions.emplace_back(MachineInstruction::PUSH_A);
-  instructions.emplace_back(MachineInstruction::MOV_A_TL);
-  if (destAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
-                              std::vector<std::string>{destAddress.second, destAddress.first.value()});
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddress.second});
-  }
-  instructions.emplace_back(MachineInstruction::POP_A);
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemMem(uint16_t immSrc, uint16_t dest) {
-  std::cout << "mov mem imm mem mem" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(immSrc);
-  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
-  instructions.emplace_back(MachineInstruction::PUSH_A);
-  if (srcAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::MOV_A_ABS,
-                              std::vector<std::string>{srcAddress.second, srcAddress.first.value()});
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{srcAddress.second});
-  }
-  instructions.emplace_back(MachineInstruction::MOV_TL_A);
-  instructions.emplace_back(MachineInstruction::MOV_A_AT_TL);
-  if (destAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
-                              std::vector<std::string>{destAddress.second, destAddress.first.value()});
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddress.second});
-  }
-  instructions.emplace_back(MachineInstruction::POP_A);
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemMemImmReg(uint16_t src, int immDest) {
-  std::cout << "mov mem mem imm reg" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
-  if (srcAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{srcAddress.second, srcAddress.first.value()});
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
-  }
-  instructions.emplace_back(MachineInstruction::POP_TL);
-  if (immDest == 1) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_A_TL);
-  }
-  else if (immDest == 2) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_B_TL);
-  }
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemMemImmMem(uint16_t src, uint16_t immDest) {
-  std::cout << "mov mem mem imm mem" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
-  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
-  if (srcAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{srcAddress.second, srcAddress.first.value()});
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
-  }
-  instructions.emplace_back(MachineInstruction::POP_TH);
-  if (destAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{destAddress.second, destAddress.first.value()});
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{destAddress.second});
-  }
-  instructions.emplace_back(MachineInstruction::POP_TL);
-  instructions.emplace_back(MachineInstruction::MOV_AT_TL_TH);
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegMemImmReg(int immSrc, int immDest) {
-  std::cout << "mov mem imm reg mem imm reg" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  if (immSrc == 1) {
-    instructions.emplace_back(MachineInstruction::MOV_TL_AT_A);
-  }
-  else if (immSrc == 2) {
-    instructions.emplace_back(MachineInstruction::MOV_TL_AT_B);
-  }
-  if (immDest == 1) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_A_TL);
-  }
-  else if (immDest == 2) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_B_TL);
-  }
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegMemImmMem(int immSrc, uint16_t immDest) {
-  std::cout << "mov mem imm reg mem imm mem" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
-  if (immSrc == 1) {
-    instructions.emplace_back(MachineInstruction::MOV_TL_AT_A);
-  }
-  else if (immSrc == 2) {
-    instructions.emplace_back(MachineInstruction::MOV_TL_AT_B);
-  }
-  instructions.emplace_back(MachineInstruction::PUSH_A);
-  instructions.emplace_back(MachineInstruction::MOV_A_TL);
-  if (destAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
-                              std::vector<std::string>{destAddress.second, destAddress.first.value()});
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddress.second});
-  }
-  instructions.emplace_back(MachineInstruction::POP_A);
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemMemImmReg(uint16_t immSrc, int immDest) {
-  std::cout << "mov mem imm mem mem imm reg" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(immSrc);
-  if (srcAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{srcAddress.second, srcAddress.first.value()});
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
-  }
-  instructions.emplace_back(MachineInstruction::POP_TL);
-  if (immDest == 1) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_A_TL);
-  }
-  else if (immDest == 2) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_B_TL);
-  }
-
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemMemImmMem(uint16_t immSrc, uint16_t immDest) {
-  std::cout << "mov mem imm mem mem imm mem" << std::endl;
-  std::vector<MachineInstruction> instructions;
-  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(immSrc);
-  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
-  instructions.emplace_back(MachineInstruction::PUSH_A);
-  if (srcAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::MOV_A_ABS,
-                              std::vector<std::string>{srcAddress.second, srcAddress.first.value()});
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{srcAddress.second});
-  }
-  instructions.emplace_back(MachineInstruction::MOV_TL_A);
-  instructions.emplace_back(MachineInstruction::MOV_A_AT_TL);
-  if (destAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
-                              std::vector<std::string>{destAddress.second, destAddress.first.value()});
-  }
-  else {
-    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddress.second});
-  }
-  instructions.emplace_back(MachineInstruction::POP_A);
-
-  return instructions;
-}
-
 std::vector<MachineInstruction> MachineCodeGenerator::generateMoveConstReg(uint8_t src, int dest) {
-  std::cout << "mov const reg" << std::endl;
+#ifdef MC_DEBUG
+  std::cout << "reg := const" << std::endl;
+#endif
+
   std::vector<MachineInstruction> instructions;
+
   if (dest == 1) {
     instructions.emplace_back(MachineInstruction::MOV_A_IMM, std::vector<std::string>{getBinaryUint(src)});
   }
@@ -886,12 +548,16 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveConstReg(uint8
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateMoveConstMem(uint8_t src, uint16_t dest) {
-  std::cout << "mov const mem" << std::endl;
+#ifdef MC_DEBUG
+  std::cout << "[addr] := const" << std::endl;
+#endif
+
   std::vector<MachineInstruction> instructions;
   std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
+
   if (destAddress.first.has_value()) {
     instructions.emplace_back(MachineInstruction::MOV_AT_ABS_IMM,
-                              std::vector<std::string>{destAddress.second, destAddress.first.value(), getBinaryUint(src)});
+                              std::vector<std::string>{destAddress.first.value(), destAddress.second, getBinaryUint(src)});
   }
   else {
     instructions.emplace_back(MachineInstruction::MOV_AT_ABS_IMM_ZP,
@@ -902,8 +568,12 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveConstMem(uint8
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateMoveConstMemImmReg(uint8_t src, int immDest) {
-  std::cout << "mov const mem imm reg" << std::endl;
+#ifdef MC_DEBUG
+  std::cout << "[reg] := const" << std::endl;
+#endif
+
   std::vector<MachineInstruction> instructions;
+
   if (immDest == 1) {
     instructions.emplace_back(MachineInstruction::MOV_AT_A_IMM, std::vector<std::string>{getBinaryUint(src)});
   }
@@ -915,20 +585,519 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveConstMemImmReg
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateMoveConstMemImmMem(uint8_t src, uint16_t immDest) {
-  std::cout << "mov const mem imm mem" << std::endl;
+#ifdef MC_DEBUG
+  std::cout << "[[addr]] := const" << std::endl;
+#endif
+
   std::vector<MachineInstruction> instructions;
   std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
+
   if (destAddress.first.has_value()) {
     instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                              std::vector<std::string>{destAddress.first.value(), destAddress.second});
   }
   else {
     instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{destAddress.second});
   }
+
   instructions.emplace_back(MachineInstruction::POP_TL);
   instructions.emplace_back(MachineInstruction::MOV_AT_TL_IMM, std::vector<std::string>{getBinaryUint(src)});
 
-    return instructions;
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegReg(int src, int dest) {
+#ifdef MC_DEBUG
+  std::cout << "reg := reg" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+
+  if (src == 1 && dest == 2) {
+    instructions.emplace_back(MachineInstruction::MOV_B_A);
+  }
+  else if (src == 2 && dest == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_A_B);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegMem(int src, uint16_t dest) {
+#ifdef MC_DEBUG
+  std::cout << "[addr] := reg" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
+
+  if (src == 1) {
+    if (destAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
+                                std::vector<std::string>{destAddress.first.value(), destAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddress.second});
+    }
+  }
+  else if (src == 2) {
+    if (destAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_B,
+                                std::vector<std::string>{destAddress.first.value(), destAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_B_ZP, std::vector<std::string>{destAddress.second});
+    }
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegMemImmReg(int src, int immDest) {
+#ifdef MC_DEBUG
+  std::cout << "[reg] := reg" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+
+  if (src == 1) {
+    if (immDest == 1) {
+      instructions.emplace_back(MachineInstruction::MOV_TL_A);
+      instructions.emplace_back(MachineInstruction::MOV_AT_TL_A);
+    }
+    else if (immDest == 2) {
+      instructions.emplace_back(MachineInstruction::MOV_AT_B_A);
+    }
+  }
+  else if (src == 2) {
+    if (immDest == 1) {
+      instructions.emplace_back(MachineInstruction::MOV_AT_A_B);
+    }
+    else if (immDest == 2) {
+      instructions.emplace_back(MachineInstruction::MOV_TL_B);
+      instructions.emplace_back(MachineInstruction::MOV_AT_TL_B);
+    }
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegMemImmMem(int src, uint16_t immDest) {
+#ifdef MC_DEBUG
+  std::cout << "[[addr]] := reg" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
+
+  if (destAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS,
+                              std::vector<std::string>{destAddress.first.value(), destAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{destAddress.second});
+  }
+
+  instructions.emplace_back(MachineInstruction::POP_TL);
+
+  if (src == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_TL_A);
+  }
+  else if (src == 2) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_TL_B);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemReg(uint16_t src, int dest) {
+#ifdef MC_DEBUG
+  std::cout << "reg := [addr]" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
+
+  if (dest == 1) {
+    if (srcAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS,
+                                std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
+    }
+  }
+  else if (dest == 2) {
+    if (srcAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS,
+                                std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{srcAddress.second});
+    }
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemMem(uint16_t src, uint16_t dest) {
+#ifdef MC_DEBUG
+  std::cout << "[addr] := [addr]" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
+
+  if (srcAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS,
+                              std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
+  }
+
+  if (destAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::POP_MEM,
+                              std::vector<std::string>{destAddress.first.value(), destAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::POP_MEM_ZP, std::vector<std::string>{destAddress.second});
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemMemImmReg(uint16_t src, int immDest) {
+#ifdef MC_DEBUG
+  std::cout << "[reg] := [addr]" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
+
+  if (srcAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS,
+                              std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
+  }
+
+  instructions.emplace_back(MachineInstruction::POP_TL);
+
+  if (immDest == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_A_TL);
+  }
+  else if (immDest == 2) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_B_TL);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemMemImmMem(uint16_t src, uint16_t immDest) {
+#ifdef MC_DEBUG
+  std::cout << "[[addr]] := [addr]" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
+
+  if (srcAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS,
+                              std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
+  }
+
+  if (destAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS,
+                              std::vector<std::string>{destAddress.first.value(), destAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{destAddress.second});
+  }
+
+  instructions.emplace_back(MachineInstruction::POP_TL);
+  instructions.emplace_back(MachineInstruction::POP_TH);
+  instructions.emplace_back(MachineInstruction::MOV_AT_TL_TH);
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegReg(int immSrc, int dest) {
+#ifdef MC_DEBUG
+  std::cout << "reg := [reg]" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+
+  if (immSrc == 1) {
+    if (dest == 1) {
+      instructions.emplace_back(MachineInstruction::MOV_TL_A);
+      instructions.emplace_back(MachineInstruction::MOV_A_AT_TL);
+    }
+    else if (dest == 2) {
+      instructions.emplace_back(MachineInstruction::MOV_B_AT_A);
+    }
+  }
+  else if (immSrc == 2) {
+    if (dest == 1) {
+      instructions.emplace_back(MachineInstruction::MOV_A_AT_B);
+    }
+    else if (dest == 2) {
+      instructions.emplace_back(MachineInstruction::MOV_TL_B);
+      instructions.emplace_back(MachineInstruction::MOV_B_AT_TL);
+    }
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegMem(int immSrc, uint16_t dest) {
+#ifdef MC_DEBUG
+  std::cout << "[addr] := [reg]" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
+
+  if (immSrc == 1) {
+    instructions.emplace_back(MachineInstruction::PUSH_B);
+    instructions.emplace_back(MachineInstruction::MOV_B_AT_A);
+    if (destAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_B,
+                                std::vector<std::string>{destAddress.first.value(), destAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_B_ZP, std::vector<std::string>{destAddress.second});
+    }
+    instructions.emplace_back(MachineInstruction::POP_B);
+  }
+  else if (immSrc == 2) {
+    instructions.push_back(MachineInstruction::PUSH_A);
+    instructions.emplace_back(MachineInstruction::MOV_A_AT_B);
+    if (destAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
+                                std::vector<std::string>{destAddress.first.value(), destAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddress.second});
+    }
+    instructions.emplace_back(MachineInstruction::POP_A);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegMemImmReg(int immSrc, int immDest) {
+#ifdef MC_DEBUG
+  std::cout << "[reg] := [reg]" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+
+  if (immSrc == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_TL_AT_A);
+  }
+  else if (immSrc == 2) {
+    instructions.emplace_back(MachineInstruction::MOV_TL_AT_B);
+  }
+
+  if (immDest == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_A_TL);
+  }
+  else if (immDest == 2) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_B_TL);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegMemImmMem(int immSrc, uint16_t immDest) {
+#ifdef MC_DEBUG
+  std::cout << "[[addr]] := [reg]" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
+
+  if (immSrc == 1) {
+    instructions.emplace_back(MachineInstruction::PUSH_B);
+
+    if (destAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS,
+                                std::vector<std::string>{destAddress.first.value(), destAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{destAddress.second});
+    }
+
+    instructions.emplace_back(MachineInstruction::MOV_TH_AT_A);
+    instructions.emplace_back(MachineInstruction::MOV_AT_B_TH);
+    instructions.emplace_back(MachineInstruction::POP_B);
+  }
+  else if (immSrc == 2) {
+    instructions.emplace_back(MachineInstruction::PUSH_A);
+
+    if (destAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS,
+                                std::vector<std::string>{destAddress.first.value(), destAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{destAddress.second});
+    }
+
+    instructions.emplace_back(MachineInstruction::MOV_TH_AT_B);
+    instructions.emplace_back(MachineInstruction::MOV_AT_A_TH);
+    instructions.emplace_back(MachineInstruction::POP_A);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemReg(uint16_t immSrc, int dest) {
+#ifdef MC_DEBUG
+  std::cout << "reg := [[addr]]" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(immSrc);
+
+  if (srcAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS,
+                              std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
+  }
+
+  instructions.emplace_back(MachineInstruction::POP_TL);
+
+  if (dest == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_A_AT_TL);
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::MOV_B_AT_TL);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemMem(uint16_t immSrc, uint16_t dest) {
+#ifdef MC_DEBUG
+  std::cout << "[addr] := [[addr]]" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(immSrc);
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
+
+  instructions.emplace_back(MachineInstruction::PUSH_A);
+  if (srcAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{
+                                                                 srcAddress.first.value(),
+                                                                 srcAddress.second,
+                                                             });
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
+  }
+
+  instructions.emplace_back(MachineInstruction::MOV_TL_A);
+  instructions.emplace_back(MachineInstruction::MOV_A_AT_TL);
+
+  if (destAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
+                              std::vector<std::string>{destAddress.first.value(), destAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddress.second});
+  }
+  instructions.emplace_back(MachineInstruction::POP_A);
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemMemImmReg(uint16_t immSrc, int immDest) {
+#ifdef MC_DEBUG
+  std::cout << "[reg] := [[addr]]" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(immSrc);
+
+  if (immDest == 1) {
+    instructions.emplace_back(MachineInstruction::PUSH_B);
+
+    if (srcAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS,
+                                std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{srcAddress.second});
+    }
+
+    instructions.emplace_back(MachineInstruction::MOV_TH_AT_B);
+    instructions.emplace_back(MachineInstruction::MOV_AT_A_TH);
+    instructions.emplace_back(MachineInstruction::POP_B);
+  }
+  else if (immDest == 2) {
+    instructions.emplace_back(MachineInstruction::PUSH_A);
+
+    if (srcAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS,
+                                std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
+    }
+
+    instructions.emplace_back(MachineInstruction::MOV_TH_AT_A);
+    instructions.emplace_back(MachineInstruction::MOV_AT_B_TH);
+    instructions.emplace_back(MachineInstruction::POP_A);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemMemImmMem(uint16_t immSrc, uint16_t immDest) {
+#ifdef MC_DEBUG
+  std::cout << "[[addr]] := [[addr]]" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(immSrc);
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
+
+  instructions.emplace_back(MachineInstruction::PUSH_A);
+  instructions.emplace_back(MachineInstruction::PUSH_B);
+
+  if (srcAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS,
+                              std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
+  }
+
+  if (destAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::MOV_B_ABS,
+                              std::vector<std::string>{destAddress.first.value(), destAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{destAddress.second});
+  }
+
+  instructions.emplace_back(MachineInstruction::MOV_TH_AT_A);
+  instructions.emplace_back(MachineInstruction::MOV_AT_B_TH);
+  instructions.emplace_back(MachineInstruction::POP_B);
+  instructions.emplace_back(MachineInstruction::POP_A);
+
+  return instructions;
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(const bblocks::BBUnaryOperationVV& instruction) {
@@ -965,7 +1134,6 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(con
       break;
     }
   }
-
 }
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(const bblocks::BBUnaryOperationVN& instruction) {
@@ -1184,7 +1352,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegM
       case bblocks::BBUnaryOperationEnum::NEG:
         if (destAddress.first.has_value()) {
           instructions.emplace_back(MachineInstruction::NEG_MEM_A,
-                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
         }
         else {
           instructions.emplace_back(MachineInstruction::NEG_MEM_A, std::vector<std::string>{destAddress.second});
@@ -1193,7 +1361,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegM
       case bblocks::BBUnaryOperationEnum::NOT:
         if (destAddress.first.has_value()) {
           instructions.emplace_back(MachineInstruction::INV_MEM_A,
-                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
         }
         else {
           instructions.emplace_back(MachineInstruction::INV_MEM_A, std::vector<std::string>{destAddress.second});
@@ -1202,7 +1370,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegM
       case bblocks::BBUnaryOperationEnum::INC:
         if (destAddress.first.has_value()) {
           instructions.emplace_back(MachineInstruction::INC_A,
-                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
         }
         else {
           instructions.emplace_back(MachineInstruction::INC_A, std::vector<std::string>{destAddress.second});
@@ -1211,7 +1379,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegM
       case bblocks::BBUnaryOperationEnum::DEC:
         if (destAddress.first.has_value()) {
           instructions.emplace_back(MachineInstruction::DEC_A,
-                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
         }
         else {
           instructions.emplace_back(MachineInstruction::DEC_A, std::vector<std::string>{destAddress.second});
@@ -1220,7 +1388,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegM
       case bblocks::BBUnaryOperationEnum::SHL:
         if (destAddress.first.has_value()) {
           instructions.emplace_back(MachineInstruction::SHL_MEM_A,
-                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
         }
         else {
           instructions.emplace_back(MachineInstruction::SHL_MEM_A, std::vector<std::string>{destAddress.second});
@@ -1229,7 +1397,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegM
       case bblocks::BBUnaryOperationEnum::SHR:
         if (destAddress.first.has_value()) {
           instructions.emplace_back(MachineInstruction::SHR_MEM_A,
-                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
         }
         else {
           instructions.emplace_back(MachineInstruction::SHR_MEM_A, std::vector<std::string>{destAddress.second});
@@ -1238,7 +1406,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegM
       case bblocks::BBUnaryOperationEnum::SAR:
         if (destAddress.first.has_value()) {
           instructions.emplace_back(MachineInstruction::DIV2_MEM_A,
-                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
         }
         else {
           instructions.emplace_back(MachineInstruction::DIV2_MEM_A, std::vector<std::string>{destAddress.second});
@@ -1251,7 +1419,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegM
       case bblocks::BBUnaryOperationEnum::NEG:
         if (destAddress.first.has_value()) {
           instructions.emplace_back(MachineInstruction::NEG_MEM_B,
-                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
         }
         else {
           instructions.emplace_back(MachineInstruction::NEG_MEM_B, std::vector<std::string>{destAddress.second});
@@ -1260,7 +1428,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegM
       case bblocks::BBUnaryOperationEnum::NOT:
         if (destAddress.first.has_value()) {
           instructions.emplace_back(MachineInstruction::INV_MEM_B,
-                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
         }
         else {
           instructions.emplace_back(MachineInstruction::INV_MEM_B, std::vector<std::string>{destAddress.second});
@@ -1269,7 +1437,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegM
       case bblocks::BBUnaryOperationEnum::INC:
         if (destAddress.first.has_value()) {
           instructions.emplace_back(MachineInstruction::INC_B,
-                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
         }
         else {
           instructions.emplace_back(MachineInstruction::INC_B, std::vector<std::string>{destAddress.second});
@@ -1278,7 +1446,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegM
       case bblocks::BBUnaryOperationEnum::DEC:
         if (destAddress.first.has_value()) {
           instructions.emplace_back(MachineInstruction::DEC_B,
-                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
         }
         else {
           instructions.emplace_back(MachineInstruction::DEC_B, std::vector<std::string>{destAddress.second});
@@ -1287,7 +1455,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegM
       case bblocks::BBUnaryOperationEnum::SHL:
         if (destAddress.first.has_value()) {
           instructions.emplace_back(MachineInstruction::SHL_MEM_B,
-                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
         }
         else {
           instructions.emplace_back(MachineInstruction::SHL_MEM_B, std::vector<std::string>{destAddress.second});
@@ -1296,7 +1464,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegM
       case bblocks::BBUnaryOperationEnum::SHR:
         if (destAddress.first.has_value()) {
           instructions.emplace_back(MachineInstruction::SHR_MEM_B,
-                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
         }
         else {
           instructions.emplace_back(MachineInstruction::SHR_MEM_B, std::vector<std::string>{destAddress.second});
@@ -1305,7 +1473,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegM
       case bblocks::BBUnaryOperationEnum::SAR:
         if (destAddress.first.has_value()) {
           instructions.emplace_back(MachineInstruction::DIV2_MEM_B,
-                                    std::vector<std::string>{destAddress.second, destAddress.first.value()});
+                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
         }
         else {
           instructions.emplace_back(MachineInstruction::DIV2_MEM_B, std::vector<std::string>{destAddress.second});

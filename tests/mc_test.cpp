@@ -125,22 +125,22 @@ TEST(instructionToMachineInstructionConversion, movesVV_RegisterToRegister) {
 
   ASSERT_EQ(machineInstructions2.at(0).getType(), MachineInstruction::MOV_AT_ABS_B);
   ASSERT_EQ(machineInstructions2.at(0).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(0).getOperands(), (std::vector<std::string>{"0b00000000", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(0).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000000"}));
 
   ASSERT_EQ(machineInstructions2.at(1).getType(), MachineInstruction::MOV_B_A);
   ASSERT_EQ(machineInstructions2.at(1).getOperands().size(), 0);
 
   ASSERT_EQ(machineInstructions2.at(2).getType(), MachineInstruction::MOV_A_ABS);
   ASSERT_EQ(machineInstructions2.at(2).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(2).getOperands(), (std::vector<std::string>{"0b00000010", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(2).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000010"}));
 
   ASSERT_EQ(machineInstructions2.at(3).getType(), MachineInstruction::PUSH_ABS);
   ASSERT_EQ(machineInstructions2.at(3).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(3).getOperands(), (std::vector<std::string>{"0b00000011", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(3).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000011"}));
 
   ASSERT_EQ(machineInstructions2.at(4).getType(), MachineInstruction::POP_MEM);
   ASSERT_EQ(machineInstructions2.at(4).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(4).getOperands(), (std::vector<std::string>{"0b00000001", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(4).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000001"}));
 }
 
 TEST(instructionToMachineInstructionConversion, movesVV_RegisterToMemory) {
@@ -161,7 +161,7 @@ TEST(instructionToMachineInstructionConversion, movesVV_RegisterToMemory) {
   translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1),
                                    1 << 5, machineInstructions1);
 
-  ASSERT_EQ(machineInstructions1.size(), 13);
+  ASSERT_EQ(machineInstructions1.size(), 12);
 
   ASSERT_EQ(machineInstructions1.at(0).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(0).getOperands().size(), 1);
@@ -173,38 +173,35 @@ TEST(instructionToMachineInstructionConversion, movesVV_RegisterToMemory) {
   ASSERT_EQ(machineInstructions1.at(2).getType(), MachineInstruction::MOV_AT_TL_B);
   ASSERT_EQ(machineInstructions1.at(2).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::MOV_TL_B);
+  ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::MOV_AT_B_A);
   ASSERT_EQ(machineInstructions1.at(3).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::MOV_AT_B_A);
-  ASSERT_EQ(machineInstructions1.at(4).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::PUSH_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(4).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(4).getOperands(), std::vector<std::string>{"0b00100010"});
 
-  ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::PUSH_ABS_ZP);
-  ASSERT_EQ(machineInstructions1.at(5).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(5).getOperands(), std::vector<std::string>{"0b00100010"});
+  ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions1.at(5).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(6).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions1.at(6).getType(), MachineInstruction::MOV_AT_A_TL);
   ASSERT_EQ(machineInstructions1.at(6).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(7).getType(), MachineInstruction::MOV_AT_A_TL);
-  ASSERT_EQ(machineInstructions1.at(7).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(7).getType(), MachineInstruction::PUSH_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(7).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(7).getOperands(), std::vector<std::string>{"0b00100011"});
 
   ASSERT_EQ(machineInstructions1.at(8).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(8).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(8).getOperands(), std::vector<std::string>{"0b00100011"});
+  ASSERT_EQ(machineInstructions1.at(8).getOperands(), std::vector<std::string>{"0b00100001"});
 
-  ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::POP_TH);
+  ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions1.at(9).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(10).getType(), MachineInstruction::PUSH_ABS_ZP);
-  ASSERT_EQ(machineInstructions1.at(10).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(10).getOperands(), std::vector<std::string>{"0b00100001"});
+  ASSERT_EQ(machineInstructions1.at(10).getType(), MachineInstruction::POP_TH);
+  ASSERT_EQ(machineInstructions1.at(10).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(11).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions1.at(11).getType(), MachineInstruction::MOV_AT_TL_TH);
   ASSERT_EQ(machineInstructions1.at(11).getOperands().size(), 0);
-
-  ASSERT_EQ(machineInstructions1.at(12).getType(), MachineInstruction::MOV_AT_TL_TH);
-  ASSERT_EQ(machineInstructions1.at(12).getOperands().size(), 0);
 
   // move register to memory - any register need memory cell (long address)     - case [dst2] := src2
   // move register to memory - first register need memory cell (long address)   - case [dst3] := src3
@@ -223,11 +220,11 @@ TEST(instructionToMachineInstructionConversion, movesVV_RegisterToMemory) {
   translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock2),
                                    1 << 10, machineInstructions2);
 
-  ASSERT_EQ(machineInstructions2.size(), 13);
+  ASSERT_EQ(machineInstructions2.size(), 12);
 
   ASSERT_EQ(machineInstructions2.at(0).getType(), MachineInstruction::PUSH_ABS);
   ASSERT_EQ(machineInstructions2.at(0).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(0).getOperands(), (std::vector<std::string>{"0b00000000", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(0).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000000"}));
 
   ASSERT_EQ(machineInstructions2.at(1).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions2.at(1).getOperands().size(), 0);
@@ -235,38 +232,35 @@ TEST(instructionToMachineInstructionConversion, movesVV_RegisterToMemory) {
   ASSERT_EQ(machineInstructions2.at(2).getType(), MachineInstruction::MOV_AT_TL_B);
   ASSERT_EQ(machineInstructions2.at(2).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(3).getType(), MachineInstruction::MOV_TL_B);
+  ASSERT_EQ(machineInstructions2.at(3).getType(), MachineInstruction::MOV_AT_B_A);
   ASSERT_EQ(machineInstructions2.at(3).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(4).getType(), MachineInstruction::MOV_AT_B_A);
-  ASSERT_EQ(machineInstructions2.at(4).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(4).getType(), MachineInstruction::PUSH_ABS);
+  ASSERT_EQ(machineInstructions2.at(4).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(4).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000010"}));
 
-  ASSERT_EQ(machineInstructions2.at(5).getType(), MachineInstruction::PUSH_ABS);
-  ASSERT_EQ(machineInstructions2.at(5).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(5).getOperands(), (std::vector<std::string>{"0b00000010", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(5).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions2.at(5).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(6).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions2.at(6).getType(), MachineInstruction::MOV_AT_A_TL);
   ASSERT_EQ(machineInstructions2.at(6).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(7).getType(), MachineInstruction::MOV_AT_A_TL);
-  ASSERT_EQ(machineInstructions2.at(7).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(7).getType(), MachineInstruction::PUSH_ABS);
+  ASSERT_EQ(machineInstructions2.at(7).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(7).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000011"}));
 
   ASSERT_EQ(machineInstructions2.at(8).getType(), MachineInstruction::PUSH_ABS);
   ASSERT_EQ(machineInstructions2.at(8).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(8).getOperands(), (std::vector<std::string>{"0b00000011", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(8).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000001"}));
 
-  ASSERT_EQ(machineInstructions2.at(9).getType(), MachineInstruction::POP_TH);
+  ASSERT_EQ(machineInstructions2.at(9).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions2.at(9).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(10).getType(), MachineInstruction::PUSH_ABS);
-  ASSERT_EQ(machineInstructions2.at(10).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(10).getOperands(), (std::vector<std::string>{"0b00000001", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(10).getType(), MachineInstruction::POP_TH);
+  ASSERT_EQ(machineInstructions2.at(10).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(11).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions2.at(11).getType(), MachineInstruction::MOV_AT_TL_TH);
   ASSERT_EQ(machineInstructions2.at(11).getOperands().size(), 0);
-
-  ASSERT_EQ(machineInstructions2.at(12).getType(), MachineInstruction::MOV_AT_TL_TH);
-  ASSERT_EQ(machineInstructions2.at(12).getOperands().size(), 0);
 }
 
 TEST(instructionToMachineInstructionConversion, movesVV_MemoryToRegister) {
@@ -287,39 +281,53 @@ TEST(instructionToMachineInstructionConversion, movesVV_MemoryToRegister) {
   translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1),
                                    1 << 5, machineInstructions1);
 
-  ASSERT_EQ(machineInstructions1.size(), 10);
+  ASSERT_EQ(machineInstructions1.size(), 14);
 
-  ASSERT_EQ(machineInstructions1.at(0).getType(), MachineInstruction::MOV_TL_AT_B);
+  ASSERT_EQ(machineInstructions1.at(0).getType(), MachineInstruction::PUSH_A);
   ASSERT_EQ(machineInstructions1.at(0).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::MOV_A_TL);
+  ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::MOV_A_AT_B);
   ASSERT_EQ(machineInstructions1.at(1).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(2).getType(), MachineInstruction::MOV_TL_AT_A);
-  ASSERT_EQ(machineInstructions1.at(2).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(2).getType(), MachineInstruction::MOV_AT_ABS_A_ZP);
+  ASSERT_EQ(machineInstructions1.at(2).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(2).getOperands(), std::vector<std::string>{"0b00100000"});
 
-  ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::MOV_A_TL);
+  ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::POP_A);
   ASSERT_EQ(machineInstructions1.at(3).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::PUSH_ABS_ZP);
-  ASSERT_EQ(machineInstructions1.at(4).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(4).getOperands(), std::vector<std::string>{"0b00100000"});
+  ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::MOV_B_AT_A);
+  ASSERT_EQ(machineInstructions1.at(4).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::POP_TL);
-  ASSERT_EQ(machineInstructions1.at(5).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::PUSH_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(5).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(5).getOperands(), std::vector<std::string>{"0b00100010"});
 
-  ASSERT_EQ(machineInstructions1.at(6).getType(), MachineInstruction::MOV_AT_TL_A);
+  ASSERT_EQ(machineInstructions1.at(6).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions1.at(6).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(7).getType(), MachineInstruction::PUSH_ABS_ZP);
-  ASSERT_EQ(machineInstructions1.at(7).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(7).getOperands(), std::vector<std::string>{"0b00100001"});
+  ASSERT_EQ(machineInstructions1.at(7).getType(), MachineInstruction::MOV_A_AT_TL);
+  ASSERT_EQ(machineInstructions1.at(7).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(8).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions1.at(8).getType(), MachineInstruction::PUSH_A);
   ASSERT_EQ(machineInstructions1.at(8).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::MOV_AT_TL_A);
-  ASSERT_EQ(machineInstructions1.at(9).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::MOV_A_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(9).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(9).getOperands(), std::vector<std::string>{"0b00100011"});
+
+  ASSERT_EQ(machineInstructions1.at(10).getType(), MachineInstruction::MOV_TL_A);
+  ASSERT_EQ(machineInstructions1.at(10).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions1.at(11).getType(), MachineInstruction::MOV_A_AT_TL);
+  ASSERT_EQ(machineInstructions1.at(11).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions1.at(12).getType(), MachineInstruction::MOV_AT_ABS_A_ZP);
+  ASSERT_EQ(machineInstructions1.at(12).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(12).getOperands(), std::vector<std::string>{"0b00100001"});
+
+  ASSERT_EQ(machineInstructions1.at(13).getType(), MachineInstruction::POP_A);
+  ASSERT_EQ(machineInstructions1.at(13).getOperands().size(), 0);
 
   // move memory to register - any register need memory cell (long address)    - case dst2 := [src2]
   // move memory to register - first register need memory cell (long address)  - case dst3 := [src3]
@@ -338,39 +346,53 @@ TEST(instructionToMachineInstructionConversion, movesVV_MemoryToRegister) {
   translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock2),
                                    1 << 10, machineInstructions2);
 
-  ASSERT_EQ(machineInstructions2.size(), 10);
+  ASSERT_EQ(machineInstructions2.size(), 14);
 
-  ASSERT_EQ(machineInstructions2.at(0).getType(), MachineInstruction::MOV_TL_AT_B);
+  ASSERT_EQ(machineInstructions2.at(0).getType(), MachineInstruction::PUSH_A);
   ASSERT_EQ(machineInstructions2.at(0).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(1).getType(), MachineInstruction::MOV_A_TL);
+  ASSERT_EQ(machineInstructions2.at(1).getType(), MachineInstruction::MOV_A_AT_B);
   ASSERT_EQ(machineInstructions2.at(1).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(2).getType(), MachineInstruction::MOV_TL_AT_A);
-  ASSERT_EQ(machineInstructions2.at(2).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(2).getType(), MachineInstruction::MOV_AT_ABS_A);
+  ASSERT_EQ(machineInstructions2.at(2).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(2).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000000"}));
 
-  ASSERT_EQ(machineInstructions2.at(3).getType(), MachineInstruction::MOV_A_TL);
+  ASSERT_EQ(machineInstructions2.at(3).getType(), MachineInstruction::POP_A);
   ASSERT_EQ(machineInstructions2.at(3).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(4).getType(), MachineInstruction::PUSH_ABS);
-  ASSERT_EQ(machineInstructions2.at(4).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(4).getOperands(), (std::vector<std::string>{"0b00000000", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(4).getType(), MachineInstruction::MOV_B_AT_A);
+  ASSERT_EQ(machineInstructions2.at(4).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(5).getType(), MachineInstruction::POP_TL);
-  ASSERT_EQ(machineInstructions2.at(5).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(5).getType(), MachineInstruction::PUSH_ABS);
+  ASSERT_EQ(machineInstructions2.at(5).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(5).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000010"}));
 
-  ASSERT_EQ(machineInstructions2.at(6).getType(), MachineInstruction::MOV_AT_TL_A);
+  ASSERT_EQ(machineInstructions2.at(6).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions2.at(6).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(7).getType(), MachineInstruction::PUSH_ABS);
-  ASSERT_EQ(machineInstructions2.at(7).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(7).getOperands(), (std::vector<std::string>{"0b00000001", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(7).getType(), MachineInstruction::MOV_A_AT_TL);
+  ASSERT_EQ(machineInstructions2.at(7).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(8).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions2.at(8).getType(), MachineInstruction::PUSH_A);
   ASSERT_EQ(machineInstructions2.at(8).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::MOV_AT_TL_A);
-  ASSERT_EQ(machineInstructions2.at(9).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(9).getType(), MachineInstruction::MOV_A_ABS);
+  ASSERT_EQ(machineInstructions2.at(9).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(9).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000011"}));
+
+  ASSERT_EQ(machineInstructions2.at(10).getType(), MachineInstruction::MOV_TL_A);
+  ASSERT_EQ(machineInstructions2.at(10).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions2.at(11).getType(), MachineInstruction::MOV_A_AT_TL);
+  ASSERT_EQ(machineInstructions2.at(11).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions2.at(12).getType(), MachineInstruction::MOV_AT_ABS_A);
+  ASSERT_EQ(machineInstructions2.at(12).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(12).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000001"}));
+
+  ASSERT_EQ(machineInstructions2.at(13).getType(), MachineInstruction::POP_A);
+  ASSERT_EQ(machineInstructions2.at(13).getOperands().size(), 0);
 }
 
 TEST(instructionToMachineInstructionConversion, movesVV_MemoryToMemory) {
@@ -391,39 +413,71 @@ TEST(instructionToMachineInstructionConversion, movesVV_MemoryToMemory) {
   translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1),
                                    1 << 5, machineInstructions1);
 
-  ASSERT_EQ(machineInstructions1.size(), 10);
+  ASSERT_EQ(machineInstructions1.size(), 20);
 
-  ASSERT_EQ(machineInstructions1.at(0).getType(), MachineInstruction::MOV_TL_AT_B);
+  ASSERT_EQ(machineInstructions1.at(0).getType(), MachineInstruction::PUSH_A);
   ASSERT_EQ(machineInstructions1.at(0).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::MOV_AT_A_TL);
-  ASSERT_EQ(machineInstructions1.at(1).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::MOV_A_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(1).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(1).getOperands(), std::vector<std::string>{"0b00100000"});
 
-  ASSERT_EQ(machineInstructions1.at(2).getType(), MachineInstruction::MOV_TL_AT_A);
+  ASSERT_EQ(machineInstructions1.at(2).getType(), MachineInstruction::MOV_TH_AT_B);
   ASSERT_EQ(machineInstructions1.at(2).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::MOV_AT_A_TL);
+  ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::MOV_AT_A_TH);
   ASSERT_EQ(machineInstructions1.at(3).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::PUSH_ABS_ZP);
-  ASSERT_EQ(machineInstructions1.at(4).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(4).getOperands(), std::vector<std::string>{"0b00100000"});
+  ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::POP_A);
+  ASSERT_EQ(machineInstructions1.at(4).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::MOV_TL_AT_A);
   ASSERT_EQ(machineInstructions1.at(5).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(6).getType(), MachineInstruction::MOV_TL_AT_A);
+  ASSERT_EQ(machineInstructions1.at(6).getType(), MachineInstruction::MOV_AT_B_TL);
   ASSERT_EQ(machineInstructions1.at(6).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(7).getType(), MachineInstruction::PUSH_ABS_ZP);
-  ASSERT_EQ(machineInstructions1.at(7).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(7).getOperands(), std::vector<std::string>{"0b00100001"});
+  ASSERT_EQ(machineInstructions1.at(7).getType(), MachineInstruction::PUSH_B);
+  ASSERT_EQ(machineInstructions1.at(7).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(8).getType(), MachineInstruction::POP_TL);
-  ASSERT_EQ(machineInstructions1.at(8).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(8).getType(), MachineInstruction::MOV_B_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(8).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(8).getOperands(), std::vector<std::string>{"0b00100010"});
 
-  ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::MOV_TL_AT_A);
+  ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::MOV_TH_AT_B);
   ASSERT_EQ(machineInstructions1.at(9).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions1.at(10).getType(), MachineInstruction::MOV_AT_A_TH);
+  ASSERT_EQ(machineInstructions1.at(10).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions1.at(11).getType(), MachineInstruction::POP_B);
+  ASSERT_EQ(machineInstructions1.at(11).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions1.at(12).getType(), MachineInstruction::PUSH_A);
+  ASSERT_EQ(machineInstructions1.at(12).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions1.at(13).getType(), MachineInstruction::PUSH_B);
+  ASSERT_EQ(machineInstructions1.at(13).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions1.at(14).getType(), MachineInstruction::MOV_A_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(14).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(14).getOperands(), std::vector<std::string>{"0b00100011"});
+
+  ASSERT_EQ(machineInstructions1.at(15).getType(), MachineInstruction::MOV_B_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(15).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(15).getOperands(), std::vector<std::string>{"0b00100001"});
+
+  ASSERT_EQ(machineInstructions1.at(16).getType(), MachineInstruction::MOV_TH_AT_A);
+  ASSERT_EQ(machineInstructions1.at(16).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions1.at(17).getType(), MachineInstruction::MOV_AT_B_TH);
+  ASSERT_EQ(machineInstructions1.at(17).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions1.at(18).getType(), MachineInstruction::POP_B);
+  ASSERT_EQ(machineInstructions1.at(18).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions1.at(19).getType(), MachineInstruction::POP_A);
+  ASSERT_EQ(machineInstructions1.at(19).getOperands().size(), 0);
 
   // move memory to memory - any register need memory cell (long address)    - case [dst2] := [src2]
   // move memory to memory - first register need memory cell (long address)  - case [dst3] := [src3]
@@ -442,39 +496,71 @@ TEST(instructionToMachineInstructionConversion, movesVV_MemoryToMemory) {
   translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock2),
                                    1 << 10, machineInstructions2);
 
-  ASSERT_EQ(machineInstructions2.size(), 10);
+  ASSERT_EQ(machineInstructions2.size(), 20);
 
-  ASSERT_EQ(machineInstructions2.at(0).getType(), MachineInstruction::MOV_TL_AT_B);
+  ASSERT_EQ(machineInstructions2.at(0).getType(), MachineInstruction::PUSH_A);
   ASSERT_EQ(machineInstructions2.at(0).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(1).getType(), MachineInstruction::MOV_AT_A_TL);
-  ASSERT_EQ(machineInstructions2.at(1).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(1).getType(), MachineInstruction::MOV_A_ABS);
+  ASSERT_EQ(machineInstructions2.at(1).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(1).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000000"}));
 
-  ASSERT_EQ(machineInstructions2.at(2).getType(), MachineInstruction::MOV_TL_AT_A);
+  ASSERT_EQ(machineInstructions2.at(2).getType(), MachineInstruction::MOV_TH_AT_B);
   ASSERT_EQ(machineInstructions2.at(2).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(3).getType(), MachineInstruction::MOV_AT_A_TL);
+  ASSERT_EQ(machineInstructions2.at(3).getType(), MachineInstruction::MOV_AT_A_TH);
   ASSERT_EQ(machineInstructions2.at(3).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(4).getType(), MachineInstruction::PUSH_ABS);
-  ASSERT_EQ(machineInstructions2.at(4).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(4).getOperands(), (std::vector<std::string>{"0b00000000", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(4).getType(), MachineInstruction::POP_A);
+  ASSERT_EQ(machineInstructions2.at(4).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(5).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions2.at(5).getType(), MachineInstruction::MOV_TL_AT_A);
   ASSERT_EQ(machineInstructions2.at(5).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(6).getType(), MachineInstruction::MOV_TL_AT_A);
+  ASSERT_EQ(machineInstructions2.at(6).getType(), MachineInstruction::MOV_AT_B_TL);
   ASSERT_EQ(machineInstructions2.at(6).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(7).getType(), MachineInstruction::PUSH_ABS_ZP);
-  ASSERT_EQ(machineInstructions2.at(7).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(7).getOperands(), (std::vector<std::string>{"0b00000001", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(7).getType(), MachineInstruction::PUSH_B);
+  ASSERT_EQ(machineInstructions2.at(7).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(8).getType(), MachineInstruction::POP_TL);
-  ASSERT_EQ(machineInstructions1.at(8).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(8).getType(), MachineInstruction::MOV_B_ABS);
+  ASSERT_EQ(machineInstructions2.at(8).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(8).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000010"}));
 
-  ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::MOV_TL_AT_A);
-  ASSERT_EQ(machineInstructions1.at(9).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(9).getType(), MachineInstruction::MOV_TH_AT_B);
+  ASSERT_EQ(machineInstructions2.at(9).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions2.at(10).getType(), MachineInstruction::MOV_AT_A_TH);
+  ASSERT_EQ(machineInstructions2.at(10).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions2.at(11).getType(), MachineInstruction::POP_B);
+  ASSERT_EQ(machineInstructions2.at(11).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions2.at(12).getType(), MachineInstruction::PUSH_A);
+  ASSERT_EQ(machineInstructions2.at(12).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions2.at(13).getType(), MachineInstruction::PUSH_B);
+  ASSERT_EQ(machineInstructions2.at(13).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions2.at(14).getType(), MachineInstruction::MOV_A_ABS);
+  ASSERT_EQ(machineInstructions2.at(14).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(14).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000011"}));
+
+  ASSERT_EQ(machineInstructions2.at(15).getType(), MachineInstruction::MOV_B_ABS);
+  ASSERT_EQ(machineInstructions2.at(15).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(15).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000001"}));
+
+  ASSERT_EQ(machineInstructions2.at(16).getType(), MachineInstruction::MOV_TH_AT_A);
+  ASSERT_EQ(machineInstructions2.at(16).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions2.at(17).getType(), MachineInstruction::MOV_AT_B_TH);
+  ASSERT_EQ(machineInstructions2.at(17).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions2.at(18).getType(), MachineInstruction::POP_B);
+  ASSERT_EQ(machineInstructions2.at(18).getOperands().size(), 0);
+
+  ASSERT_EQ(machineInstructions2.at(19).getType(), MachineInstruction::POP_A);
+  ASSERT_EQ(machineInstructions2.at(19).getOperands().size(), 0);
 }
 
 TEST(instructionToMachineInstructionConversion, movesVN_ConstantToRegister) {
@@ -529,13 +615,13 @@ TEST(instructionToMachineInstructionConversion, movesVN_RegisterToMemory) {
 
   ASSERT_EQ(machineInstructions1.size(), 6);
 
-  ASSERT_EQ(machineInstructions1.at(0).getType(), MachineInstruction::MOV_B_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(0).getType(), MachineInstruction::MOV_AT_ABS_B_ZP);
   ASSERT_EQ(machineInstructions1.at(0).getOperands().size(), 1);
   ASSERT_EQ(machineInstructions1.at(0).getOperands(), std::vector<std::string>{"0b00101010"});
 
-  ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::MOV_A_ABS);
+  ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::MOV_AT_ABS_A);
   ASSERT_EQ(machineInstructions1.at(1).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(1).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
+  ASSERT_EQ(machineInstructions1.at(1).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
   ASSERT_EQ(machineInstructions1.at(2).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(2).getOperands().size(), 1);
@@ -551,7 +637,7 @@ TEST(instructionToMachineInstructionConversion, movesVN_RegisterToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::POP_MEM);
   ASSERT_EQ(machineInstructions1.at(5).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(5).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
+  ASSERT_EQ(machineInstructions1.at(5).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
   // move register to memory - register does not need memory cell (uint8, long address)      - case [42] := src1
   // move register to memory - register does not need memory cell (uint16, long address)     - case [1410] := src2
@@ -571,17 +657,17 @@ TEST(instructionToMachineInstructionConversion, movesVN_RegisterToMemory) {
 
   ASSERT_EQ(machineInstructions2.size(), 6);
 
-  ASSERT_EQ(machineInstructions2.at(0).getType(), MachineInstruction::MOV_B_ABS_ZP);
+  ASSERT_EQ(machineInstructions2.at(0).getType(), MachineInstruction::MOV_AT_ABS_B_ZP);
   ASSERT_EQ(machineInstructions2.at(0).getOperands().size(), 1);
   ASSERT_EQ(machineInstructions2.at(0).getOperands(), std::vector<std::string>{"0b00101010"});
 
-  ASSERT_EQ(machineInstructions2.at(1).getType(), MachineInstruction::MOV_A_ABS);
+  ASSERT_EQ(machineInstructions2.at(1).getType(), MachineInstruction::MOV_AT_ABS_A);
   ASSERT_EQ(machineInstructions2.at(1).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(1).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
+  ASSERT_EQ(machineInstructions2.at(1).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
   ASSERT_EQ(machineInstructions2.at(2).getType(), MachineInstruction::PUSH_ABS);
   ASSERT_EQ(machineInstructions2.at(2).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(2).getOperands(), (std::vector<std::string>{"0b00000000", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(2).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000000"}));
 
   ASSERT_EQ(machineInstructions2.at(3).getType(), MachineInstruction::POP_MEM_ZP);
   ASSERT_EQ(machineInstructions2.at(3).getOperands().size(), 1);
@@ -589,11 +675,11 @@ TEST(instructionToMachineInstructionConversion, movesVN_RegisterToMemory) {
 
   ASSERT_EQ(machineInstructions2.at(4).getType(), MachineInstruction::PUSH_ABS);
   ASSERT_EQ(machineInstructions2.at(4).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(4).getOperands(), (std::vector<std::string>{"0b00000001", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(4).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000001"}));
 
   ASSERT_EQ(machineInstructions2.at(5).getType(), MachineInstruction::POP_MEM);
   ASSERT_EQ(machineInstructions2.at(5).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(5).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
+  ASSERT_EQ(machineInstructions2.at(5).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 }
 
 TEST(instructionToMachineInstructionConversion, movesVN_MemoryToRegister) {
@@ -624,79 +710,73 @@ TEST(instructionToMachineInstructionConversion, movesVN_MemoryToMemory) {
   std::vector<MachineInstruction> machineInstructions1;
   translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {}, std::move(basicBlock1), 1 << 5, machineInstructions1);
 
-  ASSERT_EQ(machineInstructions1.size(), 22);
+  ASSERT_EQ(machineInstructions1.size(), 20);
 
-  ASSERT_EQ(machineInstructions1.at(0).getType(), MachineInstruction::MOV_AT_B_TL);
+  ASSERT_EQ(machineInstructions1.at(0).getType(), MachineInstruction::PUSH_A);
   ASSERT_EQ(machineInstructions1.at(0).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::PUSH_A);
+  ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::MOV_A_AT_B);
   ASSERT_EQ(machineInstructions1.at(1).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(2).getType(), MachineInstruction::MOV_TL_A);
-  ASSERT_EQ(machineInstructions1.at(2).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(2).getType(), MachineInstruction::MOV_AT_ABS_A_ZP);
+  ASSERT_EQ(machineInstructions1.at(2).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(2).getOperands(), std::vector<std::string>{"0b00101010"});
 
-  ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::MOV_A_ABS_ZP);
-  ASSERT_EQ(machineInstructions1.at(3).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(3).getOperands(), std::vector<std::string>{"0b00101010"});
+  ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::POP_A);
+  ASSERT_EQ(machineInstructions1.at(3).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::POP_A);
+  ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::PUSH_B);
   ASSERT_EQ(machineInstructions1.at(4).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::MOV_AT_A_TL);
+  ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::MOV_B_AT_A);
   ASSERT_EQ(machineInstructions1.at(5).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(6).getType(), MachineInstruction::PUSH_A);
-  ASSERT_EQ(machineInstructions1.at(6).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(6).getType(), MachineInstruction::MOV_AT_ABS_B);
+  ASSERT_EQ(machineInstructions1.at(6).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions1.at(6).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
-  ASSERT_EQ(machineInstructions1.at(7).getType(), MachineInstruction::MOV_TL_A);
+  ASSERT_EQ(machineInstructions1.at(7).getType(), MachineInstruction::POP_B);
   ASSERT_EQ(machineInstructions1.at(7).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(8).getType(), MachineInstruction::MOV_A_ABS);
-  ASSERT_EQ(machineInstructions1.at(8).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(8).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
+  ASSERT_EQ(machineInstructions1.at(8).getType(), MachineInstruction::PUSH_A);
+  ASSERT_EQ(machineInstructions1.at(8).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::POP_A);
-  ASSERT_EQ(machineInstructions1.at(9).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::MOV_A_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(9).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(9).getOperands(), (std::vector<std::string>{"0b00100000"}));
 
-  ASSERT_EQ(machineInstructions1.at(10).getType(), MachineInstruction::PUSH_A);
+  ASSERT_EQ(machineInstructions1.at(10).getType(), MachineInstruction::MOV_TL_A);
   ASSERT_EQ(machineInstructions1.at(10).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(11).getType(), MachineInstruction::MOV_A_ABS);
-  ASSERT_EQ(machineInstructions1.at(11).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(11).getOperands(), (std::vector<std::string>{"0b00100000"}));
+  ASSERT_EQ(machineInstructions1.at(11).getType(), MachineInstruction::MOV_A_AT_TL);
+  ASSERT_EQ(machineInstructions1.at(11).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(12).getType(), MachineInstruction::MOV_TL_A);
-  ASSERT_EQ(machineInstructions1.at(12).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(12).getType(), MachineInstruction::MOV_AT_ABS_A_ZP);
+  ASSERT_EQ(machineInstructions1.at(12).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(12).getOperands(), std::vector<std::string>{"0b00101010"});
 
-  ASSERT_EQ(machineInstructions1.at(13).getType(), MachineInstruction::MOV_AT_TL_A);
+  ASSERT_EQ(machineInstructions1.at(13).getType(), MachineInstruction::POP_A);
   ASSERT_EQ(machineInstructions1.at(13).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(14).getType(), MachineInstruction::MOV_AT_ABS_A_ZP);
-  ASSERT_EQ(machineInstructions1.at(14).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(14).getOperands(), std::vector<std::string>{"0b00101010"});
+  ASSERT_EQ(machineInstructions1.at(14).getType(), MachineInstruction::PUSH_A);
+  ASSERT_EQ(machineInstructions1.at(14).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(15).getType(), MachineInstruction::POP_A);
-  ASSERT_EQ(machineInstructions1.at(15).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(15).getType(), MachineInstruction::MOV_A_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(15).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(15).getOperands(), (std::vector<std::string>{"0b00100001"}));
 
-  ASSERT_EQ(machineInstructions1.at(16).getType(), MachineInstruction::PUSH_A);
+  ASSERT_EQ(machineInstructions1.at(16).getType(), MachineInstruction::MOV_TL_A);
   ASSERT_EQ(machineInstructions1.at(16).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(17).getType(), MachineInstruction::MOV_A_ABS);
-  ASSERT_EQ(machineInstructions1.at(17).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(17).getOperands(), (std::vector<std::string>{"0b00100001"}));
+  ASSERT_EQ(machineInstructions1.at(17).getType(), MachineInstruction::MOV_A_AT_TL);
+  ASSERT_EQ(machineInstructions1.at(17).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(18).getType(), MachineInstruction::MOV_TL_A);
-  ASSERT_EQ(machineInstructions1.at(18).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(18).getType(), MachineInstruction::MOV_AT_ABS_A);
+  ASSERT_EQ(machineInstructions1.at(18).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions1.at(18).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
-  ASSERT_EQ(machineInstructions1.at(19).getType(), MachineInstruction::MOV_AT_TL_A);
+  ASSERT_EQ(machineInstructions1.at(19).getType(), MachineInstruction::POP_A);
   ASSERT_EQ(machineInstructions1.at(19).getOperands().size(), 0);
-
-  ASSERT_EQ(machineInstructions1.at(20).getType(), MachineInstruction::MOV_AT_ABS_A);
-  ASSERT_EQ(machineInstructions1.at(20).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(20).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
-
-  ASSERT_EQ(machineInstructions1.at(21).getType(), MachineInstruction::POP_A);
-  ASSERT_EQ(machineInstructions1.at(21).getOperands().size(), 0);
 
   // move memory to memory - register does not need memory cell (uint8, long address)     - case [42] := [src1]
   // move memory to memory - register does not need memory cell (uint16, long address)    - case [1410] := [src2]
@@ -714,79 +794,73 @@ TEST(instructionToMachineInstructionConversion, movesVN_MemoryToMemory) {
   std::vector<MachineInstruction> machineInstructions2;
   translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {}, std::move(basicBlock2), 1 << 10, machineInstructions2);
 
-  ASSERT_EQ(machineInstructions2.size(), 22);
+  ASSERT_EQ(machineInstructions2.size(), 20);
 
-  ASSERT_EQ(machineInstructions2.at(0).getType(), MachineInstruction::MOV_AT_B_TL);
+  ASSERT_EQ(machineInstructions2.at(0).getType(), MachineInstruction::PUSH_A);
   ASSERT_EQ(machineInstructions2.at(0).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(1).getType(), MachineInstruction::PUSH_A);
+  ASSERT_EQ(machineInstructions2.at(1).getType(), MachineInstruction::MOV_A_AT_B);
   ASSERT_EQ(machineInstructions2.at(1).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(2).getType(), MachineInstruction::MOV_TL_A);
-  ASSERT_EQ(machineInstructions2.at(2).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(2).getType(), MachineInstruction::MOV_AT_ABS_A_ZP);
+  ASSERT_EQ(machineInstructions2.at(2).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions2.at(2).getOperands(), std::vector<std::string>{"0b00101010"});
 
-  ASSERT_EQ(machineInstructions2.at(3).getType(), MachineInstruction::MOV_A_ABS_ZP);
-  ASSERT_EQ(machineInstructions2.at(3).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions2.at(3).getOperands(), std::vector<std::string>{"0b00101010"});
+  ASSERT_EQ(machineInstructions2.at(3).getType(), MachineInstruction::POP_A);
+  ASSERT_EQ(machineInstructions2.at(3).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(4).getType(), MachineInstruction::POP_A);
+  ASSERT_EQ(machineInstructions2.at(4).getType(), MachineInstruction::PUSH_B);
   ASSERT_EQ(machineInstructions2.at(4).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(5).getType(), MachineInstruction::MOV_AT_A_TL);
+  ASSERT_EQ(machineInstructions2.at(5).getType(), MachineInstruction::MOV_B_AT_A);
   ASSERT_EQ(machineInstructions2.at(5).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(6).getType(), MachineInstruction::PUSH_A);
-  ASSERT_EQ(machineInstructions2.at(6).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(6).getType(), MachineInstruction::MOV_AT_ABS_B);
+  ASSERT_EQ(machineInstructions2.at(6).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(6).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
-  ASSERT_EQ(machineInstructions2.at(7).getType(), MachineInstruction::MOV_TL_A);
+  ASSERT_EQ(machineInstructions2.at(7).getType(), MachineInstruction::POP_B);
   ASSERT_EQ(machineInstructions2.at(7).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(8).getType(), MachineInstruction::MOV_A_ABS);
-  ASSERT_EQ(machineInstructions2.at(8).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(8).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
+  ASSERT_EQ(machineInstructions2.at(8).getType(), MachineInstruction::PUSH_A);
+  ASSERT_EQ(machineInstructions2.at(8).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(9).getType(), MachineInstruction::POP_A);
-  ASSERT_EQ(machineInstructions2.at(9).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(9).getType(), MachineInstruction::MOV_A_ABS);
+  ASSERT_EQ(machineInstructions2.at(9).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(9).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000000"}));
 
-  ASSERT_EQ(machineInstructions2.at(10).getType(), MachineInstruction::PUSH_A);
+  ASSERT_EQ(machineInstructions2.at(10).getType(), MachineInstruction::MOV_TL_A);
   ASSERT_EQ(machineInstructions2.at(10).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(11).getType(), MachineInstruction::MOV_A_ABS);
-  ASSERT_EQ(machineInstructions2.at(11).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(11).getOperands(), (std::vector<std::string>{"0b00000000 0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(11).getType(), MachineInstruction::MOV_A_AT_TL);
+  ASSERT_EQ(machineInstructions2.at(11).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(12).getType(), MachineInstruction::MOV_TL_A);
-  ASSERT_EQ(machineInstructions2.at(12).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(12).getType(), MachineInstruction::MOV_AT_ABS_A_ZP);
+  ASSERT_EQ(machineInstructions2.at(12).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions2.at(12).getOperands(), std::vector<std::string>{"0b00101010"});
 
-  ASSERT_EQ(machineInstructions2.at(13).getType(), MachineInstruction::MOV_AT_TL_A);
+  ASSERT_EQ(machineInstructions2.at(13).getType(), MachineInstruction::POP_A);
   ASSERT_EQ(machineInstructions2.at(13).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(14).getType(), MachineInstruction::MOV_AT_ABS_A_ZP);
-  ASSERT_EQ(machineInstructions2.at(14).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions2.at(14).getOperands(), std::vector<std::string>{"0b00101010"});
+  ASSERT_EQ(machineInstructions2.at(14).getType(), MachineInstruction::PUSH_A);
+  ASSERT_EQ(machineInstructions2.at(14).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(15).getType(), MachineInstruction::POP_A);
-  ASSERT_EQ(machineInstructions2.at(15).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(15).getType(), MachineInstruction::MOV_A_ABS);
+  ASSERT_EQ(machineInstructions2.at(15).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(15).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000001"}));
 
-  ASSERT_EQ(machineInstructions2.at(16).getType(), MachineInstruction::PUSH_A);
+  ASSERT_EQ(machineInstructions2.at(16).getType(), MachineInstruction::MOV_TL_A);
   ASSERT_EQ(machineInstructions2.at(16).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(17).getType(), MachineInstruction::MOV_A_ABS);
-  ASSERT_EQ(machineInstructions2.at(17).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions2.at(17).getOperands(), (std::vector<std::string>{"0b00000001 0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(17).getType(), MachineInstruction::MOV_A_AT_TL);
+  ASSERT_EQ(machineInstructions2.at(17).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions2.at(18).getType(), MachineInstruction::MOV_TL_A);
-  ASSERT_EQ(machineInstructions2.at(18).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(18).getType(), MachineInstruction::MOV_AT_ABS_A);
+  ASSERT_EQ(machineInstructions2.at(18).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(18).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
-  ASSERT_EQ(machineInstructions2.at(19).getType(), MachineInstruction::MOV_AT_TL_A);
+  ASSERT_EQ(machineInstructions2.at(19).getType(), MachineInstruction::POP_A);
   ASSERT_EQ(machineInstructions2.at(19).getOperands().size(), 0);
-
-  ASSERT_EQ(machineInstructions2.at(20).getType(), MachineInstruction::MOV_AT_ABS_A);
-  ASSERT_EQ(machineInstructions2.at(20).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(20).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
-
-  ASSERT_EQ(machineInstructions2.at(21).getType(), MachineInstruction::POP_A);
-  ASSERT_EQ(machineInstructions2.at(21).getOperands().size(), 0);
 }
 
 TEST(instructionToMachineInstructionConversion, movesNV_ConstantToRegister) {
@@ -798,11 +872,11 @@ TEST(instructionToMachineInstructionConversion, movesNV_ConstantToRegister) {
   basicBlock1.addInstruction(
       std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({"dst"}, {"dst1", "dst2", "dst3"}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  translateBasicBlockToMachineCode({"dst1"}, {"dst1", "dst2", "dst3"}, std::move(basicBlock1), 1 << 5, machineInstructions1);
 
   ASSERT_EQ(machineInstructions1.size(), 2);
 
-  ASSERT_EQ(machineInstructions1.at(0).getType(), MachineInstruction::MOV_A_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(0).getType(), MachineInstruction::MOV_A_IMM);
   ASSERT_EQ(machineInstructions1.at(0).getOperands().size(), 1);
   ASSERT_EQ(machineInstructions1.at(0).getOperands(), std::vector<std::string>{"0b00101010"});
 
@@ -822,13 +896,13 @@ TEST(instructionToMachineInstructionConversion, movesNV_ConstantToRegister) {
 
   ASSERT_EQ(machineInstructions2.size(), 2);
 
-  ASSERT_EQ(machineInstructions2.at(0).getType(), MachineInstruction::MOV_A_ABS_ZP);
+  ASSERT_EQ(machineInstructions2.at(0).getType(), MachineInstruction::MOV_A_IMM);
   ASSERT_EQ(machineInstructions2.at(0).getOperands().size(), 1);
   ASSERT_EQ(machineInstructions2.at(0).getOperands(), std::vector<std::string>{"0b00101010"});
 
   ASSERT_EQ(machineInstructions2.at(1).getType(), MachineInstruction::MOV_AT_ABS_IMM);
   ASSERT_EQ(machineInstructions2.at(1).getOperands().size(), 3);
-  ASSERT_EQ(machineInstructions2.at(1).getOperands(), (std::vector<std::string>{"0b00000000", "0b00000100", "0b00101010"}));
+  ASSERT_EQ(machineInstructions2.at(1).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000000", "0b00101010"}));
 }
 
 TEST(instructionToMachineInstructionConversion, movesNV_ConstantToMemory) {
@@ -840,7 +914,7 @@ TEST(instructionToMachineInstructionConversion, movesNV_ConstantToMemory) {
   basicBlock1.addInstruction(
       std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::MEMORY));
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({"dst"}, {"dst1", "dst2", "dst3"}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  translateBasicBlockToMachineCode({"dst1"}, {"dst1", "dst2", "dst3"}, std::move(basicBlock1), 1 << 5, machineInstructions1);
 
   ASSERT_EQ(machineInstructions1.size(), 4);
 
@@ -877,7 +951,7 @@ TEST(instructionToMachineInstructionConversion, movesNV_ConstantToMemory) {
 
   ASSERT_EQ(machineInstructions2.at(1).getType(), MachineInstruction::PUSH_ABS);
   ASSERT_EQ(machineInstructions2.at(1).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(1).getOperands(), (std::vector<std::string>{"0b00000000", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(1).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000000"}));
 
   ASSERT_EQ(machineInstructions2.at(2).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions2.at(2).getOperands().size(), 0);
@@ -934,19 +1008,19 @@ TEST(instructionToMachineInstructionConversion, movesNV_MemoryToRegister) {
 
   ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::MOV_A_ABS);
   ASSERT_EQ(machineInstructions1.at(1).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(1).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
+  ASSERT_EQ(machineInstructions1.at(1).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
   ASSERT_EQ(machineInstructions1.at(2).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(2).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(2).getOperands(), std::vector<std::string>{"0b00100000"});
+  ASSERT_EQ(machineInstructions1.at(2).getOperands(), std::vector<std::string>{"0b00101010"});
 
   ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::POP_MEM_ZP);
   ASSERT_EQ(machineInstructions1.at(3).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(3).getOperands(), std::vector<std::string>{"0b00101010"});
+  ASSERT_EQ(machineInstructions1.at(3).getOperands(), std::vector<std::string>{"0b00100000"});
 
   ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::PUSH_ABS);
   ASSERT_EQ(machineInstructions1.at(4).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(4).getOperands(), (std::vector<std::string>{"0b00000000", "0b00000100"}));
+  ASSERT_EQ(machineInstructions1.at(4).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
   ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::POP_MEM_ZP);
   ASSERT_EQ(machineInstructions1.at(5).getOperands().size(), 1);
@@ -968,29 +1042,31 @@ TEST(instructionToMachineInstructionConversion, movesNV_MemoryToRegister) {
   std::vector<MachineInstruction> machineInstructions2;
   translateBasicBlockToMachineCode({}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock2), 1 << 10, machineInstructions2);
 
+  ASSERT_EQ(machineInstructions2.size(), 6);
+
   ASSERT_EQ(machineInstructions2.at(0).getType(), MachineInstruction::MOV_B_ABS_ZP);
   ASSERT_EQ(machineInstructions2.at(0).getOperands().size(), 1);
   ASSERT_EQ(machineInstructions2.at(0).getOperands(), std::vector<std::string>{"0b00101010"});
 
   ASSERT_EQ(machineInstructions2.at(1).getType(), MachineInstruction::MOV_A_ABS);
   ASSERT_EQ(machineInstructions2.at(1).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(1).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
+  ASSERT_EQ(machineInstructions2.at(1).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
   ASSERT_EQ(machineInstructions2.at(2).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions2.at(2).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions2.at(2).getOperands(), std::vector<std::string>{"0b00100000"});
+  ASSERT_EQ(machineInstructions2.at(2).getOperands(), std::vector<std::string>{"0b00101010"});
 
   ASSERT_EQ(machineInstructions2.at(3).getType(), MachineInstruction::POP_MEM);
-  ASSERT_EQ(machineInstructions2.at(3).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions2.at(3).getOperands(), (std::vector<std::string>{"0b00000000", "0b00101010"}));
+  ASSERT_EQ(machineInstructions2.at(3).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(3).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000000"}));
 
   ASSERT_EQ(machineInstructions2.at(4).getType(), MachineInstruction::PUSH_ABS);
   ASSERT_EQ(machineInstructions2.at(4).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(4).getOperands(), (std::vector<std::string>{"0b00000000", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(4).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
   ASSERT_EQ(machineInstructions2.at(5).getType(), MachineInstruction::POP_MEM);
-  ASSERT_EQ(machineInstructions2.at(5).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions2.at(5).getOperands(), (std::vector<std::string>{"0b00000001", "0b00100001"}));
+  ASSERT_EQ(machineInstructions2.at(5).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(5).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000001"}));
 }
 
 TEST(instructionToMachineInstructionConversion, movesNV_MemoryToMemory) {
@@ -1024,7 +1100,7 @@ TEST(instructionToMachineInstructionConversion, movesNV_MemoryToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::PUSH_ABS);
   ASSERT_EQ(machineInstructions1.at(3).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(3).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
+  ASSERT_EQ(machineInstructions1.at(3).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
   ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions1.at(4).getOperands().size(), 0);
@@ -1034,16 +1110,16 @@ TEST(instructionToMachineInstructionConversion, movesNV_MemoryToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(6).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(6).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(6).getOperands(), std::vector<std::string>{"0b00100000"});
+  ASSERT_EQ(machineInstructions1.at(6).getOperands(), std::vector<std::string>{"0b00101010"});
 
-  ASSERT_EQ(machineInstructions1.at(7).getType(), MachineInstruction::POP_TH);
-  ASSERT_EQ(machineInstructions1.at(7).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(7).getType(), MachineInstruction::PUSH_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(7).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(7).getOperands(), std::vector<std::string>{"0b00100000"});
 
-  ASSERT_EQ(machineInstructions1.at(8).getType(), MachineInstruction::PUSH_ABS_ZP);
-  ASSERT_EQ(machineInstructions1.at(8).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(8).getOperands(), std::vector<std::string>{"0b00101010"});
+  ASSERT_EQ(machineInstructions1.at(8).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions1.at(8).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::POP_TH);
   ASSERT_EQ(machineInstructions1.at(9).getOperands().size(), 0);
 
   ASSERT_EQ(machineInstructions1.at(10).getType(), MachineInstruction::MOV_AT_TL_TH);
@@ -1051,16 +1127,16 @@ TEST(instructionToMachineInstructionConversion, movesNV_MemoryToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(11).getType(), MachineInstruction::PUSH_ABS);
   ASSERT_EQ(machineInstructions1.at(11).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(11).getOperands(), (std::vector<std::string>{"0b00000000", "0b00000100"}));
+  ASSERT_EQ(machineInstructions1.at(11).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
-  ASSERT_EQ(machineInstructions1.at(12).getType(), MachineInstruction::POP_TH);
-  ASSERT_EQ(machineInstructions1.at(12).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions1.at(12).getType(), MachineInstruction::PUSH_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(12).getOperands().size(), 1);
+  ASSERT_EQ(machineInstructions1.at(12).getOperands(), std::vector<std::string>{"0b00100001"});
 
-  ASSERT_EQ(machineInstructions1.at(13).getType(), MachineInstruction::PUSH_ABS_ZP);
-  ASSERT_EQ(machineInstructions1.at(13).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(13).getOperands(), std::vector<std::string>{"0b00100001"});
+  ASSERT_EQ(machineInstructions1.at(13).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions1.at(13).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(14).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions1.at(14).getType(), MachineInstruction::POP_TH);
   ASSERT_EQ(machineInstructions1.at(14).getOperands().size(), 0);
 
   ASSERT_EQ(machineInstructions1.at(15).getType(), MachineInstruction::MOV_AT_TL_TH);
@@ -1096,7 +1172,7 @@ TEST(instructionToMachineInstructionConversion, movesNV_MemoryToMemory) {
 
   ASSERT_EQ(machineInstructions2.at(3).getType(), MachineInstruction::PUSH_ABS);
   ASSERT_EQ(machineInstructions2.at(3).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions2.at(3).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
+  ASSERT_EQ(machineInstructions2.at(3).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
   ASSERT_EQ(machineInstructions2.at(4).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions2.at(4).getOperands().size(), 0);
@@ -1106,37 +1182,37 @@ TEST(instructionToMachineInstructionConversion, movesNV_MemoryToMemory) {
 
   ASSERT_EQ(machineInstructions2.at(6).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions2.at(6).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions2.at(6).getOperands(), std::vector<std::string>{"0b00100000"});
+  ASSERT_EQ(machineInstructions2.at(6).getOperands(), std::vector<std::string>{"0b00101010"});
 
-  ASSERT_EQ(machineInstructions2.at(7).getType(), MachineInstruction::POP_TH);
-  ASSERT_EQ(machineInstructions2.at(7).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(7).getType(), MachineInstruction::PUSH_ABS);
+  ASSERT_EQ(machineInstructions2.at(7).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(7).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000000"}));
 
-  ASSERT_EQ(machineInstructions1.at(8).getType(), MachineInstruction::PUSH_ABS);
-  ASSERT_EQ(machineInstructions1.at(8).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(8).getOperands(), (std::vector<std::string>{"0b00000000", "0b00101010"}));
+  ASSERT_EQ(machineInstructions2.at(8).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions2.at(8).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::POP_TL);
-  ASSERT_EQ(machineInstructions1.at(9).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(9).getType(), MachineInstruction::POP_TH);
+  ASSERT_EQ(machineInstructions2.at(9).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(10).getType(), MachineInstruction::MOV_AT_TL_TH);
-  ASSERT_EQ(machineInstructions1.at(10).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(10).getType(), MachineInstruction::MOV_AT_TL_TH);
+  ASSERT_EQ(machineInstructions2.at(10).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(11).getType(), MachineInstruction::PUSH_ABS);
-  ASSERT_EQ(machineInstructions1.at(11).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(11).getOperands(), (std::vector<std::string>{"0b00000000", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(11).getType(), MachineInstruction::PUSH_ABS);
+  ASSERT_EQ(machineInstructions2.at(11).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(11).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
-  ASSERT_EQ(machineInstructions1.at(12).getType(), MachineInstruction::POP_TH);
-  ASSERT_EQ(machineInstructions1.at(12).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(12).getType(), MachineInstruction::PUSH_ABS);
+  ASSERT_EQ(machineInstructions2.at(12).getOperands().size(), 2);
+  ASSERT_EQ(machineInstructions2.at(12).getOperands(), (std::vector<std::string>{"0b00000100", "0b00000001"}));
 
-  ASSERT_EQ(machineInstructions1.at(13).getType(), MachineInstruction::PUSH_ABS);
-  ASSERT_EQ(machineInstructions1.at(13).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(13).getOperands(), (std::vector<std::string>{"0b00000001", "0b00000100"}));
+  ASSERT_EQ(machineInstructions2.at(13).getType(), MachineInstruction::POP_TL);
+  ASSERT_EQ(machineInstructions2.at(13).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(14).getType(), MachineInstruction::POP_TL);
-  ASSERT_EQ(machineInstructions1.at(14).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(14).getType(), MachineInstruction::POP_TH);
+  ASSERT_EQ(machineInstructions2.at(14).getOperands().size(), 0);
 
-  ASSERT_EQ(machineInstructions1.at(15).getType(), MachineInstruction::MOV_AT_TL_TH);
-  ASSERT_EQ(machineInstructions1.at(15).getOperands().size(), 0);
+  ASSERT_EQ(machineInstructions2.at(15).getType(), MachineInstruction::MOV_AT_TL_TH);
+  ASSERT_EQ(machineInstructions2.at(15).getOperands().size(), 0);
 }
 
 TEST(instructionToMachineInstructionConversion, movesNN_ConstantToRegister) {
@@ -1168,7 +1244,7 @@ TEST(instructionToMachineInstructionConversion, movesNN_ConstantToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::MOV_AT_ABS_IMM);
   ASSERT_EQ(machineInstructions1.at(1).getOperands().size(), 3);
-  ASSERT_EQ(machineInstructions1.at(1).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101", "0b00100101"}));
+  ASSERT_EQ(machineInstructions1.at(1).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010", "0b00100101"}));
 }
 
 TEST(instructionToMachineInstructionConversion, movesNN_RegisterToRegister) {
@@ -1211,7 +1287,7 @@ TEST(instructionToMachineInstructionConversion, movesNN_MemoryToMemory) {
   basicBlock1.addInstruction(
       std::make_unique<BBMoveNN>(42, 1410, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
   basicBlock1.addInstruction(
-      std::make_unique<BBMoveNN>(1410, 37, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
+      std::make_unique<BBMoveNN>(1920, 37, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
   basicBlock1.addInstruction(
       std::make_unique<BBMoveNN>(1920, 1410, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
   std::vector<MachineInstruction> machineInstructions1;
@@ -1233,11 +1309,11 @@ TEST(instructionToMachineInstructionConversion, movesNN_MemoryToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::POP_MEM);
   ASSERT_EQ(machineInstructions1.at(3).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(3).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
+  ASSERT_EQ(machineInstructions1.at(3).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 
   ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::PUSH_ABS);
   ASSERT_EQ(machineInstructions1.at(4).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(3).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
+  ASSERT_EQ(machineInstructions1.at(4).getOperands(), (std::vector<std::string>{"0b00000111", "0b10000000"}));
 
   ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::POP_MEM_ZP);
   ASSERT_EQ(machineInstructions1.at(5).getOperands().size(), 1);
@@ -1245,11 +1321,11 @@ TEST(instructionToMachineInstructionConversion, movesNN_MemoryToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(6).getType(), MachineInstruction::PUSH_ABS);
   ASSERT_EQ(machineInstructions1.at(6).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(6).getOperands(), (std::vector<std::string>{"0b10000000", "0b00000111"}));
+  ASSERT_EQ(machineInstructions1.at(6).getOperands(), (std::vector<std::string>{"0b00000111", "0b10000000"}));
 
   ASSERT_EQ(machineInstructions1.at(7).getType(), MachineInstruction::POP_MEM);
   ASSERT_EQ(machineInstructions1.at(7).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(7).getOperands(), (std::vector<std::string>{"0b10000010", "0b00000101"}));
+  ASSERT_EQ(machineInstructions1.at(7).getOperands(), (std::vector<std::string>{"0b00000101", "0b10000010"}));
 }
 
 //TEST(instructionToMachineInstructionConversion, unaryOperations) {

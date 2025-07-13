@@ -15,9 +15,9 @@ COMPILATION_EXAMPLE_DIR = compilation-process
 
 all: lexer parser core compiler format
 
-test: clean-ast-test clean-bb-test clean-ssa-test clean-mc-test core test-ast test-bb test-ssa test-mc run-ast-test run-bb-test run-ssa-test run-mc-test
+test: clean-ast-test clean-bb-test clean-ssa-test clean-mc-test clean-ssa-end-to-end-test clean-program-end-to-end-test core test-ast test-bb test-ssa test-mc test-ssa-end-to-end test-program-end-to-end run-ast-test run-bb-test run-ssa-test run-mc-test run-ssa-end-to-end-test run-program-end-to-end-test
 
-clean: clean-compiler clean-ast-test clean-bb-test clean-ssa-test clean-mc-test
+clean: clean-compiler clean-ast-test clean-bb-test clean-ssa-test clean-mc-test clean-ssa-end-to-end-test clean-program-end-to-end-test clean-playground
 
 lexer:
 	$(FF) $(FFLAGS) -o src/out/lexer.cpp --header-file=src/out/lexer.hpp src/lex.l

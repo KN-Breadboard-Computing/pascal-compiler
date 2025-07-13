@@ -31,6 +31,8 @@
 #include "register_allocation/linear_scan_reg_alloc.hpp"
 #include "register_allocation/reg_alloc.hpp"
 
+#define MC_DEBUG
+
 namespace machine_code {
 class MachineCodeGenerator {
  public:
@@ -55,12 +57,13 @@ class MachineCodeGenerator {
   void saveLiveRanges(std::ostream& output) const;
 
   const std::map<std::string, std::vector<MachineInstruction>>& getMachineCode() const { return machineCode_; }
-  void saveMachineCode(std::ostream& output);
+  void saveMachineCode(std::ostream& output) const;
 
-  void saveAssembly(std::ostream& output);
+  std::vector<std::string> getAssembly() const;
+  void saveAssembly(std::ostream& output) const;
 
-  std::vector<uint8_t> getBinaryCode();
-  void saveBinary(std::ostream& output);
+  std::vector<uint8_t> getBinaryCode() const;
+  void saveBinary(std::ostream& output) const;
 
  private:
   static int registersNumber_;
@@ -75,26 +78,27 @@ class MachineCodeGenerator {
   std::vector<MachineInstruction> generateMove(const bblocks::BBMoveVN& instruction);
   std::vector<MachineInstruction> generateMove(const bblocks::BBMoveNV& instruction);
   std::vector<MachineInstruction> generateMove(const bblocks::BBMoveNN& instruction);
-  std::vector<MachineInstruction> generateMoveRegReg(int src, int dest);
-  std::vector<MachineInstruction> generateMoveRegMem(int src, uint16_t dest);
-  std::vector<MachineInstruction> generateMoveRegMemImmReg(int src, int immDest);
-  std::vector<MachineInstruction> generateMoveRegMemImmMem(int src, uint16_t immDest);
-  std::vector<MachineInstruction> generateMoveMemReg(uint16_t src, int dest);
-  std::vector<MachineInstruction> generateMoveMemImmRegReg(int immSrc, int dest);
-  std::vector<MachineInstruction> generateMoveMemImmMemReg(uint16_t immSrc, int dest);
-  std::vector<MachineInstruction> generateMoveMemMem(uint16_t src, uint16_t dest);
-  std::vector<MachineInstruction> generateMoveMemImmRegMem(int immSrc, uint16_t dest);
-  std::vector<MachineInstruction> generateMoveMemImmMemMem(uint16_t immSrc, uint16_t dest);
-  std::vector<MachineInstruction> generateMoveMemMemImmReg(uint16_t src, int immDest);
-  std::vector<MachineInstruction> generateMoveMemMemImmMem(uint16_t src, uint16_t immDest);
-  std::vector<MachineInstruction> generateMoveMemImmRegMemImmReg(int immSrc, int immDest);
-  std::vector<MachineInstruction> generateMoveMemImmRegMemImmMem(int immSrc, uint16_t immDest);
-  std::vector<MachineInstruction> generateMoveMemImmMemMemImmReg(uint16_t immSrc, int immDest);
-  std::vector<MachineInstruction> generateMoveMemImmMemMemImmMem(uint16_t immSrc, uint16_t immDest);
-  std::vector<MachineInstruction> generateMoveConstReg(uint8_t src, int dest);
-  std::vector<MachineInstruction> generateMoveConstMem(uint8_t src, uint16_t dest);
-  std::vector<MachineInstruction> generateMoveConstMemImmReg(uint8_t src, int immDest);
-  std::vector<MachineInstruction> generateMoveConstMemImmMem(uint8_t src, uint16_t immDest);
+
+  std::vector<MachineInstruction> generateMoveConstReg(uint8_t src, int dest);                        // reg := const
+  std::vector<MachineInstruction> generateMoveConstMem(uint8_t src, uint16_t dest);                   // [addr] := const
+  std::vector<MachineInstruction> generateMoveConstMemImmReg(uint8_t src, int immDest);               // [reg] := const
+  std::vector<MachineInstruction> generateMoveConstMemImmMem(uint8_t src, uint16_t immDest);          // [[addr]] := const
+  std::vector<MachineInstruction> generateMoveRegReg(int src, int dest);                              // reg := reg
+  std::vector<MachineInstruction> generateMoveRegMem(int src, uint16_t dest);                         // [addr] := reg
+  std::vector<MachineInstruction> generateMoveRegMemImmReg(int src, int immDest);                     // [reg] := reg
+  std::vector<MachineInstruction> generateMoveRegMemImmMem(int src, uint16_t immDest);                // [[addr]] := reg
+  std::vector<MachineInstruction> generateMoveMemReg(uint16_t src, int dest);                         // reg := [addr]
+  std::vector<MachineInstruction> generateMoveMemMem(uint16_t src, uint16_t dest);                    // [addr] := [addr]
+  std::vector<MachineInstruction> generateMoveMemMemImmReg(uint16_t src, int immDest);                // [reg] := [addr]
+  std::vector<MachineInstruction> generateMoveMemMemImmMem(uint16_t src, uint16_t immDest);           // [[addr]] := [addr]
+  std::vector<MachineInstruction> generateMoveMemImmRegReg(int immSrc, int dest);                     // reg := [reg]
+  std::vector<MachineInstruction> generateMoveMemImmRegMem(int immSrc, uint16_t dest);                // [addr] := [reg]
+  std::vector<MachineInstruction> generateMoveMemImmRegMemImmReg(int immSrc, int immDest);            // [reg] := [reg]
+  std::vector<MachineInstruction> generateMoveMemImmRegMemImmMem(int immSrc, uint16_t immDest);       // [[addr]] := [reg]
+  std::vector<MachineInstruction> generateMoveMemImmMemReg(uint16_t immSrc, int dest);                // reg := [[addr]]
+  std::vector<MachineInstruction> generateMoveMemImmMemMem(uint16_t immSrc, uint16_t dest);           // [addr] := [[addr]]
+  std::vector<MachineInstruction> generateMoveMemImmMemMemImmReg(uint16_t immSrc, int immDest);       // [reg] := [[addr]]
+  std::vector<MachineInstruction> generateMoveMemImmMemMemImmMem(uint16_t immSrc, uint16_t immDest);  // [[addr]] := [[addr]]
 
   std::vector<MachineInstruction> generateUnaryOperation(const bblocks::BBUnaryOperationVV& instruction);
   std::vector<MachineInstruction> generateUnaryOperation(const bblocks::BBUnaryOperationVN& instruction);

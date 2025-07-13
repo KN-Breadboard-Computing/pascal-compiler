@@ -27,6 +27,7 @@ class EmulatorConnector {
 
   void setRegA(uint8_t value) { emulator_->a_register = value; }
   void setRegB(uint8_t value) { emulator_->b_register = value; }
+  void clearMemory() { std::fill(std::begin(emulator_->memory), std::end(emulator_->memory), 0); }
   void setMemory(uint16_t address, uint8_t value) { emulator_->memory[address] = value; }
   void setTmp(uint16_t value) { emulator_->tmp_register_16 = value; }
   void setTmpHigh(uint8_t value) { emulator_->tmp_register_8[1] = value; }
@@ -40,11 +41,29 @@ class EmulatorConnector {
   void setClockCyclesCounter(uint32_t value) { emulator_->clock_cycles_counter = value; }
   void setInstructionCounter(uint32_t value) { emulator_->instruction_counter = value; }
 
-  void loadRom(const std::vector<uint8_t>& rom) {
-    if (rom.size() > emulator_->memory.size()) {
-      throw std::runtime_error("ROM size exceeds memory size");
-    }
+  uint8_t getRegA() const { return emulator_->a_register; }
+  uint8_t getRegB() const { return emulator_->b_register; }
+  uint8_t getMemory(uint16_t address) const { return emulator_->memory[address]; }
+  std::vector<uint8_t> getMemorySnapshot() const {
+    return std::vector<uint8_t>(std::begin(emulator_->memory), std::end(emulator_->memory));
+  }
+  uint8_t getStack(uint16_t address) const { return emulator_->stack[address]; }
+  std::vector<uint8_t> getStackSnapshot() const {
+    return std::vector<uint8_t>(std::begin(emulator_->stack), std::end(emulator_->stack));
+  }
+  uint16_t getTmp() const { return emulator_->tmp_register_16; }
+  uint8_t getTmpHigh() const { return emulator_->tmp_register_8[1]; }
+  uint8_t getTmpLow() const { return emulator_->tmp_register_8[0]; }
+  uint16_t getPc() const { return emulator_->program_counter; }
+  uint16_t getStc() const { return emulator_->stack_pointer; }
+  uint8_t getFlags() const { return emulator_->flag_register; }
+  uint8_t getIntData() const { return emulator_->interrupt_data; }
+  uint8_t getIntSignals() const { return emulator_->interrupt_signals; }
+  bool isHalted() const { return emulator_->is_halted; }
+  uint32_t getClockCyclesCounter() const { return emulator_->clock_cycles_counter; }
+  uint32_t getInstructionCounter() const { return emulator_->instruction_counter; }
 
+  void loadRom(const std::vector<uint8_t>& rom) {
     for (std::size_t i = 0; i < rom.size(); ++i) {
       emulator_->memory[i] = rom[i];
     }
@@ -56,6 +75,12 @@ class EmulatorConnector {
     }
   }
 
+  void runInstructions(uint16_t count) {
+    for (uint16_t i = 0; i < count; ++i) {
+      runSingleInstruction();
+    }
+  }
+
   void run(const std::vector<uint8_t>& rom) {
     for (std::size_t i = 0; i < rom.size(); ++i) {
       emulator_->memory[i] = rom[i];
@@ -63,25 +88,10 @@ class EmulatorConnector {
 
     while (emulator_->is_halted == 0 && emulator_->program_counter < rom.size()) {
       if (run_next_emulator_instruction(emulator_.get(), config_.get()) != 0) {
-        break;
+        throw std::runtime_error("Error executing instruction");
       }
     }
   }
-
-  bool assertRegA(uint8_t expected) { return emulator_->a_register == expected; }
-  bool assertRegB(uint8_t expected) { return emulator_->b_register == expected; }
-  bool assertMemory(uint16_t address, uint8_t expected) { return emulator_->memory[address] == expected; }
-  bool assertTmp(uint16_t expected) { return emulator_->tmp_register_16 == expected; }
-  bool assertTmpHigh(uint8_t expected) { return emulator_->tmp_register_8[1] == expected; }
-  bool assertTmpLow(uint8_t expected) { return emulator_->tmp_register_8[0] == expected; }
-  bool assertPc(uint16_t expected) { return emulator_->program_counter == expected; }
-  bool assertStc(uint16_t expected) { return emulator_->stack_pointer == expected; }
-  bool assertFlags(uint8_t expected) { return emulator_->flag_register == expected; }
-  bool assertIntData(uint8_t expected) { return emulator_->interrupt_data == expected; }
-  bool assertIntSignals(uint8_t expected) { return emulator_->interrupt_signals == expected; }
-  bool assertHalted(bool expected) { return emulator_->is_halted == expected; }
-  bool assertClockCyclesCounter(uint32_t expected) { return emulator_->clock_cycles_counter == expected; }
-  bool assertInstructionCounter(uint32_t expected) { return emulator_->instruction_counter == expected; }
 
   ~EmulatorConnector() = default;
 
