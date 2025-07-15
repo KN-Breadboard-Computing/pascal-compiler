@@ -3,8 +3,7 @@
 namespace machine_code {
 int MachineCodeGenerator::registersNumber_{2};
 
-void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg, RegisterAllocator allocator,
-                                    uint16_t variablesOffset) {
+void MachineCodeGenerator::generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg, RegisterAllocator allocator, uint16_t variablesOffset) {
   for (const auto& [functionName, controlFlowGraph] : cfg) {
     currentScope = functionName;
     enumerateBlockLabels(functionName, controlFlowGraph);
@@ -184,9 +183,7 @@ void MachineCodeGenerator::enumerateBlockLabels(const std::string& name, const b
     }
 
     std::vector<std::string> outLinks = cfg.getOutLinks(blockLabel);
-    std::sort(outLinks.begin(), outLinks.end(), [](const std::string& a, const std::string& b) {
-      return std::atoi(a.substr(2, a.size() - 2).c_str()) > std::atoi(b.substr(2, b.size() - 2).c_str());
-    });
+    std::sort(outLinks.begin(), outLinks.end(), [](const std::string& a, const std::string& b) { return std::atoi(a.substr(2, a.size() - 2).c_str()) > std::atoi(b.substr(2, b.size() - 2).c_str()); });
 
     for (const auto& outLink : outLinks) {
       if (visitedBlocks.find(outLink) == visitedBlocks.end()) {
@@ -396,8 +393,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMove(const bblocks
             return generateMoveMemImmMemMemImmReg(variableAddresses_[currentScope].at(src), destReg);
           }
           else {
-            return generateMoveMemImmMemMemImmMem(variableAddresses_[currentScope].at(src),
-                                                  variableAddresses_[currentScope].at(dest));
+            return generateMoveMemImmMemMemImmMem(variableAddresses_[currentScope].at(src), variableAddresses_[currentScope].at(dest));
           }
         }
       }
@@ -556,12 +552,10 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveConstMem(uint8
   std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
 
   if (destAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_IMM,
-                              std::vector<std::string>{destAddress.first.value(), destAddress.second, getBinaryUint(src)});
+    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_IMM, std::vector<std::string>{destAddress.first.value(), destAddress.second, getBinaryUint(src)});
   }
   else {
-    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_IMM_ZP,
-                              std::vector<std::string>{destAddress.second, getBinaryUint(src)});
+    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_IMM_ZP, std::vector<std::string>{destAddress.second, getBinaryUint(src)});
   }
 
   return instructions;
@@ -593,8 +587,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveConstMemImmMem
   std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
 
   if (destAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{destAddress.first.value(), destAddress.second});
+    instructions.emplace_back(MachineInstruction::PUSH_ABS, std::vector<std::string>{destAddress.first.value(), destAddress.second});
   }
   else {
     instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{destAddress.second});
@@ -633,8 +626,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegMem(int src
 
   if (src == 1) {
     if (destAddress.first.has_value()) {
-      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
-                                std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A, std::vector<std::string>{destAddress.first.value(), destAddress.second});
     }
     else {
       instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddress.second});
@@ -642,8 +634,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegMem(int src
   }
   else if (src == 2) {
     if (destAddress.first.has_value()) {
-      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_B,
-                                std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_B, std::vector<std::string>{destAddress.first.value(), destAddress.second});
     }
     else {
       instructions.emplace_back(MachineInstruction::MOV_AT_ABS_B_ZP, std::vector<std::string>{destAddress.second});
@@ -691,8 +682,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveRegMemImmMem(i
   std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
 
   if (destAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{destAddress.first.value(), destAddress.second});
+    instructions.emplace_back(MachineInstruction::PUSH_ABS, std::vector<std::string>{destAddress.first.value(), destAddress.second});
   }
   else {
     instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{destAddress.second});
@@ -720,8 +710,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemReg(uint16_
 
   if (dest == 1) {
     if (srcAddress.first.has_value()) {
-      instructions.emplace_back(MachineInstruction::MOV_A_ABS,
-                                std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
     }
     else {
       instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
@@ -729,8 +718,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemReg(uint16_
   }
   else if (dest == 2) {
     if (srcAddress.first.has_value()) {
-      instructions.emplace_back(MachineInstruction::MOV_B_ABS,
-                                std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
     }
     else {
       instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{srcAddress.second});
@@ -750,16 +738,14 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemMem(uint16_
   std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
 
   if (srcAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    instructions.emplace_back(MachineInstruction::PUSH_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
   }
   else {
     instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
   }
 
   if (destAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::POP_MEM,
-                              std::vector<std::string>{destAddress.first.value(), destAddress.second});
+    instructions.emplace_back(MachineInstruction::POP_MEM, std::vector<std::string>{destAddress.first.value(), destAddress.second});
   }
   else {
     instructions.emplace_back(MachineInstruction::POP_MEM_ZP, std::vector<std::string>{destAddress.second});
@@ -777,8 +763,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemMemImmReg(u
   std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
 
   if (srcAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    instructions.emplace_back(MachineInstruction::PUSH_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
   }
   else {
     instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
@@ -806,16 +791,14 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemMemImmMem(u
   std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
 
   if (srcAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    instructions.emplace_back(MachineInstruction::PUSH_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
   }
   else {
     instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
   }
 
   if (destAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{destAddress.first.value(), destAddress.second});
+    instructions.emplace_back(MachineInstruction::PUSH_ABS, std::vector<std::string>{destAddress.first.value(), destAddress.second});
   }
   else {
     instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{destAddress.second});
@@ -869,8 +852,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegMem(i
     instructions.emplace_back(MachineInstruction::PUSH_B);
     instructions.emplace_back(MachineInstruction::MOV_B_AT_A);
     if (destAddress.first.has_value()) {
-      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_B,
-                                std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_B, std::vector<std::string>{destAddress.first.value(), destAddress.second});
     }
     else {
       instructions.emplace_back(MachineInstruction::MOV_AT_ABS_B_ZP, std::vector<std::string>{destAddress.second});
@@ -881,8 +863,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegMem(i
     instructions.push_back(MachineInstruction::PUSH_A);
     instructions.emplace_back(MachineInstruction::MOV_A_AT_B);
     if (destAddress.first.has_value()) {
-      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
-                                std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A, std::vector<std::string>{destAddress.first.value(), destAddress.second});
     }
     else {
       instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddress.second});
@@ -929,8 +910,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegMemIm
     instructions.emplace_back(MachineInstruction::PUSH_B);
 
     if (destAddress.first.has_value()) {
-      instructions.emplace_back(MachineInstruction::MOV_B_ABS,
-                                std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS, std::vector<std::string>{destAddress.first.value(), destAddress.second});
     }
     else {
       instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{destAddress.second});
@@ -944,8 +924,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmRegMemIm
     instructions.emplace_back(MachineInstruction::PUSH_A);
 
     if (destAddress.first.has_value()) {
-      instructions.emplace_back(MachineInstruction::MOV_A_ABS,
-                                std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{destAddress.first.value(), destAddress.second});
     }
     else {
       instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{destAddress.second});
@@ -968,8 +947,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemReg(u
   std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(immSrc);
 
   if (srcAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::PUSH_ABS,
-                              std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    instructions.emplace_back(MachineInstruction::PUSH_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
   }
   else {
     instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{srcAddress.second});
@@ -1011,8 +989,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemMem(u
   instructions.emplace_back(MachineInstruction::MOV_A_AT_TL);
 
   if (destAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
-                              std::vector<std::string>{destAddress.first.value(), destAddress.second});
+    instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A, std::vector<std::string>{destAddress.first.value(), destAddress.second});
   }
   else {
     instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddress.second});
@@ -1034,8 +1011,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemMemIm
     instructions.emplace_back(MachineInstruction::PUSH_B);
 
     if (srcAddress.first.has_value()) {
-      instructions.emplace_back(MachineInstruction::MOV_B_ABS,
-                                std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
     }
     else {
       instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{srcAddress.second});
@@ -1049,8 +1025,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemMemIm
     instructions.emplace_back(MachineInstruction::PUSH_A);
 
     if (srcAddress.first.has_value()) {
-      instructions.emplace_back(MachineInstruction::MOV_A_ABS,
-                                std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
     }
     else {
       instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
@@ -1077,16 +1052,14 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateMoveMemImmMemMemIm
   instructions.emplace_back(MachineInstruction::PUSH_B);
 
   if (srcAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::MOV_A_ABS,
-                              std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
   }
   else {
     instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
   }
 
   if (destAddress.first.has_value()) {
-    instructions.emplace_back(MachineInstruction::MOV_B_ABS,
-                              std::vector<std::string>{destAddress.first.value(), destAddress.second});
+    instructions.emplace_back(MachineInstruction::MOV_B_ABS, std::vector<std::string>{destAddress.first.value(), destAddress.second});
   }
   else {
     instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{destAddress.second});
@@ -1114,24 +1087,66 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(con
     case bblocks::BBInstruction::SourceType::REGISTER: {
       switch (instruction.getDestinationType()) {
         case bblocks::BBInstruction::DestinationType::REGISTER: {
-          return generateUnaryOperationRegReg(srcReg, destReg, operation);
+          if (srcReg != -1 && destReg != -1) {
+            return generateUnOpRegReg(srcReg, destReg, operation);
+          }
+          else if (srcReg != -1) {
+            return generateUnOpRegMem(srcReg, variableAddresses_[currentScope].at(dest), operation);
+          }
+          else if (destReg != -1) {
+            return generateUnOpMemReg(variableAddresses_[currentScope].at(src), destReg, operation);
+          }
+          else {
+            return generateUnOpMemMem(variableAddresses_[currentScope].at(src), variableAddresses_[currentScope].at(dest), operation);
+          }
         }
         case bblocks::BBInstruction::DestinationType::MEMORY: {
-          break;
+          if (srcReg != -1 && destReg != -1) {
+            return generateUnOpRegMemImmReg(srcReg, destReg, operation);
+          }
+          else if (srcReg != -1) {
+            return generateUnOpRegMemImmMem(srcReg, variableAddresses_[currentScope].at(dest), operation);
+          }
+          else if (destReg != -1) {
+            return generateUnOpMemMemImmReg(variableAddresses_[currentScope].at(src), destReg, operation);
+          }
+          else {
+            return generateUnOpMemMemImmMem(variableAddresses_[currentScope].at(src), variableAddresses_[currentScope].at(dest), operation);
+          }
         }
       }
-      break;
-    }
-    case bblocks::BBInstruction::SourceType::MEMORY: {
-      switch (instruction.getDestinationType()) {
-        case bblocks::BBInstruction::DestinationType::REGISTER: {
-          break;
-        }
-        case bblocks::BBInstruction::DestinationType::MEMORY: {
-          break;
+      case bblocks::BBInstruction::SourceType::MEMORY: {
+        switch (instruction.getDestinationType()) {
+          case bblocks::BBInstruction::DestinationType::REGISTER: {
+            if (srcReg != -1 && destReg != -1) {
+              return generateUnOpMemImmRegReg(srcReg, destReg, operation);
+            }
+            else if (srcReg != -1) {
+              return generateUnOpMemImmRegMem(srcReg, variableAddresses_[currentScope].at(dest), operation);
+            }
+            else if (destReg != -1) {
+              return generateUnOpMemImmMemReg(variableAddresses_[currentScope].at(src), destReg, operation);
+            }
+            else {
+              return generateUnOpMemImmMemMem(variableAddresses_[currentScope].at(src), variableAddresses_[currentScope].at(dest), operation);
+            }
+          }
+          case bblocks::BBInstruction::DestinationType::MEMORY: {
+            if (srcReg != -1 && destReg != -1) {
+              return generateUnOpMemImmRegMemImmReg(srcReg, destReg, operation);
+            }
+            else if (srcReg != -1) {
+              return generateUnOpMemImmRegMemImmMem(srcReg, variableAddresses_[currentScope].at(dest), operation);
+            }
+            else if (destReg != -1) {
+              return generateUnOpMemImmMemMemImmReg(variableAddresses_[currentScope].at(src), destReg, operation);
+            }
+            else {
+              return generateUnOpMemImmMemMemImmMem(variableAddresses_[currentScope].at(src), variableAddresses_[currentScope].at(dest), operation);
+            }
+          }
         }
       }
-      break;
     }
   }
 }
@@ -1152,10 +1167,14 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(con
           throw std::invalid_argument("Register cannot be number type");
         }
         case bblocks::BBInstruction::DestinationType::MEMORY: {
-          return generateUnaryOperationRegMem(srcReg, dest, operation);
+          if (srcReg != -1) {
+            return generateUnOpRegMem(srcReg, dest, operation);
+          }
+          else {
+            return generateUnOpMemMem(variableAddresses_[currentScope].at(src), dest, operation);
+          }
         }
       }
-      break;
     }
     case bblocks::BBInstruction::SourceType::MEMORY: {
       switch (instruction.getDestinationType()) {
@@ -1163,10 +1182,14 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(con
           throw std::invalid_argument("Register cannot be number type");
         }
         case bblocks::BBInstruction::DestinationType::MEMORY: {
-          break;
+          if (srcReg != -1) {
+            return generateUnOpMemImmRegMem(srcReg, dest, operation);
+          }
+          else {
+            return generateUnOpMemImmMemMem(variableAddresses_[currentScope].at(src), dest, operation);
+          }
         }
       }
-      break;
     }
   }
 }
@@ -1175,17 +1198,28 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(con
   const int src = instruction.getSource();
   const std::string dest = instruction.getDestination();
   const int destReg = regAllocators_.at(currentScope)->getAllocatedRegisters().at(dest);
+  const bblocks::BBUnaryOperationEnum operation = instruction.getOperation();
 
   switch (instruction.getSourceType()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
       switch (instruction.getDestinationType()) {
         case bblocks::BBInstruction::DestinationType::REGISTER: {
-          break;
+          if (destReg != -1) {
+            return generateUnOpConstReg(static_cast<uint8_t>(src), destReg, operation);
+          }
+          else {
+            return generateUnOpConstMem(static_cast<uint8_t>(src), variableAddresses_.at(currentScope).at(dest), operation);
+          }
         }
-        case bblocks::BBInstruction::DestinationType::MEMORY:
-          break;
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          if (destReg != -1) {
+            return generateUnOpConstMemImmReg(static_cast<uint8_t>(src), destReg, operation);
+          }
+          else {
+            return generateUnOpConstMemImmMem(static_cast<uint8_t>(src), variableAddresses_.at(currentScope).at(dest), operation);
+          }
+        }
       }
-      break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
       throw std::invalid_argument("Register cannot be number type");
@@ -1193,12 +1227,22 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(con
     case bblocks::BBInstruction::SourceType::MEMORY: {
       switch (instruction.getDestinationType()) {
         case bblocks::BBInstruction::DestinationType::REGISTER: {
-          break;
+          if (destReg != -1) {
+            return generateUnOpMemReg(src, destReg, operation);
+          }
+          else {
+            return generateUnOpMemMem(src, variableAddresses_.at(currentScope).at(dest), operation);
+          }
         }
-        case bblocks::BBInstruction::DestinationType::MEMORY:
-          break;
+        case bblocks::BBInstruction::DestinationType::MEMORY: {
+          if (destReg != -1) {
+            return generateUnOpMemMemImmReg(src, destReg, operation);
+          }
+          else {
+            return generateUnOpMemMemImmMem(src, variableAddresses_.at(currentScope).at(dest), operation);
+          }
+        }
       }
-      break;
     }
   }
 }
@@ -1206,6 +1250,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(con
 std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(const bblocks::BBUnaryOperationNN& instruction) {
   const int src = instruction.getSource();
   const int dest = instruction.getDestination();
+  const bblocks::BBUnaryOperationEnum operation = instruction.getOperation();
 
   switch (instruction.getSourceType()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
@@ -1214,10 +1259,9 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(con
           throw std::invalid_argument("Register cannot be number type");
         }
         case bblocks::BBInstruction::DestinationType::MEMORY: {
-          break;
+          return generateUnOpConstMem(static_cast<uint8_t>(src), dest, operation);
         }
       }
-      break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
       throw std::invalid_argument("Register cannot be number type");
@@ -1228,274 +1272,1001 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperation(con
           throw std::invalid_argument("Register cannot be number type");
         }
         case bblocks::BBInstruction::DestinationType::MEMORY: {
-          break;
+          return generateUnOpMemMem(src, dest, operation);
         }
+      }
+    }
+  }
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpConstReg(uint8_t src, int dest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "reg := op(const)" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+
+  if (dest == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_A_IMM, std::vector<std::string>{getBinaryUint(src)});
+    generateUnaryOperatorAA(instructions, op);
+  }
+  else if (dest == 2) {
+    instructions.emplace_back(MachineInstruction::MOV_B_IMM, std::vector<std::string>{getBinaryUint(src)});
+    generateUnaryOperatorBB(instructions, op);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpConstMem(uint8_t src, uint16_t dest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[addr] := op(const)" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+
+  instructions.emplace_back(MachineInstruction::PUSH_A);
+  instructions.emplace_back(MachineInstruction::MOV_A_IMM, std::vector<std::string>{getBinaryUint(src)});
+  generateUnaryOperatorAMem(instructions, op, dest);
+  instructions.emplace_back(MachineInstruction::POP_A);
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpConstMemImmReg(uint8_t src, int immDest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[reg] := op(const)" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+
+  if (immDest == 1) {
+    instructions.emplace_back(MachineInstruction::PUSH_B);
+    instructions.emplace_back(MachineInstruction::MOV_B_IMM, std::vector<std::string>{getBinaryUint(src)});
+    generateUnaryOperatorBB(instructions, op);
+    instructions.emplace_back(MachineInstruction::MOV_AT_A_B);
+    instructions.emplace_back(MachineInstruction::POP_B);
+  }
+  else if (immDest == 2) {
+    instructions.emplace_back(MachineInstruction::PUSH_A);
+    instructions.emplace_back(MachineInstruction::MOV_A_IMM, std::vector<std::string>{getBinaryUint(src)});
+    generateUnaryOperatorAA(instructions, op);
+    instructions.emplace_back(MachineInstruction::MOV_AT_B_A);
+    instructions.emplace_back(MachineInstruction::POP_A);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpConstMemImmMem(uint8_t src, uint16_t immDest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[[addr]] := op(const)" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
+
+  instructions.emplace_back(MachineInstruction::PUSH_A);
+  instructions.emplace_back(MachineInstruction::MOV_A_IMM, std::vector<std::string>{getBinaryUint(src)});
+  generateUnaryOperatorAStc(instructions, op);
+
+  if (destAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{destAddress.second});
+  }
+
+  instructions.emplace_back(MachineInstruction::POP_TH);
+  instructions.emplace_back(MachineInstruction::MOV_AT_A_TH);
+  instructions.emplace_back(MachineInstruction::POP_A);
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpRegReg(int src, int dest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "reg := op(reg)" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  if (src == 1) {
+    if (dest == 1) {
+      generateUnaryOperatorAA(instructions, op);
+    }
+    else if (dest == 2) {
+      generateUnaryOperatorAB(instructions, op);
+    }
+  }
+  else if (src == 2) {
+    if (dest == 1) {
+      generateUnaryOperatorBA(instructions, op);
+    }
+    else if (dest == 2) {
+      generateUnaryOperatorBB(instructions, op);
+    }
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpRegMem(int src, uint16_t dest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[addr] := op(reg)" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+
+  if (src == 1) {
+    generateUnaryOperatorAMem(instructions, op, dest);
+  }
+  else if (src == 2) {
+    generateUnaryOperatorBMem(instructions, op, dest);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpRegMemImmReg(int src, int immDest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[reg] := op(reg)" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+
+  if (src == 1) {
+    generateUnaryOperatorAStc(instructions, op);
+  }
+  else if (src == 2) {
+    generateUnaryOperatorBStc(instructions, op);
+  }
+
+  instructions.emplace_back(MachineInstruction::POP_TH);
+
+  if (immDest == 1) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_A_TH);
+  }
+  else if (immDest == 2) {
+    instructions.emplace_back(MachineInstruction::MOV_AT_B_TH);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpRegMemImmMem(int src, uint16_t immDest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[[addr]] := op(reg)" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
+
+  if (src == 1) {
+    generateUnaryOperatorAStc(instructions, op);
+  }
+  else if (src == 2) {
+    generateUnaryOperatorBStc(instructions, op);
+  }
+
+  if (destAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{destAddress.second});
+  }
+
+  instructions.emplace_back(MachineInstruction::POP_TL);
+  instructions.emplace_back(MachineInstruction::POP_TH);
+  instructions.emplace_back(MachineInstruction::MOV_AT_TL_TH);
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpMemReg(uint16_t src, int dest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "reg := op([addr])" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
+
+  if (dest == 1) {
+    if (srcAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
+    }
+
+    generateUnaryOperatorAA(instructions, op);
+  }
+  else if (dest == 2) {
+    if (srcAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{srcAddress.second});
+    }
+
+    generateUnaryOperatorBB(instructions, op);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpMemMem(uint16_t src, uint16_t dest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[addr] := op([addr])" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
+
+  instructions.emplace_back(MachineInstruction::PUSH_A);
+
+  if (srcAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
+  }
+
+  generateUnaryOperatorAMem(instructions, op, dest);
+  instructions.emplace_back(MachineInstruction::POP_A);
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpMemMemImmReg(uint16_t src, int immDest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[reg] := op([addr])" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
+
+  if (immDest == 1) {
+    instructions.emplace_back(MachineInstruction::PUSH_B);
+
+    if (srcAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{srcAddress.second});
+    }
+
+    generateUnaryOperatorBB(instructions, op);
+    instructions.emplace_back(MachineInstruction::MOV_AT_A_B);
+    instructions.emplace_back(MachineInstruction::POP_B);
+  }
+  else if (immDest == 2) {
+    instructions.emplace_back(MachineInstruction::PUSH_A);
+
+    if (srcAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
+    }
+
+    generateUnaryOperatorAA(instructions, op);
+    instructions.emplace_back(MachineInstruction::MOV_AT_B_A);
+    instructions.emplace_back(MachineInstruction::POP_A);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpMemMemImmMem(uint16_t src, uint16_t immDest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[[addr]] := op([addr])" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(src);
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
+
+  instructions.emplace_back(MachineInstruction::PUSH_A);
+
+  if (srcAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
+  }
+
+  generateUnaryOperatorAStc(instructions, op);
+
+  if (destAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{destAddress.second});
+  }
+
+  instructions.emplace_back(MachineInstruction::POP_TH);
+  instructions.emplace_back(MachineInstruction::MOV_AT_A_TH);
+  instructions.emplace_back(MachineInstruction::POP_A);
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpMemImmRegReg(int immSrc, int dest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "reg := op([reg])" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+
+  if (immSrc == 1) {
+    if (dest == 1) {
+      instructions.emplace_back(MachineInstruction::MOV_TH_AT_A);
+      instructions.emplace_back(MachineInstruction::MOV_A_TH);
+      generateUnaryOperatorAA(instructions, op);
+    }
+    else if (dest == 2) {
+      instructions.emplace_back(MachineInstruction::MOV_B_AT_A);
+      generateUnaryOperatorBB(instructions, op);
+    }
+  }
+  else if (immSrc == 2) {
+    if (dest == 1) {
+      instructions.emplace_back(MachineInstruction::MOV_A_AT_B);
+      generateUnaryOperatorAA(instructions, op);
+    }
+    else if (dest == 2) {
+      instructions.emplace_back(MachineInstruction::MOV_TH_AT_B);
+      instructions.emplace_back(MachineInstruction::MOV_B_TH);
+      generateUnaryOperatorBB(instructions, op);
+    }
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpMemImmRegMem(int immSrc, uint16_t dest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[addr] := op([reg])" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+
+  if (immSrc == 1) {
+    instructions.emplace_back(MachineInstruction::PUSH_B);
+    instructions.emplace_back(MachineInstruction::MOV_B_AT_A);
+    generateUnaryOperatorBMem(instructions, op, dest);
+    instructions.emplace_back(MachineInstruction::POP_B);
+  }
+  else if (immSrc == 2) {
+    instructions.emplace_back(MachineInstruction::PUSH_A);
+    instructions.emplace_back(MachineInstruction::MOV_A_AT_B);
+    generateUnaryOperatorAMem(instructions, op, dest);
+    instructions.emplace_back(MachineInstruction::POP_A);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpMemImmRegMemImmReg(int immSrc, int immDest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[reg] := op([reg])" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  if (immDest == 1) {
+    instructions.emplace_back(MachineInstruction::PUSH_B);
+
+    if (immSrc == 1) {
+      instructions.emplace_back(MachineInstruction::MOV_B_AT_A);
+      generateUnaryOperatorBB(instructions, op);
+    }
+    else if (immSrc == 2) {
+      instructions.emplace_back(MachineInstruction::MOV_TH_AT_B);
+      instructions.emplace_back(MachineInstruction::MOV_B_TH);
+      generateUnaryOperatorBB(instructions, op);
+    }
+
+    instructions.emplace_back(MachineInstruction::MOV_AT_A_B);
+    instructions.emplace_back(MachineInstruction::POP_B);
+  }
+  else if (immDest == 2) {
+    instructions.emplace_back(MachineInstruction::PUSH_A);
+
+    if (immSrc == 1) {
+      instructions.emplace_back(MachineInstruction::MOV_TH_AT_A);
+      instructions.emplace_back(MachineInstruction::MOV_A_TH);
+      generateUnaryOperatorAA(instructions, op);
+    }
+    else if (immSrc == 2) {
+      instructions.emplace_back(MachineInstruction::MOV_A_AT_B);
+      generateUnaryOperatorAA(instructions, op);
+    }
+
+    instructions.emplace_back(MachineInstruction::MOV_AT_B_A);
+    instructions.emplace_back(MachineInstruction::POP_A);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpMemImmRegMemImmMem(int immSrc, uint16_t immDest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[[addr]] := op([reg])" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
+
+  if (immSrc == 1) {
+    instructions.emplace_back(MachineInstruction::PUSH_B);
+    instructions.emplace_back(MachineInstruction::MOV_B_AT_A);
+    generateUnaryOperatorBStc(instructions, op);
+
+    if (destAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{destAddress.second});
+    }
+
+    instructions.emplace_back(MachineInstruction::POP_TH);
+    instructions.emplace_back(MachineInstruction::MOV_AT_B_TH);
+    instructions.emplace_back(MachineInstruction::POP_B);
+  }
+  else if (immSrc == 2) {
+    instructions.emplace_back(MachineInstruction::PUSH_A);
+    instructions.emplace_back(MachineInstruction::MOV_A_AT_B);
+    generateUnaryOperatorAStc(instructions, op);
+
+    if (destAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{destAddress.second});
+    }
+
+    instructions.emplace_back(MachineInstruction::POP_TH);
+    instructions.emplace_back(MachineInstruction::MOV_AT_A_TH);
+    instructions.emplace_back(MachineInstruction::POP_A);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpMemImmMemReg(uint16_t immSrc, int dest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "reg := op([[addr]])" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(immSrc);
+
+  if (dest == 1) {
+    if (srcAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
+    }
+
+    instructions.emplace_back(MachineInstruction::MOV_TL_A);
+    instructions.emplace_back(MachineInstruction::MOV_A_AT_TL);
+    generateUnaryOperatorAA(instructions, op);
+  }
+  else if (dest == 2) {
+    if (srcAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{srcAddress.second});
+    }
+
+    instructions.emplace_back(MachineInstruction::MOV_TL_B);
+    instructions.emplace_back(MachineInstruction::MOV_B_AT_TL);
+    generateUnaryOperatorBB(instructions, op);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpMemImmMemMem(uint16_t immSrc, uint16_t dest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[addr] := op([[addr]])" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(immSrc);
+
+  instructions.emplace_back(MachineInstruction::PUSH_A);
+
+  if (srcAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
+  }
+
+  instructions.emplace_back(MachineInstruction::MOV_TL_A);
+  instructions.emplace_back(MachineInstruction::MOV_A_AT_TL);
+  generateUnaryOperatorAMem(instructions, op, dest);
+  instructions.emplace_back(MachineInstruction::POP_A);
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpMemImmMemMemImmReg(uint16_t immSrc, int immDest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[reg] := op([[addr]])" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(immSrc);
+
+  if (immDest == 1) {
+    instructions.emplace_back(MachineInstruction::PUSH_B);
+
+    if (srcAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{srcAddress.second});
+    }
+
+    instructions.emplace_back(MachineInstruction::MOV_TL_B);
+    instructions.emplace_back(MachineInstruction::MOV_B_AT_TL);
+    generateUnaryOperatorBB(instructions, op);
+    instructions.emplace_back(MachineInstruction::MOV_AT_A_B);
+    instructions.emplace_back(MachineInstruction::POP_B);
+  }
+  else if (immDest == 2) {
+    instructions.emplace_back(MachineInstruction::PUSH_A);
+
+    if (srcAddress.first.has_value()) {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+    }
+    else {
+      instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
+    }
+
+    instructions.emplace_back(MachineInstruction::MOV_TL_A);
+    instructions.emplace_back(MachineInstruction::MOV_A_AT_TL);
+    generateUnaryOperatorAStc(instructions, op);
+    instructions.emplace_back(MachineInstruction::MOV_AT_B_A);
+    instructions.emplace_back(MachineInstruction::POP_A);
+  }
+
+  return instructions;
+}
+
+std::vector<MachineInstruction> MachineCodeGenerator::generateUnOpMemImmMemMemImmMem(uint16_t immSrc, uint16_t immDest, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "[[addr]] := op([[addr]])" << std::endl;
+#endif
+
+  std::vector<MachineInstruction> instructions;
+  std::pair<std::optional<std::string>, std::string> srcAddress = getBinaryAddress(immSrc);
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(immDest);
+
+  instructions.emplace_back(MachineInstruction::PUSH_A);
+
+  if (destAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::PUSH_ABS_ZP, std::vector<std::string>{destAddress.second});
+  }
+
+  if (srcAddress.first.has_value()) {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{srcAddress.first.value(), srcAddress.second});
+  }
+  else {
+    instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{srcAddress.second});
+  }
+
+  instructions.emplace_back(MachineInstruction::MOV_TL_A);
+  instructions.emplace_back(MachineInstruction::MOV_A_AT_TL);
+  generateUnaryOperatorAA(instructions, op);
+
+  instructions.emplace_back(MachineInstruction::POP_TL);
+  instructions.emplace_back(MachineInstruction::MOV_AT_TL_A);
+  instructions.emplace_back(MachineInstruction::POP_A);
+
+  return instructions;
+}
+
+void MachineCodeGenerator::generateUnaryOperatorAA(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "spec: regA := op(regA)" << std::endl;
+#endif
+
+  switch (op) {
+    case bblocks::BBUnaryOperationEnum::NEG: {
+      ins.emplace_back(MachineInstruction::NEG_A_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::NOT: {
+      ins.emplace_back(MachineInstruction::INV_A_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::INC: {
+      ins.emplace_back(MachineInstruction::INC_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::DEC: {
+      ins.emplace_back(MachineInstruction::DEC_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHL: {
+      ins.emplace_back(MachineInstruction::SHL_A_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHR: {
+      ins.emplace_back(MachineInstruction::SHR_A_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SAR: {
+      ins.emplace_back(MachineInstruction::DIV2_A_A);
+      break;
+    }
+  }
+}
+
+void MachineCodeGenerator::generateUnaryOperatorAB(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "spec: regB := op(regA)" << std::endl;
+#endif
+
+  switch (op) {
+    case bblocks::BBUnaryOperationEnum::NEG: {
+      ins.emplace_back(MachineInstruction::NEG_B_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::NOT: {
+      ins.emplace_back(MachineInstruction::INV_B_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::INC: {
+      ins.emplace_back(MachineInstruction::INC_A);
+      ins.emplace_back(MachineInstruction::MOV_B_A);
+      ins.emplace_back(MachineInstruction::DEC_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::DEC: {
+      ins.emplace_back(MachineInstruction::DEC_A);
+      ins.emplace_back(MachineInstruction::MOV_B_A);
+      ins.emplace_back(MachineInstruction::INC_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHL: {
+      ins.emplace_back(MachineInstruction::SHL_B_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHR: {
+      ins.emplace_back(MachineInstruction::SHR_B_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SAR: {
+      ins.emplace_back(MachineInstruction::DIV2_B_A);
+      break;
+    }
+  }
+}
+
+void MachineCodeGenerator::generateUnaryOperatorBA(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "spec: regA := op(regB)" << std::endl;
+#endif
+
+  switch (op) {
+    case bblocks::BBUnaryOperationEnum::NEG: {
+      ins.emplace_back(MachineInstruction::NEG_A_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::NOT: {
+      ins.emplace_back(MachineInstruction::INV_A_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::INC: {
+      ins.emplace_back(MachineInstruction::INC_B);
+      ins.emplace_back(MachineInstruction::MOV_A_B);
+      ins.emplace_back(MachineInstruction::DEC_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::DEC: {
+      ins.emplace_back(MachineInstruction::DEC_B);
+      ins.emplace_back(MachineInstruction::MOV_A_B);
+      ins.emplace_back(MachineInstruction::INC_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHL: {
+      ins.emplace_back(MachineInstruction::SHL_A_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHR: {
+      ins.emplace_back(MachineInstruction::SHR_A_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SAR: {
+      ins.emplace_back(MachineInstruction::DIV2_A_B);
+      break;
+    }
+  }
+}
+
+void MachineCodeGenerator::generateUnaryOperatorBB(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "spec: regB := op(regB)" << std::endl;
+#endif
+
+  switch (op) {
+    case bblocks::BBUnaryOperationEnum::NEG: {
+      ins.emplace_back(MachineInstruction::NEG_B_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::NOT: {
+      ins.emplace_back(MachineInstruction::INV_B_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::INC: {
+      ins.emplace_back(MachineInstruction::INC_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::DEC: {
+      ins.emplace_back(MachineInstruction::DEC_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHL: {
+      ins.emplace_back(MachineInstruction::SHL_B_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHR: {
+      ins.emplace_back(MachineInstruction::SHR_B_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SAR: {
+      ins.emplace_back(MachineInstruction::DIV2_B_B);
+      break;
+    }
+  }
+}
+
+void MachineCodeGenerator::generateUnaryOperatorAMem(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op, uint16_t dest) {
+#ifdef MC_DEBUG
+  std::cout << "spec: [addr] := op(regA)" << std::endl;
+#endif
+
+  std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
+
+  switch (op) {
+    case bblocks::BBUnaryOperationEnum::NEG: {
+      if (destAddress.first.has_value()) {
+        ins.emplace_back(MachineInstruction::NEG_MEM_A, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      }
+      else {
+        ins.emplace_back(MachineInstruction::NEG_MEM_ZP_A, std::vector<std::string>{destAddress.second});
+      }
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::NOT: {
+      if (destAddress.first.has_value()) {
+        ins.emplace_back(MachineInstruction::INV_MEM_A, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      }
+      else {
+        ins.emplace_back(MachineInstruction::INV_MEM_ZP_A, std::vector<std::string>{destAddress.second});
+      }
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::INC: {
+      ins.emplace_back(MachineInstruction::INC_A);
+      if (destAddress.first.has_value()) {
+        ins.emplace_back(MachineInstruction::MOV_AT_ABS_A, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      }
+      else {
+        ins.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddress.second});
+      }
+      ins.emplace_back(MachineInstruction::DEC_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::DEC: {
+      ins.emplace_back(MachineInstruction::DEC_A);
+      if (destAddress.first.has_value()) {
+        ins.emplace_back(MachineInstruction::MOV_AT_ABS_A, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      }
+      else {
+        ins.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddress.second});
+      }
+      ins.emplace_back(MachineInstruction::INC_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHL: {
+      if (destAddress.first.has_value()) {
+        ins.emplace_back(MachineInstruction::SHL_MEM_A, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      }
+      else {
+        ins.emplace_back(MachineInstruction::SHL_MEM_ZP_A, std::vector<std::string>{destAddress.second});
+      }
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHR: {
+      if (destAddress.first.has_value()) {
+        ins.emplace_back(MachineInstruction::SHR_MEM_A, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      }
+      else {
+        ins.emplace_back(MachineInstruction::SHR_MEM_ZP_A, std::vector<std::string>{destAddress.second});
+      }
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SAR: {
+      if (destAddress.first.has_value()) {
+        ins.emplace_back(MachineInstruction::DIV2_MEM_A, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      }
+      else {
+        ins.emplace_back(MachineInstruction::DIV2_MEM_ZP_A, std::vector<std::string>{destAddress.second});
       }
       break;
     }
   }
 }
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegReg(int src, int dest,
-                                                                                   bblocks::BBUnaryOperationEnum type) {
-  std::vector<MachineInstruction> instructions;
-  if (src == 1 && dest == 1) {
-    switch (type) {
-      case bblocks::BBUnaryOperationEnum::NEG:
-        instructions.emplace_back(MachineInstruction::NEG_A_A);
-        break;
-      case bblocks::BBUnaryOperationEnum::NOT:
-        instructions.emplace_back(MachineInstruction::INV_A_A);
-        break;
-      case bblocks::BBUnaryOperationEnum::INC:
-        instructions.emplace_back(MachineInstruction::INC_A);
-        break;
-      case bblocks::BBUnaryOperationEnum::DEC:
-        instructions.emplace_back(MachineInstruction::DEC_A);
-        break;
-      case bblocks::BBUnaryOperationEnum::SHL:
-        instructions.emplace_back(MachineInstruction::SHL_A_A);
-        break;
-      case bblocks::BBUnaryOperationEnum::SHR:
-        instructions.emplace_back(MachineInstruction::SHR_A_A);
-        break;
-      case bblocks::BBUnaryOperationEnum::SAR:
-        instructions.emplace_back(MachineInstruction::DIV2_A_A);
-        break;
-    }
-  }
-  else if (src == 1 && dest == 2) {
-    switch (type) {
-      case bblocks::BBUnaryOperationEnum::NEG:
-        instructions.emplace_back(MachineInstruction::NEG_B_A);
-        break;
-      case bblocks::BBUnaryOperationEnum::NOT:
-        instructions.emplace_back(MachineInstruction::INV_B_A);
-        break;
-      case bblocks::BBUnaryOperationEnum::INC:
-        instructions.emplace_back(MachineInstruction::INC_B);
-        break;
-      case bblocks::BBUnaryOperationEnum::DEC:
-        instructions.emplace_back(MachineInstruction::DEC_B);
-        break;
-      case bblocks::BBUnaryOperationEnum::SHL:
-        instructions.emplace_back(MachineInstruction::SHL_B_A);
-        break;
-      case bblocks::BBUnaryOperationEnum::SHR:
-        instructions.emplace_back(MachineInstruction::SHR_B_A);
-        break;
-      case bblocks::BBUnaryOperationEnum::SAR:
-        instructions.emplace_back(MachineInstruction::DIV2_B_A);
-        break;
-    }
-  }
-  else if (src == 2 && dest == 1) {
-    switch (type) {
-      case bblocks::BBUnaryOperationEnum::NEG:
-        instructions.emplace_back(MachineInstruction::NEG_A_B);
-        break;
-      case bblocks::BBUnaryOperationEnum::NOT:
-        instructions.emplace_back(MachineInstruction::INV_A_B);
-        break;
-      case bblocks::BBUnaryOperationEnum::INC:
-        instructions.emplace_back(MachineInstruction::INC_A);
-        break;
-      case bblocks::BBUnaryOperationEnum::DEC:
-        instructions.emplace_back(MachineInstruction::DEC_A);
-        break;
-      case bblocks::BBUnaryOperationEnum::SHL:
-        instructions.emplace_back(MachineInstruction::SHL_A_B);
-        break;
-      case bblocks::BBUnaryOperationEnum::SHR:
-        instructions.emplace_back(MachineInstruction::SHR_A_B);
-        break;
-      case bblocks::BBUnaryOperationEnum::SAR:
-        instructions.emplace_back(MachineInstruction::DIV2_A_B);
-        break;
-    }
-  }
-  else if (src == 2 && dest == 2) {
-    switch (type) {
-      case bblocks::BBUnaryOperationEnum::NEG:
-        instructions.emplace_back(MachineInstruction::NEG_B_B);
-        break;
-      case bblocks::BBUnaryOperationEnum::NOT:
-        instructions.emplace_back(MachineInstruction::INV_B_B);
-        break;
-      case bblocks::BBUnaryOperationEnum::INC:
-        instructions.emplace_back(MachineInstruction::INC_B);
-        break;
-      case bblocks::BBUnaryOperationEnum::DEC:
-        instructions.emplace_back(MachineInstruction::DEC_B);
-        break;
-      case bblocks::BBUnaryOperationEnum::SHL:
-        instructions.emplace_back(MachineInstruction::SHL_B_B);
-        break;
-      case bblocks::BBUnaryOperationEnum::SHR:
-        instructions.emplace_back(MachineInstruction::SHR_B_B);
-        break;
-      case bblocks::BBUnaryOperationEnum::SAR:
-        instructions.emplace_back(MachineInstruction::DIV2_B_B);
-        break;
-    }
-  }
+void MachineCodeGenerator::generateUnaryOperatorBMem(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op, uint16_t dest) {
+#ifdef MC_DEBUG
+  std::cout << "spec: [addr] := op(regB)" << std::endl;
+#endif
 
-  return instructions;
-}
-
-std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationRegMem(int src, uint16_t dest,
-                                                                                   bblocks::BBUnaryOperationEnum type) {
-  std::vector<MachineInstruction> instructions;
   std::pair<std::optional<std::string>, std::string> destAddress = getBinaryAddress(dest);
-  if (src == 1) {
-    switch (type) {
-      case bblocks::BBUnaryOperationEnum::NEG:
-        if (destAddress.first.has_value()) {
-          instructions.emplace_back(MachineInstruction::NEG_MEM_A,
-                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
-        }
-        else {
-          instructions.emplace_back(MachineInstruction::NEG_MEM_A, std::vector<std::string>{destAddress.second});
-        }
-        break;
-      case bblocks::BBUnaryOperationEnum::NOT:
-        if (destAddress.first.has_value()) {
-          instructions.emplace_back(MachineInstruction::INV_MEM_A,
-                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
-        }
-        else {
-          instructions.emplace_back(MachineInstruction::INV_MEM_A, std::vector<std::string>{destAddress.second});
-        }
-        break;
-      case bblocks::BBUnaryOperationEnum::INC:
-        if (destAddress.first.has_value()) {
-          instructions.emplace_back(MachineInstruction::INC_A,
-                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
-        }
-        else {
-          instructions.emplace_back(MachineInstruction::INC_A, std::vector<std::string>{destAddress.second});
-        }
-        break;
-      case bblocks::BBUnaryOperationEnum::DEC:
-        if (destAddress.first.has_value()) {
-          instructions.emplace_back(MachineInstruction::DEC_A,
-                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
-        }
-        else {
-          instructions.emplace_back(MachineInstruction::DEC_A, std::vector<std::string>{destAddress.second});
-        }
-        break;
-      case bblocks::BBUnaryOperationEnum::SHL:
-        if (destAddress.first.has_value()) {
-          instructions.emplace_back(MachineInstruction::SHL_MEM_A,
-                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
-        }
-        else {
-          instructions.emplace_back(MachineInstruction::SHL_MEM_A, std::vector<std::string>{destAddress.second});
-        }
-        break;
-      case bblocks::BBUnaryOperationEnum::SHR:
-        if (destAddress.first.has_value()) {
-          instructions.emplace_back(MachineInstruction::SHR_MEM_A,
-                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
-        }
-        else {
-          instructions.emplace_back(MachineInstruction::SHR_MEM_A, std::vector<std::string>{destAddress.second});
-        }
-        break;
-      case bblocks::BBUnaryOperationEnum::SAR:
-        if (destAddress.first.has_value()) {
-          instructions.emplace_back(MachineInstruction::DIV2_MEM_A,
-                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
-        }
-        else {
-          instructions.emplace_back(MachineInstruction::DIV2_MEM_A, std::vector<std::string>{destAddress.second});
-        }
-        break;
-    }
-  }
-  else if (src == 2) {
-    switch (type) {
-      case bblocks::BBUnaryOperationEnum::NEG:
-        if (destAddress.first.has_value()) {
-          instructions.emplace_back(MachineInstruction::NEG_MEM_B,
-                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
-        }
-        else {
-          instructions.emplace_back(MachineInstruction::NEG_MEM_B, std::vector<std::string>{destAddress.second});
-        }
-        break;
-      case bblocks::BBUnaryOperationEnum::NOT:
-        if (destAddress.first.has_value()) {
-          instructions.emplace_back(MachineInstruction::INV_MEM_B,
-                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
-        }
-        else {
-          instructions.emplace_back(MachineInstruction::INV_MEM_B, std::vector<std::string>{destAddress.second});
-        }
-        break;
-      case bblocks::BBUnaryOperationEnum::INC:
-        if (destAddress.first.has_value()) {
-          instructions.emplace_back(MachineInstruction::INC_B,
-                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
-        }
-        else {
-          instructions.emplace_back(MachineInstruction::INC_B, std::vector<std::string>{destAddress.second});
-        }
-        break;
-      case bblocks::BBUnaryOperationEnum::DEC:
-        if (destAddress.first.has_value()) {
-          instructions.emplace_back(MachineInstruction::DEC_B,
-                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
-        }
-        else {
-          instructions.emplace_back(MachineInstruction::DEC_B, std::vector<std::string>{destAddress.second});
-        }
-        break;
-      case bblocks::BBUnaryOperationEnum::SHL:
-        if (destAddress.first.has_value()) {
-          instructions.emplace_back(MachineInstruction::SHL_MEM_B,
-                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
-        }
-        else {
-          instructions.emplace_back(MachineInstruction::SHL_MEM_B, std::vector<std::string>{destAddress.second});
-        }
-        break;
-      case bblocks::BBUnaryOperationEnum::SHR:
-        if (destAddress.first.has_value()) {
-          instructions.emplace_back(MachineInstruction::SHR_MEM_B,
-                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
-        }
-        else {
-          instructions.emplace_back(MachineInstruction::SHR_MEM_B, std::vector<std::string>{destAddress.second});
-        }
-        break;
-      case bblocks::BBUnaryOperationEnum::SAR:
-        if (destAddress.first.has_value()) {
-          instructions.emplace_back(MachineInstruction::DIV2_MEM_B,
-                                    std::vector<std::string>{destAddress.first.value(), destAddress.second});
-        }
-        else {
-          instructions.emplace_back(MachineInstruction::DIV2_MEM_B, std::vector<std::string>{destAddress.second});
-        }
-        break;
-    }
-  }
 
-  return instructions;
+  switch (op) {
+    case bblocks::BBUnaryOperationEnum::NEG: {
+      if (destAddress.first.has_value()) {
+        ins.emplace_back(MachineInstruction::NEG_MEM_B, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      }
+      else {
+        ins.emplace_back(MachineInstruction::NEG_MEM_ZP_B, std::vector<std::string>{destAddress.second});
+      }
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::NOT: {
+      if (destAddress.first.has_value()) {
+        ins.emplace_back(MachineInstruction::INV_MEM_B, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      }
+      else {
+        ins.emplace_back(MachineInstruction::INV_MEM_ZP_B, std::vector<std::string>{destAddress.second});
+      }
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::INC: {
+      ins.emplace_back(MachineInstruction::INC_B);
+      if (destAddress.first.has_value()) {
+        ins.emplace_back(MachineInstruction::MOV_AT_ABS_B, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      }
+      else {
+        ins.emplace_back(MachineInstruction::MOV_AT_ABS_B_ZP, std::vector<std::string>{destAddress.second});
+      }
+      ins.emplace_back(MachineInstruction::DEC_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::DEC: {
+      ins.emplace_back(MachineInstruction::DEC_B);
+      if (destAddress.first.has_value()) {
+        ins.emplace_back(MachineInstruction::MOV_AT_ABS_B, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      }
+      else {
+        ins.emplace_back(MachineInstruction::MOV_AT_ABS_B_ZP, std::vector<std::string>{destAddress.second});
+      }
+      ins.emplace_back(MachineInstruction::INC_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHL: {
+      if (destAddress.first.has_value()) {
+        ins.emplace_back(MachineInstruction::SHL_MEM_B, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      }
+      else {
+        ins.emplace_back(MachineInstruction::SHL_MEM_ZP_B, std::vector<std::string>{destAddress.second});
+      }
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHR: {
+      if (destAddress.first.has_value()) {
+        ins.emplace_back(MachineInstruction::SHR_MEM_B, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      }
+      else {
+        ins.emplace_back(MachineInstruction::SHR_MEM_ZP_B, std::vector<std::string>{destAddress.second});
+      }
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SAR: {
+      if (destAddress.first.has_value()) {
+        ins.emplace_back(MachineInstruction::DIV2_MEM_B, std::vector<std::string>{destAddress.first.value(), destAddress.second});
+      }
+      else {
+        ins.emplace_back(MachineInstruction::DIV2_MEM_ZP_B, std::vector<std::string>{destAddress.second});
+      }
+      break;
+    }
+  }
 }
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationMemReg(uint16_t src, int dest,
-                                                                                   bblocks::BBUnaryOperationEnum type) {}
+void MachineCodeGenerator::generateUnaryOperatorAStc(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "spec: stack[top] := op(regA)" << std::endl;
+#endif
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationMemMem(uint16_t src, uint16_t dest,
-                                                                                   bblocks::BBUnaryOperationEnum type) {}
+  switch (op) {
+    case bblocks::BBUnaryOperationEnum::NEG: {
+      ins.emplace_back(MachineInstruction::NEG_STC_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::NOT: {
+      ins.emplace_back(MachineInstruction::INV_STC_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::INC: {
+      ins.emplace_back(MachineInstruction::INC_A);
+      ins.emplace_back(MachineInstruction::PUSH_A);
+      ins.emplace_back(MachineInstruction::DEC_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::DEC: {
+      ins.emplace_back(MachineInstruction::DEC_A);
+      ins.emplace_back(MachineInstruction::PUSH_A);
+      ins.emplace_back(MachineInstruction::INC_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHL: {
+      ins.emplace_back(MachineInstruction::SHL_STC_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHR: {
+      ins.emplace_back(MachineInstruction::SHR_STC_A);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SAR: {
+      ins.emplace_back(MachineInstruction::DIV2_STC_A);
+      break;
+    }
+  }
+}
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationConstReg(uint8_t src, int dest,
-                                                                                     bblocks::BBUnaryOperationEnum type) {}
+void MachineCodeGenerator::generateUnaryOperatorBStc(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op) {
+#ifdef MC_DEBUG
+  std::cout << "spec: stack[top] := op(regB)" << std::endl;
+#endif
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateUnaryOperationConstMem(uint8_t src, uint16_t dest,
-                                                                                     bblocks::BBUnaryOperationEnum type) {}
+  switch (op) {
+    case bblocks::BBUnaryOperationEnum::NEG: {
+      ins.emplace_back(MachineInstruction::NEG_STC_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::NOT: {
+      ins.emplace_back(MachineInstruction::INV_STC_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::INC: {
+      ins.emplace_back(MachineInstruction::INC_B);
+      ins.emplace_back(MachineInstruction::PUSH_B);
+      ins.emplace_back(MachineInstruction::DEC_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::DEC: {
+      ins.emplace_back(MachineInstruction::DEC_B);
+      ins.emplace_back(MachineInstruction::PUSH_B);
+      ins.emplace_back(MachineInstruction::INC_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHL: {
+      ins.emplace_back(MachineInstruction::SHL_STC_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SHR: {
+      ins.emplace_back(MachineInstruction::SHR_STC_B);
+      break;
+    }
+    case bblocks::BBUnaryOperationEnum::SAR: {
+      ins.emplace_back(MachineInstruction::DIV2_STC_B);
+      break;
+    }
+  }
+}
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(const bblocks::BBBinaryOperationVVV& instruction) {
   std::vector<MachineInstruction> instructions;
@@ -1510,8 +2281,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
     case bblocks::BBInstruction::SourceType::REGISTER: {
       const auto src1Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src1]);
       if (src1Addr.first.has_value()) {
-        instructions.emplace_back(MachineInstruction::MOV_A_ABS,
-                                  std::vector<std::string>{src1Addr.first.value(), src1Addr.second});
+        instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{src1Addr.first.value(), src1Addr.second});
       }
       else {
         instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{src1Addr.second});
@@ -1530,8 +2300,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
     case bblocks::BBInstruction::SourceType::REGISTER: {
       const auto src2Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src2]);
       if (src2Addr.first.has_value()) {
-        instructions.emplace_back(MachineInstruction::MOV_B_ABS,
-                                  std::vector<std::string>{src2Addr.first.value(), src2Addr.second});
+        instructions.emplace_back(MachineInstruction::MOV_B_ABS, std::vector<std::string>{src2Addr.first.value(), src2Addr.second});
       }
       else {
         instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{src2Addr.second});
@@ -1569,8 +2338,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
     case bblocks::BBInstruction::DestinationType::REGISTER: {
       const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][dest]);
       if (destAddr.first.has_value()) {
-        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
-                                  std::vector<std::string>{destAddr.first.value(), destAddr.second});
+        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A, std::vector<std::string>{destAddr.first.value(), destAddr.second});
       }
       else {
         instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddr.second});
@@ -1597,8 +2365,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
     case bblocks::BBInstruction::SourceType::REGISTER: {
       const auto src1Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src1]);
       if (src1Addr.first.has_value()) {
-        instructions.emplace_back(MachineInstruction::MOV_A_ABS,
-                                  std::vector<std::string>{src1Addr.first.value(), src1Addr.second});
+        instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{src1Addr.first.value(), src1Addr.second});
       }
       else {
         instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{src1Addr.second});
@@ -1617,8 +2384,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
     case bblocks::BBInstruction::SourceType::REGISTER: {
       const auto src2Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src2]);
       if (src2Addr.first.has_value()) {
-        instructions.emplace_back(MachineInstruction::MOV_B_ABS,
-                                  std::vector<std::string>{src2Addr.first.value(), src2Addr.second});
+        instructions.emplace_back(MachineInstruction::MOV_B_ABS, std::vector<std::string>{src2Addr.first.value(), src2Addr.second});
       }
       else {
         instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{src2Addr.second});
@@ -1675,8 +2441,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
     case bblocks::BBInstruction::SourceType::REGISTER: {
       const auto src1Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src1]);
       if (src1Addr.first.has_value()) {
-        instructions.emplace_back(MachineInstruction::MOV_A_ABS,
-                                  std::vector<std::string>{src1Addr.first.value(), src1Addr.second});
+        instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{src1Addr.first.value(), src1Addr.second});
       }
       else {
         instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{src1Addr.second});
@@ -1690,8 +2455,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource2Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.emplace_back(MachineInstruction::MOV_B_IMM,
-                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src2)});
+      instructions.emplace_back(MachineInstruction::MOV_B_IMM, std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src2)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
@@ -1728,8 +2492,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
     case bblocks::BBInstruction::DestinationType::REGISTER: {
       const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][dest]);
       if (destAddr.first.has_value()) {
-        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
-                                  std::vector<std::string>{destAddr.first.value(), destAddr.second});
+        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A, std::vector<std::string>{destAddr.first.value(), destAddr.second});
       }
       else {
         instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddr.second});
@@ -1756,8 +2519,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
     case bblocks::BBInstruction::SourceType::REGISTER: {
       const auto src1Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src1]);
       if (src1Addr.first.has_value()) {
-        instructions.emplace_back(MachineInstruction::MOV_A_ABS,
-                                  std::vector<std::string>{src1Addr.first.value(), src1Addr.second});
+        instructions.emplace_back(MachineInstruction::MOV_A_ABS, std::vector<std::string>{src1Addr.first.value(), src1Addr.second});
       }
       else {
         instructions.emplace_back(MachineInstruction::MOV_A_ABS_ZP, std::vector<std::string>{src1Addr.second});
@@ -1771,8 +2533,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource2Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.emplace_back(MachineInstruction::MOV_B_IMM,
-                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src2)});
+      instructions.emplace_back(MachineInstruction::MOV_B_IMM, std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src2)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
@@ -1823,8 +2584,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource1Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.emplace_back(MachineInstruction::MOV_A_IMM,
-                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src1)});
+      instructions.emplace_back(MachineInstruction::MOV_A_IMM, std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src1)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
@@ -1842,8 +2602,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
     case bblocks::BBInstruction::SourceType::REGISTER: {
       const auto src2Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src2]);
       if (src2Addr.first.has_value()) {
-        instructions.emplace_back(MachineInstruction::MOV_B_ABS,
-                                  std::vector<std::string>{src2Addr.first.value(), src2Addr.second});
+        instructions.emplace_back(MachineInstruction::MOV_B_ABS, std::vector<std::string>{src2Addr.first.value(), src2Addr.second});
       }
       else {
         instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{src2Addr.second});
@@ -1881,8 +2640,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
     case bblocks::BBInstruction::DestinationType::REGISTER: {
       const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][dest]);
       if (destAddr.first.has_value()) {
-        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
-                                  std::vector<std::string>{destAddr.first.value(), destAddr.second});
+        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A, std::vector<std::string>{destAddr.first.value(), destAddr.second});
       }
       else {
         instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddr.second});
@@ -1904,8 +2662,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource1Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.emplace_back(MachineInstruction::MOV_A_IMM,
-                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src1)});
+      instructions.emplace_back(MachineInstruction::MOV_A_IMM, std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src1)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
@@ -1923,8 +2680,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
     case bblocks::BBInstruction::SourceType::REGISTER: {
       const auto src2Addr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][src2]);
       if (src2Addr.first.has_value()) {
-        instructions.emplace_back(MachineInstruction::MOV_B_ABS,
-                                  std::vector<std::string>{src2Addr.first.value(), src2Addr.second});
+        instructions.emplace_back(MachineInstruction::MOV_B_ABS, std::vector<std::string>{src2Addr.first.value(), src2Addr.second});
       }
       else {
         instructions.emplace_back(MachineInstruction::MOV_B_ABS_ZP, std::vector<std::string>{src2Addr.second});
@@ -1976,8 +2732,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource1Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.emplace_back(MachineInstruction::MOV_A_IMM,
-                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src1)});
+      instructions.emplace_back(MachineInstruction::MOV_A_IMM, std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src1)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
@@ -1990,8 +2745,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource2Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.emplace_back(MachineInstruction::MOV_B_IMM,
-                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src2)});
+      instructions.emplace_back(MachineInstruction::MOV_B_IMM, std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src2)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
@@ -2028,8 +2782,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
     case bblocks::BBInstruction::DestinationType::REGISTER: {
       const auto destAddr = MachineCodeGenerator::getBinaryAddress(variableAddresses_[currentScope][dest]);
       if (destAddr.first.has_value()) {
-        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A,
-                                  std::vector<std::string>{destAddr.first.value(), destAddr.second});
+        instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A, std::vector<std::string>{destAddr.first.value(), destAddr.second});
       }
       else {
         instructions.emplace_back(MachineInstruction::MOV_AT_ABS_A_ZP, std::vector<std::string>{destAddr.second});
@@ -2051,8 +2804,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource1Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.emplace_back(MachineInstruction::MOV_A_IMM,
-                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src1)});
+      instructions.emplace_back(MachineInstruction::MOV_A_IMM, std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src1)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
@@ -2065,8 +2817,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
 
   switch (instruction.getSource2Type()) {
     case bblocks::BBInstruction::SourceType::CONSTANT: {
-      instructions.emplace_back(MachineInstruction::MOV_B_IMM,
-                                std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src2)});
+      instructions.emplace_back(MachineInstruction::MOV_B_IMM, std::vector<std::string>{MachineCodeGenerator::getBinaryAnyInt(src2)});
       break;
     }
     case bblocks::BBInstruction::SourceType::REGISTER: {
@@ -2109,30 +2860,21 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperation(co
   return instructions;
 }
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationRegRegReg(int src1, int src2, int dest,
-                                                                                       bblocks::BBBinaryOperationEnum type) {}
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationRegRegReg(int src1, int src2, int dest, bblocks::BBBinaryOperationEnum type) {}
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationRegRegMem(int src1, int src2, uint16_t dest,
-                                                                                       bblocks::BBBinaryOperationEnum type) {}
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationRegRegMem(int src1, int src2, uint16_t dest, bblocks::BBBinaryOperationEnum type) {}
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationRegMemReg(int src1, uint16_t src2, int dest,
-                                                                                       bblocks::BBBinaryOperationEnum type) {}
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationRegMemReg(int src1, uint16_t src2, int dest, bblocks::BBBinaryOperationEnum type) {}
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationRegMemMem(int src1, uint16_t src2, uint16_t dest,
-                                                                                       bblocks::BBBinaryOperationEnum type) {}
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationRegMemMem(int src1, uint16_t src2, uint16_t dest, bblocks::BBBinaryOperationEnum type) {}
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationMemRegReg(uint16_t src1, int src2, int dest,
-                                                                                       bblocks::BBBinaryOperationEnum type) {}
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationMemRegReg(uint16_t src1, int src2, int dest, bblocks::BBBinaryOperationEnum type) {}
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationMemRegMem(uint16_t src1, int src2, uint16_t dest,
-                                                                                       bblocks::BBBinaryOperationEnum type) {}
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationMemRegMem(uint16_t src1, int src2, uint16_t dest, bblocks::BBBinaryOperationEnum type) {}
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationMemMemReg(uint16_t src1, uint16_t src2, int dest,
-                                                                                       bblocks::BBBinaryOperationEnum type) {}
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationMemMemReg(uint16_t src1, uint16_t src2, int dest, bblocks::BBBinaryOperationEnum type) {}
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationMemMemMem(uint16_t src1, uint16_t src2,
-                                                                                       uint16_t dest,
-                                                                                       bblocks::BBBinaryOperationEnum type) {}
+std::vector<MachineInstruction> MachineCodeGenerator::generateBinaryOperationMemMemMem(uint16_t src1, uint16_t src2, uint16_t dest, bblocks::BBBinaryOperationEnum type) {}
 
 std::vector<MachineInstruction> MachineCodeGenerator::generateBranch(const bblocks::BBBranchV& instruction) {
   const std::string value = instruction.getValue();
@@ -2179,9 +2921,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBranch(const bbloc
   }
 }
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateBranchReg(int val, bblocks::BBBranchCondition condition,
-                                                                        const std::string& trueLabel,
-                                                                        const std::string& falseLabel) {
+std::vector<MachineInstruction> MachineCodeGenerator::generateBranchReg(int val, bblocks::BBBranchCondition condition, const std::string& trueLabel, const std::string& falseLabel) {
   std::vector<MachineInstruction> instructions;
   if (val == 1) {}
   else if (val == 2) {}
@@ -2191,9 +2931,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBranchReg(int val,
   return instructions;
 }
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateBranchMem(uint16_t val, bblocks::BBBranchCondition condition,
-                                                                        const std::string& trueLabel,
-                                                                        const std::string& falseLabel) {
+std::vector<MachineInstruction> MachineCodeGenerator::generateBranchMem(uint16_t val, bblocks::BBBranchCondition condition, const std::string& trueLabel, const std::string& falseLabel) {
   std::vector<MachineInstruction> instructions;
 
   appendBranchJumps(instructions, condition, trueLabel, falseLabel);
@@ -2201,9 +2939,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBranchMem(uint16_t
   return instructions;
 }
 
-std::vector<MachineInstruction> MachineCodeGenerator::generateBranchConst(uint8_t val, bblocks::BBBranchCondition condition,
-                                                                          const std::string& trueLabel,
-                                                                          const std::string& falseLabel) {
+std::vector<MachineInstruction> MachineCodeGenerator::generateBranchConst(uint8_t val, bblocks::BBBranchCondition condition, const std::string& trueLabel, const std::string& falseLabel) {
   std::vector<MachineInstruction> instructions;
 
   appendBranchJumps(instructions, condition, trueLabel, falseLabel);
@@ -2211,8 +2947,7 @@ std::vector<MachineInstruction> MachineCodeGenerator::generateBranchConst(uint8_
   return instructions;
 }
 
-void MachineCodeGenerator::appendBranchJumps(std::vector<MachineInstruction>& instructions, bblocks::BBBranchCondition condition,
-                                             const std::string& trueLabel, const std::string& falseLabel) {
+void MachineCodeGenerator::appendBranchJumps(std::vector<MachineInstruction>& instructions, bblocks::BBBranchCondition condition, const std::string& trueLabel, const std::string& falseLabel) {
   switch (condition) {
     case bblocks::BBBranchCondition::ANY:
       instructions.emplace_back(MachineInstruction::JMP_IMM, std::vector<std::string>{trueLabel});

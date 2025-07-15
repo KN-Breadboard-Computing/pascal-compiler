@@ -2,65 +2,10 @@
 #include <ranges>
 
 #include "gtest/gtest.h"
-
-#include "../src/ast/program_node.hpp"
-#include "../src/bblocks/bb_ssa_generator.hpp"
-#include "../src/machine_code/machine_code_generator.hpp"
-#include "emulator_connector.hpp"
+#include "test_utils.hpp"
 
 using namespace bblocks;
 using namespace machine_code;
-
-void translateBasicBlockToBinaryCode(const std::vector<std::string>& readVariables,
-                                     const std::vector<std::string>& writeVariables, BasicBlock&& basicBlock,
-                                     uint16_t variablesOffset, std::vector<uint8_t>& binaryCode) {
-  constexpr std::size_t readVariableStepsNumber = 1;
-  constexpr std::size_t writeVariableStepsNumber = 1;
-
-  for (const auto& variable : std::ranges::views::reverse(readVariables)) {
-    std::vector<BBCall::Argument> readArguments;
-    readArguments.emplace_back(BBCall::Argument::Type::VARIABLE_DEF, variable, 0);
-    basicBlock.addInstructionToStart(std::make_unique<BBCall>("read", std::move(readArguments), false));
-  }
-
-  for (const auto& variable : writeVariables) {
-    std::vector<BBCall::Argument> writeArguments;
-    writeArguments.emplace_back(BBCall::Argument::Type::VARIABLE_USE, variable, 0);
-    basicBlock.addInstruction(std::make_unique<BBCall>("write", std::move(writeArguments), false));
-  }
-
-  basicBlock.addInstruction(std::make_unique<BBHalt>());
-
-  BBControlFlowGraph functionCfg{"main", basicBlock};
-  std::map<std::string, BBControlFlowGraph> programCfg = {{"program", functionCfg}};
-
-  MachineCodeGenerator machineCodeGenerator;
-  machineCodeGenerator.generate(programCfg, MachineCodeGenerator::RegisterAllocator::LINEAR_SCAN, variablesOffset);
-
-  binaryCode = machineCodeGenerator.getBinaryCode();
-  binaryCode.erase(binaryCode.begin(), binaryCode.begin() + readVariableStepsNumber * readVariables.size());
-  binaryCode.erase(binaryCode.end() - writeVariableStepsNumber * writeVariables.size() - 1, binaryCode.end());
-}
-
-void prepareEmulatorForTest(EmulatorConnector& emulator, const std::vector<uint8_t>& binaryCode,
-                            const std::map<uint16_t, uint8_t>& nonZeroMemory = {}, uint8_t registerA = 0, uint8_t registerB = 0,
-                            uint16_t instructionCounter = 0x0000, uint16_t stackPointer = 0xFFFF) {
-  emulator.clearMemory();
-  for (const auto& [address, value] : nonZeroMemory) {
-    emulator.setMemory(address, value);
-  }
-
-  emulator.loadRom(binaryCode);
-
-  emulator.setRegA(registerA);
-  emulator.setRegB(registerB);
-
-  emulator.setPc(instructionCounter);
-  emulator.setStc(stackPointer);
-
-  emulator.setClockCyclesCounter(0);
-  emulator.setInstructionCounter(0);
-}
 
 /* Register allocation result for movesVV programs (short/long address):
  *
@@ -68,23 +13,18 @@ void prepareEmulatorForTest(EmulatorConnector& emulator, const std::vector<uint8
  * dst1 -> [32/1024], dst2 -> regB, dst3 -> regA, dst4 -> [33/1025]
 */
 
-TEST(instructionToBinaryCodeConversion, movesVV_RegisterToRegister) {
+TEST(movInstructionToBinaryCodeConversion, movesVV_RegisterToRegister) {
   // move register to register - any register need memory cell (short address)    - case dst2 := src2
   // move register to register - first register need memory cell (short address)  - case dst3 := src3
   // move register to register - second register need memory cell (short address) - case dst1 := src1
   // move register to register - each register need memory cell (short address)   - case dst4 := src4
   BasicBlock basicBlock1;
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
   std::vector<uint8_t> binaryCode1;
-  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1),
-                                  1 << 5, binaryCode1);
+  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 5, binaryCode1);
 
   ASSERT_EQ(binaryCode1.size(), 9);
 
@@ -121,17 +61,12 @@ TEST(instructionToBinaryCodeConversion, movesVV_RegisterToRegister) {
   // move register to register - second register need memory cell (long address) - case dst1 := src1
   // move register to register - each register need memory cell (long address)   - case dst4 := src4
   BasicBlock basicBlock2;
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
   std::vector<uint8_t> binaryCode2;
-  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock2),
-                                  1 << 10, binaryCode2);
+  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock2), 1 << 10, binaryCode2);
 
   ASSERT_EQ(binaryCode2.size(), 13);
 
@@ -164,23 +99,18 @@ TEST(instructionToBinaryCodeConversion, movesVV_RegisterToRegister) {
   ASSERT_EQ(emulator2.getMemorySnapshot(), memorySnapshot2);
 }
 
-TEST(instructionToBinaryCodeConversion, movesVV_RegisterToMemory) {
+TEST(movInstructionToBinaryCodeConversion, movesVV_RegisterToMemory) {
   // move register to memory - any register need memory cell (short address)    - case [dst2] := src2
   // move register to memory - first register need memory cell (short address)  - case [dst3] := src3
   // move register to memory - second register need memory cell (short address) - case [dst1] := src1
   // move register to memory - each register need memory cell (short address)   - case [dst4] := src4
   BasicBlock basicBlock1;
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
   std::vector<uint8_t> binaryCode1;
-  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1),
-                                  1 << 5, binaryCode1);
+  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 5, binaryCode1);
 
   ASSERT_EQ(binaryCode1.size(), 16);
 
@@ -221,17 +151,12 @@ TEST(instructionToBinaryCodeConversion, movesVV_RegisterToMemory) {
   // move register to memory - second register need memory cell (long address)  - case [dst1] := src1
   // move register to memory - each register need memory cell (long address)    - case [dst4] := src4
   BasicBlock basicBlock2;
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
   std::vector<uint8_t> binaryCode2;
-  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock2),
-                                  1 << 10, binaryCode2);
+  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock2), 1 << 10, binaryCode2);
 
   ASSERT_EQ(binaryCode2.size(), 20);
 
@@ -268,30 +193,23 @@ TEST(instructionToBinaryCodeConversion, movesVV_RegisterToMemory) {
   ASSERT_EQ(emulator2.getMemorySnapshot(), memorySnapshot2);
 }
 
-TEST(instructionToBinaryCodeConversion, movesVV_MemoryToRegister) {
+TEST(movInstructionToBinaryCodeConversion, movesVV_MemoryToRegister) {
   // move memory to register - any register need memory cell (short address)    - case dst2 := [src2]
   // move memory to register - first register need memory cell (short address)  - case dst3 := [src3]
   // move memory to register - second register need memory cell (short address) - case dst1 := [src1]
   // move memory to register - each register need memory cell (short address)   - case dst4 := [src4]
   BasicBlock basicBlock1;
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
   std::vector<uint8_t> binaryCode1;
-  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1),
-                                  1 << 5, binaryCode1);
+  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 5, binaryCode1);
 
   ASSERT_EQ(binaryCode1.size(), 18);
 
   EmulatorConnector emulator1;
-  prepareEmulatorForTest(
-      emulator1, binaryCode1,
-      {{32, 67}, {33, 71}, {34, 77}, {35, 81}, {67, 87}, {71, 101}, {77, 107}, {81, 111}, {92, 112}, {97, 117}}, 92, 97);
+  prepareEmulatorForTest(emulator1, binaryCode1, {{32, 67}, {33, 71}, {34, 77}, {35, 81}, {67, 87}, {71, 101}, {77, 107}, {81, 111}, {92, 112}, {97, 117}}, 92, 97);
   std::vector<uint8_t> memorySnapshot1 = emulator1.getMemorySnapshot();
 
   emulator1.runInstructions(4);  // dst1 := [src1]  ->  [32] := [regB]
@@ -323,24 +241,17 @@ TEST(instructionToBinaryCodeConversion, movesVV_MemoryToRegister) {
   // move memory to register - second register need memory cell (long address) - case dst1 := [src1]
   // move memory to register - each register need memory cell (long address)   - case dst4 := [src4]
   BasicBlock basicBlock2;
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
   std::vector<uint8_t> binaryCode2;
-  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock2),
-                                  1 << 10, binaryCode2);
+  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock2), 1 << 10, binaryCode2);
 
   ASSERT_EQ(binaryCode2.size(), 22);
 
   EmulatorConnector emulator2;
-  prepareEmulatorForTest(
-      emulator2, binaryCode2,
-      {{1024, 67}, {1025, 71}, {1026, 77}, {1027, 81}, {67, 87}, {71, 101}, {77, 107}, {81, 111}, {92, 112}, {97, 117}}, 92, 97);
+  prepareEmulatorForTest(emulator2, binaryCode2, {{1024, 67}, {1025, 71}, {1026, 77}, {1027, 81}, {67, 87}, {71, 101}, {77, 107}, {81, 111}, {92, 112}, {97, 117}}, 92, 97);
   std::vector<uint8_t> memorySnapshot2 = emulator2.getMemorySnapshot();
 
   emulator2.runInstructions(4);  // dst1 := [src1]  ->  [1024] := [regB]
@@ -368,30 +279,23 @@ TEST(instructionToBinaryCodeConversion, movesVV_MemoryToRegister) {
   ASSERT_EQ(emulator2.getMemorySnapshot(), memorySnapshot2);
 }
 
-TEST(instructionToBinaryCodeConversion, movesVV_MemoryToMemory) {
+TEST(movInstructionToBinaryCodeConversion, movesVV_MemoryToMemory) {
   // move memory to memory - any register need memory cell (short address)    - case [dst2] := [src2]
   // move memory to memory - first register need memory cell (short address)  - case [dst3] := [src3]
   // move memory to memory - second register need memory cell (short address) - case [dst1] := [src1]
   // move memory to memory - each register need memory cell (short address)   - case [dst4] := [src4]
   BasicBlock basicBlock1;
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
   std::vector<uint8_t> binaryCode1;
-  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1),
-                                  1 << 5, binaryCode1);
+  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 5, binaryCode1);
 
   ASSERT_EQ(binaryCode1.size(), 24);
 
   EmulatorConnector emulator1;
-  prepareEmulatorForTest(
-      emulator1, binaryCode1,
-      {{32, 67}, {33, 71}, {34, 77}, {35, 81}, {67, 87}, {71, 101}, {77, 107}, {81, 111}, {92, 112}, {97, 117}}, 92, 97);
+  prepareEmulatorForTest(emulator1, binaryCode1, {{32, 67}, {33, 71}, {34, 77}, {35, 81}, {67, 87}, {71, 101}, {77, 107}, {81, 111}, {92, 112}, {97, 117}}, 92, 97);
   std::vector<uint8_t> memorySnapshot1 = emulator1.getMemorySnapshot();
 
   emulator1.runInstructions(5);  // [dst1] := [src1]  ->  [[32]] := [regB]
@@ -427,24 +331,17 @@ TEST(instructionToBinaryCodeConversion, movesVV_MemoryToMemory) {
   // move memory to memory - second register need memory cell (long address) - case [dst1] := [src1]
   // move memory to memory - each register need memory cell (long address)   - case [dst4] := [src4]
   BasicBlock basicBlock2;
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src1", "dst1", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src2", "dst2", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
   std::vector<uint8_t> binaryCode2;
-  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock2),
-                                  1 << 10, binaryCode2);
+  translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock2), 1 << 10, binaryCode2);
 
   ASSERT_EQ(binaryCode2.size(), 28);
 
   EmulatorConnector emulator2;
-  prepareEmulatorForTest(
-      emulator2, binaryCode2,
-      {{1024, 67}, {1025, 71}, {1026, 77}, {1027, 81}, {67, 87}, {71, 101}, {77, 107}, {81, 111}, {92, 112}, {97, 117}}, 92, 97);
+  prepareEmulatorForTest(emulator2, binaryCode2, {{1024, 67}, {1025, 71}, {1026, 77}, {1027, 81}, {67, 87}, {71, 101}, {77, 107}, {81, 111}, {92, 112}, {97, 117}}, 92, 97);
   std::vector<uint8_t> memorySnapshot2 = emulator2.getMemorySnapshot();
 
   emulator2.runInstructions(5);  // [dst1] := [src1]  ->  [[1024]] := [regB]
@@ -481,20 +378,16 @@ TEST(instructionToBinaryCodeConversion, movesVV_MemoryToMemory) {
  * src1 -> regB, src2 -> regA, src3 -> [32/1024], src4 -> [33/1025]
 */
 
-TEST(instructionToBinaryCodeConversion, movesVN_RegisterToMemory) {
+TEST(movInstructionToBinaryCodeConversion, movesVN_RegisterToMemory) {
   // move register to memory - register does not need memory cell (uint8, short address)      - case [42] := src1
   // move register to memory - register does not need memory cell (uint16, short address)     - case [1410] := src2
   // move register to memory - register need memory cell (uint8, short address)               - case [42] := src3
   // move register to memory - register need memory cell (uint16, short address)              - case [1410] := src4
   BasicBlock basicBlock1;
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVN>("src1", 42, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVN>("src2", 1410, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVN>("src3", 42, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVN>("src4", 1410, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVN>("src1", 42, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVN>("src2", 1410, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVN>("src3", 42, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVN>("src4", 1410, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
   std::vector<uint8_t> binaryCode1;
   translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {}, std::move(basicBlock1), 1 << 5, binaryCode1);
 
@@ -537,14 +430,10 @@ TEST(instructionToBinaryCodeConversion, movesVN_RegisterToMemory) {
   // move register to memory - register need memory cell (uint8, long address)               - case [42] := src3
   // move register to memory - register need memory cell (uint16, long address)              - case [1410] := src4
   BasicBlock basicBlock2;
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVN>("src1", 42, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVN>("src2", 1410, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVN>("src3", 42, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVN>("src4", 1410, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVN>("src1", 42, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVN>("src2", 1410, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVN>("src3", 42, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVN>("src4", 1410, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
   std::vector<uint8_t> binaryCode2;
   translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {}, std::move(basicBlock2), 1 << 10, binaryCode2);
 
@@ -583,20 +472,16 @@ TEST(instructionToBinaryCodeConversion, movesVN_RegisterToMemory) {
   ASSERT_EQ(emulator2.getMemorySnapshot(), memorySnapshot2);
 }
 
-TEST(instructionToBinaryCodeConversion, movesVN_MemoryToMemory) {
+TEST(movInstructionToBinaryCodeConversion, movesVN_MemoryToMemory) {
   // move memory to memory - register does not need memory cell (uint8, short address)    - case [42] := [src1]
   // move memory to memory - register does not need memory cell (uint16, short address)   - case [1410] := [src2]
   // move memory to memory - register need memory cell (uint8, short address)             - case [42] := [src3]
   // move memory to memory - register need memory cell (uint16, short address)            - case [1410] := [src4]
   BasicBlock basicBlock1;
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVN>("src1", 42, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVN>("src2", 1410, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVN>("src3", 42, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveVN>("src4", 1410, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVN>("src1", 42, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVN>("src2", 1410, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVN>("src3", 42, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveVN>("src4", 1410, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
   std::vector<uint8_t> binaryCode1;
   translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {}, std::move(basicBlock1), 1 << 5, binaryCode1);
 
@@ -639,14 +524,10 @@ TEST(instructionToBinaryCodeConversion, movesVN_MemoryToMemory) {
   // move memory to memory - register need memory cell (uint8, long address)              - case [42] := [src3]
   // move memory to memory - register need memory cell (uint16, long address)             - case [1410] := [src4]
   BasicBlock basicBlock2;
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVN>("src1", 42, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVN>("src2", 1410, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVN>("src3", 42, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveVN>("src4", 1410, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVN>("src1", 42, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVN>("src2", 1410, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVN>("src3", 42, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveVN>("src4", 1410, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
   std::vector<uint8_t> binaryCode2;
   translateBasicBlockToBinaryCode({"src1", "src2", "src3", "src4"}, {}, std::move(basicBlock2), 1 << 10, binaryCode2);
 
@@ -687,17 +568,15 @@ TEST(instructionToBinaryCodeConversion, movesVN_MemoryToMemory) {
 
 /* Register allocation result for movesNV programs (short/long address):
  *
- * dst1 -> regB, dst2 -> regA, dst3 -> [32/1024]
+ * dst1 -> regB, dst2 -> regA, dst3 -> [32/1024], dst4 -> [33/1025]
 */
 
-TEST(instructionToBinaryCodeConversion, movesNV_ConstantToRegister) {
+TEST(movInstructionToBinaryCodeConversion, movesNV_ConstantToRegister) {
   // move constant to register - register does not need memory cell (short address)   - case dst2 := 42
   // move constant to register - register need memory cell (short address)            - case dst3 := 42
   BasicBlock basicBlock1;
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst2", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNV>(42, "dst2", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
   std::vector<uint8_t> binaryCode1;
   translateBasicBlockToBinaryCode({"dst1"}, {"dst1", "dst2", "dst3"}, std::move(basicBlock1), 1 << 5, binaryCode1);
 
@@ -722,10 +601,8 @@ TEST(instructionToBinaryCodeConversion, movesNV_ConstantToRegister) {
   // move constant to register - register does not need memory cell (long address)   - case dst2 := 42
   // move constant to register - register need memory cell (long address)            - case dst3 := 42
   BasicBlock basicBlock2;
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst2", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
+  basicBlock2.addInstruction(std::make_unique<BBMoveNV>(42, "dst2", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
+  basicBlock2.addInstruction(std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
   std::vector<uint8_t> binaryCode2;
   translateBasicBlockToBinaryCode({"dst1"}, {"dst1", "dst2", "dst3"}, std::move(basicBlock2), 1 << 10, binaryCode2);
 
@@ -748,14 +625,12 @@ TEST(instructionToBinaryCodeConversion, movesNV_ConstantToRegister) {
   ASSERT_EQ(emulator2.getMemorySnapshot(), memorySnapshot2);
 }
 
-TEST(instructionToBinaryCodeConversion, movesNV_ConstantToMemory) {
+TEST(movInstructionToBinaryCodeConversion, movesNV_ConstantToMemory) {
   // move constant to memory - register does not need memory cell (short address)   - case [dst2] := 42
   // move constant to memory - register need memory cell (short address)            - case [dst3] := 42
   BasicBlock basicBlock1;
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst2", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNV>(42, "dst2", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::MEMORY));
   std::vector<uint8_t> binaryCode1;
   translateBasicBlockToBinaryCode({"dst1"}, {"dst1", "dst2", "dst3"}, std::move(basicBlock1), 1 << 5, binaryCode1);
 
@@ -782,10 +657,8 @@ TEST(instructionToBinaryCodeConversion, movesNV_ConstantToMemory) {
   // move constant to memory - register does not need memory cell (long address)   - case [dst2] := 42
   // move constant to memory - register need memory cell (long address)            - case [dst3] := 42
   BasicBlock basicBlock2;
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst2", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveNV>(42, "dst2", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::MEMORY));
   std::vector<uint8_t> binaryCode2;
   translateBasicBlockToBinaryCode({"dst1"}, {"dst1", "dst2", "dst3"}, std::move(basicBlock2), 1 << 10, binaryCode2);
 
@@ -810,25 +683,16 @@ TEST(instructionToBinaryCodeConversion, movesNV_ConstantToMemory) {
   ASSERT_EQ(emulator2.getMemorySnapshot(), memorySnapshot2);
 }
 
-/* Register allocation result for movesNV programs (short/long address):
- *
- * dst1 -> regB, dst2 -> regA, dst3 -> [32/1024], dst4 -> [33, 1025]
-*/
-
-TEST(instructionToBinaryCodeConversion, movesNV_MemoryToRegister) {
+TEST(movInstructionToBinaryCodeConversion, movesNV_MemoryToRegister) {
   // move memory to register - register does not need memory cell (uint8, short address)      - case dst1 := [42]
   // move memory to register - register does not need memory cell (uint16, short address)     - case dst2 := [1410]
   // move memory to register - register need memory cell (uint8, short address)               - case dst3 := [42]
   // move memory to register - register need memory cell (uint16, short address)              - case dst4 := [1410]
   BasicBlock basicBlock1;
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst1", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNV>(1410, "dst2", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNV>(1410, "dst4", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNV>(42, "dst1", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNV>(1410, "dst2", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNV>(1410, "dst4", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
   std::vector<uint8_t> binaryCode1;
   translateBasicBlockToBinaryCode({}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 5, binaryCode1);
 
@@ -867,14 +731,10 @@ TEST(instructionToBinaryCodeConversion, movesNV_MemoryToRegister) {
   // move memory to register - register need memory cell (uint8, long address)                - case dst3 := [42]
   // move memory to register - register need memory cell (uint16, long address)               - case dst4 := [1410]
   BasicBlock basicBlock2;
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst1", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveNV>(1410, "dst2", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveNV>(1410, "dst4", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
+  basicBlock2.addInstruction(std::make_unique<BBMoveNV>(42, "dst1", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
+  basicBlock2.addInstruction(std::make_unique<BBMoveNV>(1410, "dst2", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
+  basicBlock2.addInstruction(std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
+  basicBlock2.addInstruction(std::make_unique<BBMoveNV>(1410, "dst4", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
   std::vector<uint8_t> binaryCode2;
   translateBasicBlockToBinaryCode({}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock2), 1 << 10, binaryCode2);
 
@@ -909,20 +769,16 @@ TEST(instructionToBinaryCodeConversion, movesNV_MemoryToRegister) {
   ASSERT_EQ(emulator2.getMemorySnapshot(), memorySnapshot2);
 }
 
-TEST(instructionToBinaryCodeConversion, movesNV_MemoryToMemory) {
+TEST(movInstructionToBinaryCodeConversion, movesNV_MemoryToMemory) {
   // move memory to memory - register does not need memory cell (uint8, short address)        - case [dst1] := [42]
   // move memory to memory - register does not need memory cell (uint16, short address)       - case [dst2] := [1410]
   // move memory to memory - register need memory cell (uint8, short address)                 - case [dst3] := [42]
   // move memory to memory - register need memory cell (uint16, short address)                - case [dst4] := [1410]
   BasicBlock basicBlock1;
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst1", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNV>(1410, "dst2", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNV>(1410, "dst4", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNV>(42, "dst1", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNV>(1410, "dst2", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNV>(1410, "dst4", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
   std::vector<uint8_t> binaryCode1;
   translateBasicBlockToBinaryCode({}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 5, binaryCode1);
 
@@ -965,14 +821,10 @@ TEST(instructionToBinaryCodeConversion, movesNV_MemoryToMemory) {
   // move memory to memory - register need memory cell (uint8, long address)                  - case [dst3] := [42]
   // move memory to memory - register need memory cell (uint16, long address)                 - case [dst4] := [1410]
   BasicBlock basicBlock2;
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst1", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveNV>(1410, "dst2", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
-  basicBlock2.addInstruction(
-      std::make_unique<BBMoveNV>(1410, "dst4", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveNV>(42, "dst1", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveNV>(1410, "dst2", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
+  basicBlock2.addInstruction(std::make_unique<BBMoveNV>(1410, "dst4", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
   std::vector<uint8_t> binaryCode2;
   translateBasicBlockToBinaryCode({}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock2), 1 << 10, binaryCode2);
 
@@ -1011,14 +863,12 @@ TEST(instructionToBinaryCodeConversion, movesNV_MemoryToMemory) {
   ASSERT_EQ(emulator2.getMemorySnapshot(), memorySnapshot2);
 }
 
-TEST(instructionToBinaryCodeConversion, movesNN_ConstantToMemory) {
+TEST(movInstructionToBinaryCodeConversion, movesNN_ConstantToMemory) {
   // move constant to memory - int8     - case [42] := 37
   // move constant to memory - int16    - case [1410] := 37
   BasicBlock basicBlock1;
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNN>(37, 42, BBMoveNN::SourceType::CONSTANT, BBMoveNN::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNN>(37, 1410, BBMoveNN::SourceType::CONSTANT, BBMoveNN::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNN>(37, 42, BBMoveNN::SourceType::CONSTANT, BBMoveNN::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNN>(37, 1410, BBMoveNN::SourceType::CONSTANT, BBMoveNN::DestinationType::MEMORY));
   std::vector<uint8_t> binaryCode1;
   translateBasicBlockToBinaryCode({}, {}, std::move(basicBlock1), 1 << 5, binaryCode1);
 
@@ -1043,19 +893,16 @@ TEST(instructionToBinaryCodeConversion, movesNN_ConstantToMemory) {
   ASSERT_EQ(emulator1.getMemorySnapshot(), memorySnapshot1);
 }
 
-TEST(instructionToBinaryCodeConversion, movesNN_MemoryToMemory) {
+TEST(movInstructionToBinaryCodeConversion, movesNN_MemoryToMemory) {
   // move memory to memory - int8, int8     - case [37] := [42]
   // move memory to memory - int8, int16    - case [1410] := [42]
   // move memory to memory - int16, int8    - case [37] := [1920]
   // move memory to memory - int16, int16   - case [1410] := [1920]
   BasicBlock basicBlock1;
   basicBlock1.addInstruction(std::make_unique<BBMoveNN>(42, 37, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNN>(42, 1410, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNN>(1920, 37, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
-  basicBlock1.addInstruction(
-      std::make_unique<BBMoveNN>(1920, 1410, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNN>(42, 1410, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNN>(1920, 37, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
+  basicBlock1.addInstruction(std::make_unique<BBMoveNN>(1920, 1410, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
   std::vector<uint8_t> binaryCode1;
   translateBasicBlockToBinaryCode({}, {}, std::move(basicBlock1), 1 << 5, binaryCode1);
 

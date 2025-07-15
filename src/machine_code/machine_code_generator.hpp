@@ -48,12 +48,9 @@ class MachineCodeGenerator {
 
   ~MachineCodeGenerator() = default;
 
-  void generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg, RegisterAllocator allocator,
-                uint16_t variablesOffset);
+  void generate(const std::map<std::string, bblocks::BBControlFlowGraph>& cfg, RegisterAllocator allocator, uint16_t variablesOffset);
 
-  const std::map<std::string, std::vector<LiveRange>>& getLiveRanges(const std::string& name) const {
-    return liveRanges_.at(name).getLiveRanges();
-  }
+  const std::map<std::string, std::vector<LiveRange>>& getLiveRanges(const std::string& name) const { return liveRanges_.at(name).getLiveRanges(); }
   void saveLiveRanges(std::ostream& output) const;
 
   const std::map<std::string, std::vector<MachineInstruction>>& getMachineCode() const { return machineCode_; }
@@ -104,12 +101,36 @@ class MachineCodeGenerator {
   std::vector<MachineInstruction> generateUnaryOperation(const bblocks::BBUnaryOperationVN& instruction);
   std::vector<MachineInstruction> generateUnaryOperation(const bblocks::BBUnaryOperationNV& instruction);
   std::vector<MachineInstruction> generateUnaryOperation(const bblocks::BBUnaryOperationNN& instruction);
-  std::vector<MachineInstruction> generateUnaryOperationRegReg(int src, int dest, bblocks::BBUnaryOperationEnum type);
-  std::vector<MachineInstruction> generateUnaryOperationRegMem(int src, uint16_t dest, bblocks::BBUnaryOperationEnum type);
-  std::vector<MachineInstruction> generateUnaryOperationMemReg(uint16_t src, int dest, bblocks::BBUnaryOperationEnum type);
-  std::vector<MachineInstruction> generateUnaryOperationMemMem(uint16_t src, uint16_t dest, bblocks::BBUnaryOperationEnum type);
-  std::vector<MachineInstruction> generateUnaryOperationConstReg(uint8_t src, int dest, bblocks::BBUnaryOperationEnum type);
-  std::vector<MachineInstruction> generateUnaryOperationConstMem(uint8_t src, uint16_t dest, bblocks::BBUnaryOperationEnum type);
+
+  std::vector<MachineInstruction> generateUnOpConstReg(uint8_t src, int dest, bblocks::BBUnaryOperationEnum op);                        // reg := op(const)
+  std::vector<MachineInstruction> generateUnOpConstMem(uint8_t src, uint16_t dest, bblocks::BBUnaryOperationEnum op);                   // [addr] := op(const)
+  std::vector<MachineInstruction> generateUnOpConstMemImmReg(uint8_t src, int immDest, bblocks::BBUnaryOperationEnum op);               // [reg] := op(const)
+  std::vector<MachineInstruction> generateUnOpConstMemImmMem(uint8_t src, uint16_t immDest, bblocks::BBUnaryOperationEnum op);          // [[addr]] := op(const)
+  std::vector<MachineInstruction> generateUnOpRegReg(int src, int dest, bblocks::BBUnaryOperationEnum op);                              // reg := op(reg)
+  std::vector<MachineInstruction> generateUnOpRegMem(int src, uint16_t dest, bblocks::BBUnaryOperationEnum op);                         // [addr] := op(reg)
+  std::vector<MachineInstruction> generateUnOpRegMemImmReg(int src, int immDest, bblocks::BBUnaryOperationEnum op);                     // [reg] := op(reg)
+  std::vector<MachineInstruction> generateUnOpRegMemImmMem(int src, uint16_t immDest, bblocks::BBUnaryOperationEnum op);                // [[addr]] := op(reg)
+  std::vector<MachineInstruction> generateUnOpMemReg(uint16_t src, int dest, bblocks::BBUnaryOperationEnum op);                         // reg := op([addr])
+  std::vector<MachineInstruction> generateUnOpMemMem(uint16_t src, uint16_t dest, bblocks::BBUnaryOperationEnum op);                    // [addr] := op([addr])
+  std::vector<MachineInstruction> generateUnOpMemMemImmReg(uint16_t src, int immDest, bblocks::BBUnaryOperationEnum op);                // [reg] := op([addr])
+  std::vector<MachineInstruction> generateUnOpMemMemImmMem(uint16_t src, uint16_t immDest, bblocks::BBUnaryOperationEnum op);           // [[addr]] := op([addr])
+  std::vector<MachineInstruction> generateUnOpMemImmRegReg(int immSrc, int dest, bblocks::BBUnaryOperationEnum op);                     // reg := op([reg])
+  std::vector<MachineInstruction> generateUnOpMemImmRegMem(int immSrc, uint16_t dest, bblocks::BBUnaryOperationEnum op);                // [addr] := op([reg])
+  std::vector<MachineInstruction> generateUnOpMemImmRegMemImmReg(int immSrc, int immDest, bblocks::BBUnaryOperationEnum op);            // [reg] := op([reg])
+  std::vector<MachineInstruction> generateUnOpMemImmRegMemImmMem(int immSrc, uint16_t immDest, bblocks::BBUnaryOperationEnum op);       // [[addr]] := op([reg])
+  std::vector<MachineInstruction> generateUnOpMemImmMemReg(uint16_t immSrc, int dest, bblocks::BBUnaryOperationEnum op);                // reg := op([[addr]])
+  std::vector<MachineInstruction> generateUnOpMemImmMemMem(uint16_t immSrc, uint16_t dest, bblocks::BBUnaryOperationEnum op);           // [addr] := op([[addr]])
+  std::vector<MachineInstruction> generateUnOpMemImmMemMemImmReg(uint16_t immSrc, int immDest, bblocks::BBUnaryOperationEnum op);       // [reg] := op([[addr]])
+  std::vector<MachineInstruction> generateUnOpMemImmMemMemImmMem(uint16_t immSrc, uint16_t immDest, bblocks::BBUnaryOperationEnum op);  // [[addr]] := op([[addr]])
+
+  void generateUnaryOperatorAA(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op);
+  void generateUnaryOperatorAB(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op);
+  void generateUnaryOperatorBA(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op);
+  void generateUnaryOperatorBB(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op);
+  void generateUnaryOperatorAMem(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op, uint16_t dest);
+  void generateUnaryOperatorBMem(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op, uint16_t dest);
+  void generateUnaryOperatorAStc(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op);
+  void generateUnaryOperatorBStc(std::vector<MachineInstruction>& ins, bblocks::BBUnaryOperationEnum op);
 
   std::vector<MachineInstruction> generateBinaryOperation(const bblocks::BBBinaryOperationVVV& instruction);
   std::vector<MachineInstruction> generateBinaryOperation(const bblocks::BBBinaryOperationVVN& instruction);
@@ -119,33 +140,22 @@ class MachineCodeGenerator {
   std::vector<MachineInstruction> generateBinaryOperation(const bblocks::BBBinaryOperationNVN& instruction);
   std::vector<MachineInstruction> generateBinaryOperation(const bblocks::BBBinaryOperationNNV& instruction);
   std::vector<MachineInstruction> generateBinaryOperation(const bblocks::BBBinaryOperationNNN& instruction);
-  std::vector<MachineInstruction> generateBinaryOperationRegRegReg(int src1, int src2, int dest,
-                                                                   bblocks::BBBinaryOperationEnum type);
-  std::vector<MachineInstruction> generateBinaryOperationRegRegMem(int src1, int src2, uint16_t dest,
-                                                                   bblocks::BBBinaryOperationEnum type);
-  std::vector<MachineInstruction> generateBinaryOperationRegMemReg(int src1, uint16_t src2, int dest,
-                                                                   bblocks::BBBinaryOperationEnum type);
-  std::vector<MachineInstruction> generateBinaryOperationRegMemMem(int src1, uint16_t src2, uint16_t dest,
-                                                                   bblocks::BBBinaryOperationEnum type);
-  std::vector<MachineInstruction> generateBinaryOperationMemRegReg(uint16_t src1, int src2, int dest,
-                                                                   bblocks::BBBinaryOperationEnum type);
-  std::vector<MachineInstruction> generateBinaryOperationMemRegMem(uint16_t src1, int src2, uint16_t dest,
-                                                                   bblocks::BBBinaryOperationEnum type);
-  std::vector<MachineInstruction> generateBinaryOperationMemMemReg(uint16_t src1, uint16_t src2, int dest,
-                                                                   bblocks::BBBinaryOperationEnum type);
-  std::vector<MachineInstruction> generateBinaryOperationMemMemMem(uint16_t src1, uint16_t src2, uint16_t dest,
-                                                                   bblocks::BBBinaryOperationEnum type);
+
+  std::vector<MachineInstruction> generateBinaryOperationRegRegReg(int src1, int src2, int dest, bblocks::BBBinaryOperationEnum type);
+  std::vector<MachineInstruction> generateBinaryOperationRegRegMem(int src1, int src2, uint16_t dest, bblocks::BBBinaryOperationEnum type);
+  std::vector<MachineInstruction> generateBinaryOperationRegMemReg(int src1, uint16_t src2, int dest, bblocks::BBBinaryOperationEnum type);
+  std::vector<MachineInstruction> generateBinaryOperationRegMemMem(int src1, uint16_t src2, uint16_t dest, bblocks::BBBinaryOperationEnum type);
+  std::vector<MachineInstruction> generateBinaryOperationMemRegReg(uint16_t src1, int src2, int dest, bblocks::BBBinaryOperationEnum type);
+  std::vector<MachineInstruction> generateBinaryOperationMemRegMem(uint16_t src1, int src2, uint16_t dest, bblocks::BBBinaryOperationEnum type);
+  std::vector<MachineInstruction> generateBinaryOperationMemMemReg(uint16_t src1, uint16_t src2, int dest, bblocks::BBBinaryOperationEnum type);
+  std::vector<MachineInstruction> generateBinaryOperationMemMemMem(uint16_t src1, uint16_t src2, uint16_t dest, bblocks::BBBinaryOperationEnum type);
 
   std::vector<MachineInstruction> generateBranch(const bblocks::BBBranchV& instruction);
   std::vector<MachineInstruction> generateBranch(const bblocks::BBBranchN& instruction);
-  std::vector<MachineInstruction> generateBranchReg(int val, bblocks::BBBranchCondition condition, const std::string& trueLabel,
-                                                    const std::string& falseLabel);
-  std::vector<MachineInstruction> generateBranchMem(uint16_t val, bblocks::BBBranchCondition condition,
-                                                    const std::string& trueLabel, const std::string& falseLabel);
-  std::vector<MachineInstruction> generateBranchConst(uint8_t val, bblocks::BBBranchCondition condition,
-                                                      const std::string& trueLabel, const std::string& falseLabel);
-  void appendBranchJumps(std::vector<MachineInstruction>& instructions, bblocks::BBBranchCondition condition,
-                         const std::string& trueLabel, const std::string& falseLabel);
+  std::vector<MachineInstruction> generateBranchReg(int val, bblocks::BBBranchCondition condition, const std::string& trueLabel, const std::string& falseLabel);
+  std::vector<MachineInstruction> generateBranchMem(uint16_t val, bblocks::BBBranchCondition condition, const std::string& trueLabel, const std::string& falseLabel);
+  std::vector<MachineInstruction> generateBranchConst(uint8_t val, bblocks::BBBranchCondition condition, const std::string& trueLabel, const std::string& falseLabel);
+  void appendBranchJumps(std::vector<MachineInstruction>& instructions, bblocks::BBBranchCondition condition, const std::string& trueLabel, const std::string& falseLabel);
 
   std::vector<MachineInstruction> generateCall(const bblocks::BBCall& instruction);
   std::vector<MachineInstruction> generateRet(const bblocks::BBRet& instruction);

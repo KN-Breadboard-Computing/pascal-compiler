@@ -12,8 +12,7 @@ using namespace bblocks;
 
 bool parse(const std::string& inputFileName, std::vector<std::string>& errors, std::unique_ptr<ProgramNode>& program);
 
-void validateSsaBlocks(const std::map<std::string, BBControlFlowGraph> controlFlowGraphs,
-                       const std::string& expectedSsaFilename) {
+void validateSsaBlocks(const std::map<std::string, BBControlFlowGraph> controlFlowGraphs, const std::string& expectedSsaFilename) {
   std::stringstream ssaStream;
   for (const auto& [name, cfg] : controlFlowGraphs) {
     ssaStream << name << ":\n" << cfg << std::endl;
