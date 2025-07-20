@@ -14,12 +14,7 @@ class ForNode : public StatementNode {
 
   ForNode() : StatementNode{Category::FOR}, direction_{UNSPECIFIED} {}
   ForNode(IdentifierNode* iterator, ExpressionNode* start, ExpressionNode* end, StatementNode* statements, Direction direction)
-      : StatementNode{Category::FOR},
-        iterator_{iterator},
-        start_{start},
-        end_{end},
-        statements_{statements},
-        direction_{direction} {}
+      : StatementNode{Category::FOR}, iterator_{iterator}, start_{start}, end_{end}, statements_{statements}, direction_{direction} {}
 
   ForNode(const ForNode&) = delete;
   ForNode(ForNode&&) = default;

@@ -11,8 +11,7 @@ class ExpressionNode : public AstNode {
   enum Operation { MATH, SPECIAL };
 
   ExpressionNode() : AstNode{Type::EXPRESSION} {}
-  ExpressionNode(Operation operation, const std::string& inferredType)
-      : AstNode{Type::EXPRESSION}, operation_{operation}, inferredType_{inferredType} {}
+  ExpressionNode(Operation operation, const std::string& inferredType) : AstNode{Type::EXPRESSION}, operation_{operation}, inferredType_{inferredType} {}
 
   ExpressionNode(const ExpressionNode&) = delete;
   ExpressionNode(ExpressionNode&&) = default;
@@ -35,29 +34,11 @@ class ExpressionNode : public AstNode {
 
 class MathExpressionNode : public ExpressionNode {
  public:
-  enum FunctionName {
-    ADDITION,
-    SUBTRACTION,
-    MULTIPLICATION,
-    DIVISION,
-    MODULUS,
-    NEGATION,
-    AND,
-    OR,
-    NOT,
-    EQUAL,
-    NOT_EQUAL,
-    LESS,
-    LESS_EQUAL,
-    GREATER,
-    GREATER_EQUAL
-  };
+  enum FunctionName { ADDITION, SUBTRACTION, MULTIPLICATION, DIVISION, MODULUS, NEGATION, AND, OR, NOT, EQUAL, NOT_EQUAL, LESS, LESS_EQUAL, GREATER, GREATER_EQUAL };
 
   MathExpressionNode() : ExpressionNode{Operation::MATH, ""} {}
-  MathExpressionNode(ExpressionNode* left, FunctionName functionName, const std::string& inferredType)
-      : ExpressionNode{Operation::MATH, inferredType}, functionName_{functionName}, left_{left}, right_{nullptr} {}
-  MathExpressionNode(ExpressionNode* left, ExpressionNode* right, FunctionName functionName, const std::string& inferredType)
-      : ExpressionNode{Operation::MATH, inferredType}, functionName_{functionName}, left_{left}, right_{right} {}
+  MathExpressionNode(ExpressionNode* left, FunctionName functionName, const std::string& inferredType) : ExpressionNode{Operation::MATH, inferredType}, functionName_{functionName}, left_{left}, right_{nullptr} {}
+  MathExpressionNode(ExpressionNode* left, ExpressionNode* right, FunctionName functionName, const std::string& inferredType) : ExpressionNode{Operation::MATH, inferredType}, functionName_{functionName}, left_{left}, right_{right} {}
 
   FunctionName getFunctionName() const { return functionName_; }
   const std::unique_ptr<ExpressionNode>& getLeft() const { return left_; }
@@ -79,33 +60,12 @@ class MathExpressionNode : public ExpressionNode {
 
 class SpecialExpressionNode : public ExpressionNode {
  public:
-  enum FunctionName {
-    VARIABLE,
-    CALL,
-    ARRAY_ACCESS,
-    CONST,
-    PARENTHESIS,
-    RECORD_ACCESS,
-    ENUM_ELEMENT,
-    ABS,
-    CHR,
-    ORD,
-    ODD,
-    PRED,
-    SUCC,
-    TOINT,
-    TOCHAR,
-    TOBOOL
-  };
+  enum FunctionName { VARIABLE, CALL, ARRAY_ACCESS, CONST, PARENTHESIS, RECORD_ACCESS, ENUM_ELEMENT, ABS, CHR, ORD, ODD, PRED, SUCC, TOINT, TOCHAR, TOBOOL };
 
   SpecialExpressionNode() : ExpressionNode{Operation::SPECIAL, ""} {}
-  SpecialExpressionNode(AstNode* argument1, FunctionName functionName, const std::string& inferredType)
-      : ExpressionNode{Operation::SPECIAL, inferredType}, functionName_{functionName}, argument1_{argument1} {}
+  SpecialExpressionNode(AstNode* argument1, FunctionName functionName, const std::string& inferredType) : ExpressionNode{Operation::SPECIAL, inferredType}, functionName_{functionName}, argument1_{argument1} {}
   SpecialExpressionNode(AstNode* argument1, AstNode* argument2, FunctionName functionName, const std::string& inferredType)
-      : ExpressionNode{Operation::SPECIAL, inferredType},
-        functionName_{functionName},
-        argument1_{argument1},
-        argument2_{argument2} {}
+      : ExpressionNode{Operation::SPECIAL, inferredType}, functionName_{functionName}, argument1_{argument1}, argument2_{argument2} {}
 
   SpecialExpressionNode(const SpecialExpressionNode&) = delete;
   SpecialExpressionNode(SpecialExpressionNode&&) = default;

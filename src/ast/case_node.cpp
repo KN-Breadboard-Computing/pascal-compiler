@@ -7,12 +7,9 @@ void CaseNode::accept(AstVisitor* visitor) const {
 
 [[nodiscard]] std::unique_ptr<AstNode> CaseNode::clone() const {
   ExpressionNode* newExpression = dynamic_cast<ExpressionNode*>(expression_->clone().release());
-  std::vector<std::pair<ExpressionNode*, StatementNode*>*>* newStatements =
-      new std::vector<std::pair<ExpressionNode*, StatementNode*>*>{};
+  std::vector<std::pair<ExpressionNode*, StatementNode*>*>* newStatements = new std::vector<std::pair<ExpressionNode*, StatementNode*>*>{};
   for (auto& statement : *statements_) {
-    newStatements->push_back(
-        new std::pair<ExpressionNode*, StatementNode*>{dynamic_cast<ExpressionNode*>(statement->first->clone().release()),
-                                                       dynamic_cast<StatementNode*>(statement->second->clone().release())});
+    newStatements->push_back(new std::pair<ExpressionNode*, StatementNode*>{dynamic_cast<ExpressionNode*>(statement->first->clone().release()), dynamic_cast<StatementNode*>(statement->second->clone().release())});
   }
 
   return std::make_unique<CaseNode>(newExpression, newStatements);

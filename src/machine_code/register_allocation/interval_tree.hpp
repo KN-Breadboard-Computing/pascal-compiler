@@ -19,9 +19,7 @@ class IntervalTree {
 
   void insert(const std::string& variable, std::size_t start, std::size_t end) { root_ = insert(root_, variable, start, end); }
   void remove(std::size_t start, std::size_t end) { root_ = remove(root_, start, end); }
-  void overlaps(std::size_t start, std::size_t end, std::vector<std::string>& overlapping) const {
-    overlaps(root_, start, end, overlapping);
-  }
+  void overlaps(std::size_t start, std::size_t end, std::vector<std::string>& overlapping) const { overlaps(root_, start, end, overlapping); }
 
  private:
   struct Node {
@@ -32,8 +30,7 @@ class IntervalTree {
     Node* left_;
     Node* right_;
 
-    Node(const std::string& variable, std::size_t start, std::size_t end)
-        : variable_{variable}, start_{start}, end_{end}, maxEnd_{end}, left_{nullptr}, right_{nullptr} {}
+    Node(const std::string& variable, std::size_t start, std::size_t end) : variable_{variable}, start_{start}, end_{end}, maxEnd_{end}, left_{nullptr}, right_{nullptr} {}
   };
 
   Node* root_ = nullptr;

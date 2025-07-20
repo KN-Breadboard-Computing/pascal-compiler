@@ -16,14 +16,8 @@ template <typename ArgT, typename DestT>
 requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstruction {
  public:
   BBUnaryOperation() : BBInstruction(Type::UNARY_OPERATION, true) {}
-  BBUnaryOperation(ArgT source, DestT destination, SourceType sourceType, DestinationType destinationType,
-                   BBUnaryOperationEnum operation)
-      : BBInstruction(Type::UNARY_OPERATION, true),
-        source_{source},
-        destination_{destination},
-        sourceType_{sourceType},
-        destinationType_{destinationType},
-        operation_{operation} {}
+  BBUnaryOperation(ArgT source, DestT destination, SourceType sourceType, DestinationType destinationType, BBUnaryOperationEnum operation)
+      : BBInstruction(Type::UNARY_OPERATION, true), source_{source}, destination_{destination}, sourceType_{sourceType}, destinationType_{destinationType}, operation_{operation} {}
 
   BBUnaryOperation(const BBUnaryOperation&) = default;
   BBUnaryOperation(BBUnaryOperation&&) noexcept = default;
@@ -71,16 +65,13 @@ requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstr
 
   virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const VariableType& to) override {
     if constexpr (std::is_same_v<ArgT, VariableType> && std::is_same_v<DestT, VariableType>) {
-      return std::make_unique<BBUnaryOperation<VariableType, VariableType>>(
-          source_ == from ? to : source_, destination_ == from ? to : destination_, sourceType_, destinationType_, operation_);
+      return std::make_unique<BBUnaryOperation<VariableType, VariableType>>(source_ == from ? to : source_, destination_ == from ? to : destination_, sourceType_, destinationType_, operation_);
     }
     else if constexpr (std::is_same_v<ArgT, VariableType>) {
-      return std::make_unique<BBUnaryOperation<VariableType, DestT>>(source_ == from ? to : source_, destination_, sourceType_,
-                                                                     destinationType_, operation_);
+      return std::make_unique<BBUnaryOperation<VariableType, DestT>>(source_ == from ? to : source_, destination_, sourceType_, destinationType_, operation_);
     }
     else if constexpr (std::is_same_v<DestT, VariableType>) {
-      return std::make_unique<BBUnaryOperation<ArgT, VariableType>>(source_, destination_ == from ? to : destination_,
-                                                                    sourceType_, destinationType_, operation_);
+      return std::make_unique<BBUnaryOperation<ArgT, VariableType>>(source_, destination_ == from ? to : destination_, sourceType_, destinationType_, operation_);
     }
     else {
       return clone();
@@ -95,8 +86,7 @@ requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstr
         return std::make_unique<BBUnaryOperation<NumericType, NumericType>>(to, to, newSourceType, destinationType_, operation_);
       }
       if (source_ == from) {
-        return std::make_unique<BBUnaryOperation<NumericType, VariableType>>(to, destination_, newSourceType, destinationType_,
-                                                                             operation_);
+        return std::make_unique<BBUnaryOperation<NumericType, VariableType>>(to, destination_, newSourceType, destinationType_, operation_);
       }
       if (destination_ == from) {
         return std::make_unique<BBUnaryOperation<ArgT, NumericType>>(source_, to, sourceType_, destinationType_, operation_);
@@ -106,8 +96,7 @@ requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstr
     }
     else if constexpr (std::is_same_v<ArgT, VariableType>) {
       if (source_ == from) {
-        return std::make_unique<BBUnaryOperation<NumericType, DestT>>(to, destination_, newSourceType, destinationType_,
-                                                                      operation_);
+        return std::make_unique<BBUnaryOperation<NumericType, DestT>>(to, destination_, newSourceType, destinationType_, operation_);
       }
 
       return clone();
@@ -142,13 +131,9 @@ requires UnaryOperationArgs<ArgT, DestT> class BBUnaryOperation : public BBInstr
 
   virtual void replaceLabel(const LabelType& /*from*/, const LabelType& /*to*/) override {}
 
-  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override {
-    return std::vector<TemplateArgumentType>{getSourceTemplateType(), getDestinationTemplateType()};
-  }
+  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override { return std::vector<TemplateArgumentType>{getSourceTemplateType(), getDestinationTemplateType()}; }
 
-  virtual std::unique_ptr<BBInstruction> clone() const override {
-    return std::make_unique<BBUnaryOperation<ArgT, DestT>>(source_, destination_, sourceType_, destinationType_, operation_);
-  }
+  virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBUnaryOperation<ArgT, DestT>>(source_, destination_, sourceType_, destinationType_, operation_); }
 
   virtual void print(std::ostream& out, int tab) const override {
     out << std::string(tab, ' ');

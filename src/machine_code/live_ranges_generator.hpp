@@ -28,8 +28,7 @@ class LiveRangesGenerator {
 
   ~LiveRangesGenerator() = default;
 
-  void generate(const bblocks::BBControlFlowGraph& cfg,
-                const std::map<std::string, std::pair<std::size_t, std::size_t>>& blockBounds);
+  void generate(const bblocks::BBControlFlowGraph& cfg, const std::map<std::string, std::pair<std::size_t, std::size_t>>& blockBounds);
 
   [[nodiscard]] const std::map<std::string, std::set<std::string>>& getLiveIn() const { return liveIn_; }
   [[nodiscard]] const std::map<std::string, std::set<std::string>>& getLiveOut() const { return liveOut_; }
@@ -40,14 +39,10 @@ class LiveRangesGenerator {
  private:
   void addDefsAndUses(const std::string& label, const bblocks::BasicBlock& block, std::size_t blockStartEnumerator);
   void computeLiveInAndLiveOut(const bblocks::BBControlFlowGraph& cfg);
-  void computeLiveRanges(const bblocks::BBControlFlowGraph& cfg,
-                         const std::map<std::string, std::pair<std::size_t, std::size_t>>& blockBounds);
-  void computeLiveRangesForVariableAndBlock(const std::string& variable, const std::string& label,
-                                            std::pair<std::size_t, std::size_t> blockBounds, std::vector<LiveRange>& ranges);
-  void computeAllBlockChains(const bblocks::BBControlFlowGraph& cfg, const std::string& variable, const std::string& startLabel,
-                             std::vector<std::vector<std::string>>& blockChains, std::vector<std::string> currentChain);
-  void mergeLiveRanges(const std::string& variable, const std::vector<std::vector<std::string>>& blockChains,
-                       const std::map<std::string, std::map<std::string, std::vector<LiveRange>>>& ranges);
+  void computeLiveRanges(const bblocks::BBControlFlowGraph& cfg, const std::map<std::string, std::pair<std::size_t, std::size_t>>& blockBounds);
+  void computeLiveRangesForVariableAndBlock(const std::string& variable, const std::string& label, std::pair<std::size_t, std::size_t> blockBounds, std::vector<LiveRange>& ranges);
+  void computeAllBlockChains(const bblocks::BBControlFlowGraph& cfg, const std::string& variable, const std::string& startLabel, std::vector<std::vector<std::string>>& blockChains, std::vector<std::string> currentChain);
+  void mergeLiveRanges(const std::string& variable, const std::vector<std::vector<std::string>>& blockChains, const std::map<std::string, std::map<std::string, std::vector<LiveRange>>>& ranges);
 
   std::map<std::string, std::map<std::string, std::vector<std::size_t>>> defsInBlock_;
   std::map<std::string, std::map<std::string, std::vector<std::size_t>>> usesInBlock_;

@@ -33,11 +33,8 @@ class BbSsaGenerator {
  private:
   static std::string appendVariableCounter(const std::string& var, std::size_t index);
   static std::string removeVariableCounter(const std::string& var);
-  void renameVariables(const std::string& blockLabel, BBControlFlowGraph& cfg,
-                       const std::map<std::string, std::vector<std::string>>& dominanceTree,
-                       std::map<std::string, std::size_t>& variableCounters,
-                       std::map<std::string, std::stack<std::size_t>>& variableStacks,
-                       std::map<std::string, std::map<std::string, std::map<std::string, std::size_t>>>& phiCompletions);
+  void renameVariables(const std::string& blockLabel, BBControlFlowGraph& cfg, const std::map<std::string, std::vector<std::string>>& dominanceTree, std::map<std::string, std::size_t>& variableCounters,
+                       std::map<std::string, std::stack<std::size_t>>& variableStacks, std::map<std::string, std::map<std::string, std::map<std::string, std::size_t>>>& phiCompletions);
 
   void removeRedundantAssignments();
   void propagateConstants();

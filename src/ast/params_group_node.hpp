@@ -13,8 +13,7 @@ class ParamsGroupNode : public AstNode {
   enum PassType { UNSPECIFIED, PASS_BY_VALUE, PASS_BY_REFERENCE };
 
   ParamsGroupNode() : AstNode(Type::PARAMS_GROUP), passType_{PassType::UNSPECIFIED} {}
-  ParamsGroupNode(PassType passType, std::vector<IdentifierNode*>* params, SimpleTypeNode* paramsType)
-      : AstNode{Type::PARAMS_GROUP}, passType_{passType}, params_{params}, paramsType_{paramsType} {}
+  ParamsGroupNode(PassType passType, std::vector<IdentifierNode*>* params, SimpleTypeNode* paramsType) : AstNode{Type::PARAMS_GROUP}, passType_{passType}, params_{params}, paramsType_{paramsType} {}
 
   ParamsGroupNode(const ParamsGroupNode&) = delete;
   ParamsGroupNode(ParamsGroupNode&&) = default;

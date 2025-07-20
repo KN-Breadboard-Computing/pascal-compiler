@@ -7,18 +7,14 @@ namespace ast {
   if (constantsPart_ != nullptr) {
     auto constantsPart = std::make_unique<std::vector<std::pair<IdentifierNode*, ConstantNode*>*>>();
     for (const auto& constant : *constantsPart_) {
-      constantsPart->push_back(
-          new std::pair<IdentifierNode*, ConstantNode*>(dynamic_cast<IdentifierNode*>(constant->first->clone().release()),
-                                                        dynamic_cast<ConstantNode*>(constant->second->clone().release())));
+      constantsPart->push_back(new std::pair<IdentifierNode*, ConstantNode*>(dynamic_cast<IdentifierNode*>(constant->first->clone().release()), dynamic_cast<ConstantNode*>(constant->second->clone().release())));
     }
     clone->setConstantsPart(constantsPart);
   }
   if (typesPart_ != nullptr) {
     auto typesPart = std::make_unique<std::vector<std::pair<IdentifierNode*, TypeNode*>*>>();
     for (const auto& type : *typesPart_) {
-      typesPart->push_back(
-          new std::pair<IdentifierNode*, TypeNode*>(dynamic_cast<IdentifierNode*>(type->first->clone().release()),
-                                                    dynamic_cast<TypeNode*>(type->second->clone().release())));
+      typesPart->push_back(new std::pair<IdentifierNode*, TypeNode*>(dynamic_cast<IdentifierNode*>(type->first->clone().release()), dynamic_cast<TypeNode*>(type->second->clone().release())));
     }
     clone->setTypesPart(typesPart);
   }
@@ -29,8 +25,7 @@ namespace ast {
       for (const auto& identifier : *variable->first) {
         identifiers->push_back(dynamic_cast<IdentifierNode*>(identifier->clone().release()));
       }
-      variablesPart->push_back(new std::pair<std::vector<IdentifierNode*>*, TypeNode*>(
-          identifiers, dynamic_cast<TypeNode*>(variable->second->clone().release())));
+      variablesPart->push_back(new std::pair<std::vector<IdentifierNode*>*, TypeNode*>(identifiers, dynamic_cast<TypeNode*>(variable->second->clone().release())));
     }
     clone->setVariablesPart(variablesPart);
   }

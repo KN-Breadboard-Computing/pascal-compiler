@@ -10,15 +10,9 @@ namespace ast {
 class IfNode : public StatementNode {
  public:
   IfNode() : StatementNode{Category::IF} {}
-  IfNode(ExpressionNode* condition, StatementNode* thenStatement)
-      : StatementNode{Category::IF}, condition_{condition}, thenStatement_{thenStatement}, elseStatement_{nullptr} {}
-  IfNode(ExpressionNode* condition, StatementNode* thenStatement, StatementNode* elseStatement)
-      : StatementNode{Category::IF}, condition_{condition}, thenStatement_{thenStatement}, elseStatement_{elseStatement} {}
-  IfNode(ExpressionNode* condition, StatementNode* thenStatement, IfNode* elsePart)
-      : StatementNode{Category::IF},
-        condition_{condition},
-        thenStatement_{thenStatement},
-        elseStatement_{std::move(elsePart->elseStatement_)} {}
+  IfNode(ExpressionNode* condition, StatementNode* thenStatement) : StatementNode{Category::IF}, condition_{condition}, thenStatement_{thenStatement}, elseStatement_{nullptr} {}
+  IfNode(ExpressionNode* condition, StatementNode* thenStatement, StatementNode* elseStatement) : StatementNode{Category::IF}, condition_{condition}, thenStatement_{thenStatement}, elseStatement_{elseStatement} {}
+  IfNode(ExpressionNode* condition, StatementNode* thenStatement, IfNode* elsePart) : StatementNode{Category::IF}, condition_{condition}, thenStatement_{thenStatement}, elseStatement_{std::move(elsePart->elseStatement_)} {}
 
   IfNode(const IfNode&) = delete;
   IfNode(IfNode&&) = default;

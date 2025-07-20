@@ -10,8 +10,7 @@ namespace ast {
 class ArrayTypeNode : public TypeNode {
  public:
   ArrayTypeNode() : TypeNode{TypeType::ARRAY} {}
-  ArrayTypeNode(SimpleTypeNode* range, TypeNode* elementType)
-      : TypeNode{TypeType::ARRAY}, range_{range}, elementType_{elementType} {}
+  ArrayTypeNode(SimpleTypeNode* range, TypeNode* elementType) : TypeNode{TypeType::ARRAY}, range_{range}, elementType_{elementType} {}
 
   ArrayTypeNode(const ArrayTypeNode&) = delete;
   ArrayTypeNode(ArrayTypeNode&&) = default;

@@ -1,8 +1,7 @@
 #include "interval_tree.hpp"
 
 namespace machine_code {
-IntervalTree::Node* IntervalTree::insert(IntervalTree::Node* node, const std::string& variable, std::size_t start,
-                                         std::size_t end) {
+IntervalTree::Node* IntervalTree::insert(IntervalTree::Node* node, const std::string& variable, std::size_t start, std::size_t end) {
   if (node == nullptr) {
     Node* newNode = new Node{variable, start, end};
     return newNode;
@@ -65,8 +64,7 @@ IntervalTree::Node* IntervalTree::remove(IntervalTree::Node* node, std::size_t s
   return node;
 }
 
-void IntervalTree::overlaps(IntervalTree::Node* node, std::size_t start, std::size_t end,
-                            std::vector<std::string>& overlapping) const {
+void IntervalTree::overlaps(IntervalTree::Node* node, std::size_t start, std::size_t end, std::vector<std::string>& overlapping) const {
   if (node == nullptr) {
     return;
   }

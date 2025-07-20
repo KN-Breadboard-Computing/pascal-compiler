@@ -10,8 +10,7 @@ using namespace bblocks;
 
 bool parse(const std::string& inputFileName, std::vector<std::string>& errors, std::unique_ptr<ast::ProgramNode>& program);
 
-void validateBasicBlocks(const std::map<std::string, BBControlFlowGraph> controlFlowGraphs,
-                         const std::string& expectedBbFilename) {
+void validateBasicBlocks(const std::map<std::string, BBControlFlowGraph> controlFlowGraphs, const std::string& expectedBbFilename) {
   std::stringstream bbStream;
   for (const auto& [name, cfg] : controlFlowGraphs) {
     bbStream << name << ":\n" << cfg << std::endl;
@@ -200,38 +199,36 @@ TEST(toBBConversion, types) {
   BbCfgGenerator cfgGenerator;
   cfgGenerator.generate(program);
 
-  const std::map<std::string, std::size_t> expectedEnums{{"Mon", 0}, {"Tue", 1}, {"Wed", 2}, {"Thu", 3},
-                                                         {"Fri", 4}, {"Sat", 5}, {"Sun", 6}};
+  const std::map<std::string, std::size_t> expectedEnums{{"Mon", 0}, {"Tue", 1}, {"Wed", 2}, {"Thu", 3}, {"Fri", 4}, {"Sat", 5}, {"Sun", 6}};
   ASSERT_EQ(cfgGenerator.getEnumTranslator(), expectedEnums);
 
-  const std::map<std::string, std::size_t> expectedTypeBytes{
-      {"integer", 1},
-      {"char", 1},
-      {"boolean", 1},
-      {"enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%", 1},
-      {"record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@"
-       "integer@@)$$",
-       11},
-      {"record$$Father#(record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%"
-       "Thu%Fri%Sat%Sun%@integer@@)$$)$Mother#(record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#("
-       "array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$)$Children#(array@@constrange%1..10@record$$Name#(char)$Surname#("
-       "char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$@@)$$",
-       132},
-      {"array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@", 7},
-      {"array@@constrange%1..10@record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%"
-       "Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$@@",
-       110},
-      {"array@@enumrange%TDay%Wed..Sun@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@@", 5},
-      {"array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@record$$Father#(record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#("
-       "boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$)$Mother#(record$$Name#(char)$Surname#(char)$"
-       "Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$)$Children#(array@@"
-       "constrange%1..10@record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%"
-       "Thu%Fri%Sat%Sun%@integer@@)$$@@)$$@@",
-       924},
-      {"array@@integer@integer@@", 256},
-      {"array@@char@integer@@", 256},
-      {"array@@boolean@integer@@", 2},
-      {"array@@constrange%false..true@integer@@", 2}};
+  const std::map<std::string, std::size_t> expectedTypeBytes{{"integer", 1},
+                                                             {"char", 1},
+                                                             {"boolean", 1},
+                                                             {"enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%", 1},
+                                                             {"record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@"
+                                                              "integer@@)$$",
+                                                              11},
+                                                             {"record$$Father#(record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%"
+                                                              "Thu%Fri%Sat%Sun%@integer@@)$$)$Mother#(record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#("
+                                                              "array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$)$Children#(array@@constrange%1..10@record$$Name#(char)$Surname#("
+                                                              "char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$@@)$$",
+                                                              132},
+                                                             {"array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@", 7},
+                                                             {"array@@constrange%1..10@record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%"
+                                                              "Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$@@",
+                                                              110},
+                                                             {"array@@enumrange%TDay%Wed..Sun@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@@", 5},
+                                                             {"array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@record$$Father#(record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#("
+                                                              "boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$)$Mother#(record$$Name#(char)$Surname#(char)$"
+                                                              "Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%Thu%Fri%Sat%Sun%@integer@@)$$)$Children#(array@@"
+                                                              "constrange%1..10@record$$Name#(char)$Surname#(char)$Age#(integer)$IsHired#(boolean)$WorkHours#(array@@enum%Mon%Tue%Wed%"
+                                                              "Thu%Fri%Sat%Sun%@integer@@)$$@@)$$@@",
+                                                              924},
+                                                             {"array@@integer@integer@@", 256},
+                                                             {"array@@char@integer@@", 256},
+                                                             {"array@@boolean@integer@@", 2},
+                                                             {"array@@constrange%false..true@integer@@", 2}};
   ASSERT_EQ(cfgGenerator.getTypeBytes(), expectedTypeBytes);
 
   const std::map<std::string, std::size_t> expectedProcedureOffsets{{"main", 0}, {"foo", 1}, {"bar", 2}};

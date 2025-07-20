@@ -76,10 +76,8 @@ void SpecialExpressionNode::accept(AstVisitor* visitor) const {
 }
 
 [[nodiscard]] std::unique_ptr<AstNode> SpecialExpressionNode::clone() const {
-  SpecialExpressionNode* newArgument1 =
-      argument1_ == nullptr ? nullptr : dynamic_cast<SpecialExpressionNode*>(argument1_->clone().release());
-  SpecialExpressionNode* newArgument2 =
-      argument2_ == nullptr ? nullptr : dynamic_cast<SpecialExpressionNode*>(argument2_->clone().release());
+  SpecialExpressionNode* newArgument1 = argument1_ == nullptr ? nullptr : dynamic_cast<SpecialExpressionNode*>(argument1_->clone().release());
+  SpecialExpressionNode* newArgument2 = argument2_ == nullptr ? nullptr : dynamic_cast<SpecialExpressionNode*>(argument2_->clone().release());
 
   return std::make_unique<SpecialExpressionNode>(newArgument1, newArgument2, functionName_, getInferredType());
 }

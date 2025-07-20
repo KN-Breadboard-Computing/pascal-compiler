@@ -234,9 +234,7 @@ TEST(toAstConversion, boolExpressionDifferentTypes) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors,
-            std::vector<std::string>{
-                "Error at line 12, wrong argument type for greater or equal - matching types(integer, char, boolean) expected"});
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 12, wrong argument type for greater or equal - matching types(integer, char, boolean) expected"});
 }
 
 TEST(toAstConversion, io) {
@@ -259,8 +257,7 @@ TEST(toAstConversion, ioComplexType) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors,
-            std::vector<std::string>{"Error at line 12, wrong argument type for read - integer, char or boolean expected"});
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 12, wrong argument type for read - integer, char or boolean expected"});
 }
 
 TEST(toAstConversion, ioInvalidArguments) {
@@ -271,8 +268,7 @@ TEST(toAstConversion, ioInvalidArguments) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors, std::vector<std::string>{
-                        "Error at line 9, wrong argument type for memory write - second argument should be integer"});
+  ASSERT_EQ(errors, std::vector<std::string>{"Error at line 9, wrong argument type for memory write - second argument should be integer"});
 }
 
 TEST(toAstConversion, procFunDefs) {
@@ -552,8 +548,7 @@ TEST(toAstConversion, breakOutOfLoop) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors, (std::vector<std::string>{"Error at line 29, lack of end", "Error at line 29, lack of end dot",
-                                              "Error at line 29, syntax error"}));
+  ASSERT_EQ(errors, (std::vector<std::string>{"Error at line 29, lack of end", "Error at line 29, lack of end dot", "Error at line 29, syntax error"}));
 }
 
 TEST(toAstConversion, continueOutOfLoop) {
@@ -564,8 +559,7 @@ TEST(toAstConversion, continueOutOfLoop) {
 
   ASSERT_FALSE(result);
   ASSERT_EQ(program.get(), nullptr);
-  ASSERT_EQ(errors, (std::vector<std::string>{"Error at line 31, lack of end", "Error at line 31, lack of end dot",
-                                              "Error at line 31, syntax error"}));
+  ASSERT_EQ(errors, (std::vector<std::string>{"Error at line 31, lack of end", "Error at line 31, lack of end dot", "Error at line 31, syntax error"}));
 }
 
 TEST(toAstConversion, assignToConst) {

@@ -30,8 +30,7 @@ void BbSsaGenerator::toSsa(const std::string& name, const BBControlFlowGraph& gr
       std::set<std::string> newDominators(allBlockLabels.begin(), allBlockLabels.end());
       for (const auto& predLabel : ssaGraph.getInLinks(label)) {
         std::set<std::string> tempSet;
-        std::set_intersection(newDominators.begin(), newDominators.end(), dominators[predLabel].begin(),
-                              dominators[predLabel].end(), std::inserter(tempSet, tempSet.begin()));
+        std::set_intersection(newDominators.begin(), newDominators.end(), dominators[predLabel].begin(), dominators[predLabel].end(), std::inserter(tempSet, tempSet.begin()));
         newDominators = tempSet;
       }
       newDominators.insert(label);
@@ -211,11 +210,7 @@ void BbSsaGenerator::fromSsa() {
           BBPhi* phi = dynamic_cast<BBPhi*>(instruction.get());
           const std::string var = phi->getName();
           for (const auto& pred : phiCompletions_[name][label][removeVariableCounter(var)]) {
-            cfg.basicBlocks()
-                .at(pred.first)
-                .addInstruction(std::make_unique<BBMoveVV>(appendVariableCounter(removeVariableCounter(var), pred.second), var,
-                                                           BBInstruction::SourceType::REGISTER,
-                                                           BBInstruction::DestinationType::REGISTER));
+            cfg.basicBlocks().at(pred.first).addInstruction(std::make_unique<BBMoveVV>(appendVariableCounter(removeVariableCounter(var), pred.second), var, BBInstruction::SourceType::REGISTER, BBInstruction::DestinationType::REGISTER));
           }
         }
         else {
@@ -255,8 +250,7 @@ void BbSsaGenerator::removeRedundantAssignments() {
       }
 
       std::vector<std::string> redundantDefs;
-      std::set_difference(defs.begin(), defs.end(), uses.begin(), uses.end(),
-                          std::inserter(redundantDefs, redundantDefs.begin()));
+      std::set_difference(defs.begin(), defs.end(), uses.begin(), uses.end(), std::inserter(redundantDefs, redundantDefs.begin()));
 
       for (auto& block : cfg.basicBlocks()) {
         BasicBlock newBlock;
@@ -301,10 +295,8 @@ std::string BbSsaGenerator::removeVariableCounter(const std::string& var) {
   return newVar;
 }
 
-void BbSsaGenerator::renameVariables(
-    const std::string& blockLabel, BBControlFlowGraph& cfg, const std::map<std::string, std::vector<std::string>>& dominanceTree,
-    std::map<std::string, std::size_t>& variableCounters, std::map<std::string, std::stack<std::size_t>>& variableStacks,
-    std::map<std::string, std::map<std::string, std::map<std::string, std::size_t>>>& phiCompletions) {
+void BbSsaGenerator::renameVariables(const std::string& blockLabel, BBControlFlowGraph& cfg, const std::map<std::string, std::vector<std::string>>& dominanceTree, std::map<std::string, std::size_t>& variableCounters,
+                                     std::map<std::string, std::stack<std::size_t>>& variableStacks, std::map<std::string, std::map<std::string, std::map<std::string, std::size_t>>>& phiCompletions) {
   for (auto& instruction : cfg.basicBlocks().at(blockLabel).instructions()) {
     if (instruction->getType() == BBInstruction::Type::PHI) {
       BBPhi* phi = dynamic_cast<BBPhi*>(instruction.get());

@@ -32,9 +32,7 @@ void halt(BasicBlock& basicBlock) {
   basicBlock.addInstruction(std::make_unique<BBHalt>());
 }
 
-void translateBasicBlockToMachineCode(const std::vector<std::string>& readVariables,
-                                      const std::vector<std::string>& writeVariables, BasicBlock&& basicBlock,
-                                      uint16_t variablesOffset, std::vector<MachineInstruction>& machineInstructions) {
+void translateBasicBlockToMachineCode(const std::vector<std::string>& readVariables, const std::vector<std::string>& writeVariables, BasicBlock&& basicBlock, uint16_t variablesOffset, std::vector<MachineInstruction>& /*code*/) {
   constexpr std::size_t readVariableStepsNumber = 1;
   constexpr std::size_t writeVariableStepsNumber = 1;
 
@@ -57,10 +55,9 @@ void translateBasicBlockToMachineCode(const std::vector<std::string>& readVariab
 
   MachineCodeGenerator machineCodeGenerator;
   machineCodeGenerator.generate(programCfg, MachineCodeGenerator::RegisterAllocator::LINEAR_SCAN, variablesOffset);
-  machineInstructions.insert(
-      machineInstructions.end(),
-      machineCodeGenerator.getMachineCode().at("program").begin() + readVariableStepsNumber * readVariables.size() + 1,
-      machineCodeGenerator.getMachineCode().at("program").end() - writeVariableStepsNumber * writeVariables.size() - 1);
+  std::vector<MachineInstruction> machineInstructions;
+  machineInstructions.insert(machineInstructions.end(), machineCodeGenerator.getMachineCode().at("program").begin() + readVariableStepsNumber * readVariables.size() + 1,
+                             machineCodeGenerator.getMachineCode().at("program").end() - writeVariableStepsNumber * writeVariables.size() - 1);
 
   std::cout << "Basic Block:" << std::endl << basicBlock << std::endl;
 
@@ -95,6 +92,11 @@ void translateBasicBlockToMachineCode(const std::vector<std::string>& readVariab
   std::cout << std::dec << std::endl;
 }
 
+struct UnaryOpTestCaseConfig {
+  BBUnaryOperationEnum operation;
+  std::function<uint8_t(uint8_t)> opFunc;
+};
+
 int main() {
   //  BasicBlock basicBlock1;
   //  std::vector<MachineInstruction> machineInstructions1;
@@ -104,6 +106,17 @@ int main() {
   //  std::vector<MachineInstruction> machineInstructions2;
   //  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {}, std::move(basicBlock2),
   //                                   1 << 5, machineInstructions2);
+
+  UnaryOpTestCaseConfig config{BBUnaryOperationEnum::NEG, [](uint8_t x) {
+                                 return static_cast<uint8_t>(-x);
+                               }};
+  BasicBlock basicBlock1;
+  basicBlock1.addInstruction(std::make_unique<BBUnaryOperationNN>(42, 37, BBUnaryOperationNN::SourceType::MEMORY, BBUnaryOperationNN::DestinationType::MEMORY, config.operation));
+  basicBlock1.addInstruction(std::make_unique<BBUnaryOperationNN>(42, 1410, BBUnaryOperationNN::SourceType::MEMORY, BBUnaryOperationNN::DestinationType::MEMORY, config.operation));
+  basicBlock1.addInstruction(std::make_unique<BBUnaryOperationNN>(1920, 37, BBUnaryOperationNN::SourceType::MEMORY, BBUnaryOperationNN::DestinationType::MEMORY, config.operation));
+  basicBlock1.addInstruction(std::make_unique<BBUnaryOperationNN>(1920, 1410, BBUnaryOperationNN::SourceType::MEMORY, BBUnaryOperationNN::DestinationType::MEMORY, config.operation));
+  std::vector<MachineInstruction> machineInstructions1;
+  translateBasicBlockToMachineCode({}, {}, std::move(basicBlock1), 1 << 6, machineInstructions1);
 
   return 0;
 }

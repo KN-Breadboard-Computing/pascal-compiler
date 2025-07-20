@@ -12,9 +12,7 @@ void LinearScanRegAlloc::allocateRegisters(const std::map<std::string, std::vect
     ranges.insert(ranges.end(), rangesForName.begin(), rangesForName.end());
   }
 
-  std::sort(ranges.begin(), ranges.end(), [](const LiveRange& a, const LiveRange& b) {
-    return a.front().instructionEnumerator < b.front().instructionEnumerator;
-  });
+  std::sort(ranges.begin(), ranges.end(), [](const LiveRange& a, const LiveRange& b) { return a.front().instructionEnumerator < b.front().instructionEnumerator; });
 
   for (auto& range : ranges) {
     expireOldIntervals(range);
@@ -26,9 +24,7 @@ void LinearScanRegAlloc::allocateRegisters(const std::map<std::string, std::vect
       freeRegisters_.pop_back();
 
       activeIntervals_.push_back(range);
-      std::sort(activeIntervals_.begin(), activeIntervals_.end(), [](const LiveRange& a, const LiveRange& b) {
-        return a.back().instructionEnumerator < b.back().instructionEnumerator;
-      });
+      std::sort(activeIntervals_.begin(), activeIntervals_.end(), [](const LiveRange& a, const LiveRange& b) { return a.back().instructionEnumerator < b.back().instructionEnumerator; });
     }
   }
 
@@ -55,9 +51,7 @@ void LinearScanRegAlloc::spillAtInterval(LiveRange& interval) {
     spill.setAllocatedRegister(-1);
     activeIntervals_.pop_back();
     activeIntervals_.push_back(interval);
-    std::sort(activeIntervals_.begin(), activeIntervals_.end(), [](const LiveRange& a, const LiveRange& b) {
-      return a.back().instructionEnumerator < b.back().instructionEnumerator;
-    });
+    std::sort(activeIntervals_.begin(), activeIntervals_.end(), [](const LiveRange& a, const LiveRange& b) { return a.back().instructionEnumerator < b.back().instructionEnumerator; });
   }
   else {
     interval.setAllocatedRegister(-1);

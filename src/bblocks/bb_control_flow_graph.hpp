@@ -19,14 +19,9 @@ class BBControlFlowGraph {
  public:
   BBControlFlowGraph() = default;
 
-  explicit BBControlFlowGraph(const std::string& entryLabel) : entryLabel_{entryLabel}, exitLabel_{entryLabel} {
-    addBBlock(entryLabel, BasicBlock{});
-  }
+  explicit BBControlFlowGraph(const std::string& entryLabel) : entryLabel_{entryLabel}, exitLabel_{entryLabel} { addBBlock(entryLabel, BasicBlock{}); }
 
-  explicit BBControlFlowGraph(const std::string& entryLabel, BasicBlock basicBlock)
-      : entryLabel_{entryLabel}, exitLabel_{entryLabel} {
-    addBBlock(entryLabel, std::move(basicBlock));
-  }
+  explicit BBControlFlowGraph(const std::string& entryLabel, BasicBlock basicBlock) : entryLabel_{entryLabel}, exitLabel_{entryLabel} { addBBlock(entryLabel, std::move(basicBlock)); }
 
   BBControlFlowGraph(const BBControlFlowGraph&) = default;
   BBControlFlowGraph(BBControlFlowGraph&&) = default;
@@ -59,12 +54,8 @@ class BBControlFlowGraph {
   [[nodiscard]] const BasicBlock& getBasicBlock(const std::string& blockLabel) const { return basicBlocks_.at(blockLabel); }
   void setBasicBlock(const std::string& blockLabel, BasicBlock block) { basicBlocks_[blockLabel] = block; }
   [[nodiscard]] BasicBlock& basicBlock(const std::string& blockLabel) { return basicBlocks_.at(blockLabel); }
-  [[nodiscard]] const std::vector<std::string>& getOutLinks(const std::string& blockLabel) const {
-    return srcDest_.at(blockLabel);
-  }
-  [[nodiscard]] const std::vector<std::string>& getInLinks(const std::string& blockLabel) const {
-    return destSrc_.at(blockLabel);
-  }
+  [[nodiscard]] const std::vector<std::string>& getOutLinks(const std::string& blockLabel) const { return srcDest_.at(blockLabel); }
+  [[nodiscard]] const std::vector<std::string>& getInLinks(const std::string& blockLabel) const { return destSrc_.at(blockLabel); }
   [[nodiscard]] const std::map<std::string, std::vector<std::string>>& getSrcDestLinks() const { return srcDest_; }
   [[nodiscard]] const std::map<std::string, std::vector<std::string>>& getDestSrcLinks() const { return destSrc_; }
 
@@ -72,9 +63,7 @@ class BBControlFlowGraph {
   void merge(const BBControlFlowGraph& cfg, const std::string& attachPoint);
   void merge(const BBControlFlowGraph& cfg);
 
-  void update(const std::map<std::string, std::vector<std::string>>& srcDest,
-              const std::map<std::string, std::vector<std::string>>& destSrc,
-              const std::map<std::string, BasicBlock>& basicBlocks) {
+  void update(const std::map<std::string, std::vector<std::string>>& srcDest, const std::map<std::string, std::vector<std::string>>& destSrc, const std::map<std::string, BasicBlock>& basicBlocks) {
     srcDest_ = std::move(srcDest);
     destSrc_ = std::move(destSrc);
     basicBlocks_ = std::move(basicBlocks);

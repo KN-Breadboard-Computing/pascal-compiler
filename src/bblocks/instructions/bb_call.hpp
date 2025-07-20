@@ -15,8 +15,7 @@ class BBCall : public BBInstruction {
   };
 
   BBCall() : BBInstruction(Type::CALL, true) {}
-  BBCall(std::string name, std::vector<Argument> args, bool canBeOptimizedOut)
-      : BBInstruction(Type::CALL, canBeOptimizedOut), name_{std::move(name)}, args_{std::move(args)} {}
+  BBCall(std::string name, std::vector<Argument> args, bool canBeOptimizedOut) : BBInstruction(Type::CALL, canBeOptimizedOut), name_{std::move(name)}, args_{std::move(args)} {}
 
   BBCall(const BBCall&) = default;
   BBCall(BBCall&&) noexcept = default;
@@ -92,13 +91,9 @@ class BBCall : public BBInstruction {
 
   virtual void replaceLabel(const LabelType& /*from*/, const LabelType& /*to*/) override {}
 
-  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override {
-    return std::vector<TemplateArgumentType>{};
-  }
+  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override { return std::vector<TemplateArgumentType>{}; }
 
-  virtual std::unique_ptr<BBInstruction> clone() const override {
-    return std::make_unique<BBCall>(name_, args_, canBeOptimizedOut_);
-  }
+  virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBCall>(name_, args_, canBeOptimizedOut_); }
 
   virtual void print(std::ostream& out, int tab) const override {
     out << std::string(tab, ' ') << "call " << name_ << "( ";

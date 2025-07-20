@@ -11,8 +11,7 @@ namespace ast {
 class CaseNode : public StatementNode {
  public:
   CaseNode() : StatementNode{Category::CASE} {}
-  CaseNode(ExpressionNode* expression, std::vector<std::pair<ExpressionNode*, StatementNode*>*>* caseStatements)
-      : StatementNode{Category::CASE}, expression_{expression}, statements_{caseStatements} {}
+  CaseNode(ExpressionNode* expression, std::vector<std::pair<ExpressionNode*, StatementNode*>*>* caseStatements) : StatementNode{Category::CASE}, expression_{expression}, statements_{caseStatements} {}
 
   CaseNode(const CaseNode&) = delete;
   CaseNode(CaseNode&&) = default;
@@ -27,9 +26,7 @@ class CaseNode : public StatementNode {
   virtual void print(std::ostream& out, int tab) const override;
 
   [[nodiscard]] const ExpressionNode* getExpression() const { return expression_.get(); }
-  [[nodiscard]] const std::vector<std::pair<ExpressionNode*, StatementNode*>*>* getStatements() const {
-    return statements_.get();
-  }
+  [[nodiscard]] const std::vector<std::pair<ExpressionNode*, StatementNode*>*>* getStatements() const { return statements_.get(); }
 
  private:
   std::unique_ptr<ExpressionNode> expression_;

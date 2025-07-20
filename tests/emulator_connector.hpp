@@ -44,13 +44,9 @@ class EmulatorConnector {
   uint8_t getRegA() const { return emulator_->a_register; }
   uint8_t getRegB() const { return emulator_->b_register; }
   uint8_t getMemory(uint16_t address) const { return emulator_->memory[address]; }
-  std::vector<uint8_t> getMemorySnapshot() const {
-    return std::vector<uint8_t>(std::begin(emulator_->memory), std::end(emulator_->memory));
-  }
+  std::vector<uint8_t> getMemorySnapshot() const { return std::vector<uint8_t>(std::begin(emulator_->memory), std::end(emulator_->memory)); }
   uint8_t getStack(uint16_t address) const { return emulator_->stack[address]; }
-  std::vector<uint8_t> getStackSnapshot() const {
-    return std::vector<uint8_t>(std::begin(emulator_->stack), std::end(emulator_->stack));
-  }
+  std::vector<uint8_t> getStackSnapshot() const { return std::vector<uint8_t>(std::begin(emulator_->stack), std::end(emulator_->stack)); }
   uint16_t getTmp() const { return emulator_->tmp_register_16; }
   uint8_t getTmpHigh() const { return emulator_->tmp_register_8[1]; }
   uint8_t getTmpLow() const { return emulator_->tmp_register_8[0]; }

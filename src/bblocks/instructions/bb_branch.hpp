@@ -18,12 +18,7 @@ requires BranchArgs<ArgT> class BBBranch : public BBInstruction {
  public:
   BBBranch() : BBInstruction(Type::BRANCH, true) {}
   BBBranch(ArgT value, SourceType valueType, BBBranchCondition condition, LabelType trueLabel, LabelType falseLabel)
-      : BBInstruction(Type::BRANCH, true),
-        value_{value},
-        valueType_{valueType},
-        condition_{condition},
-        trueLabel_{std::move(trueLabel)},
-        falseLabel_{std::move(falseLabel)} {}
+      : BBInstruction(Type::BRANCH, true), value_{value}, valueType_{valueType}, condition_{condition}, trueLabel_{std::move(trueLabel)}, falseLabel_{std::move(falseLabel)} {}
 
   BBBranch(const BBBranch&) = default;
   BBBranch(BBBranch&&) noexcept = default;
@@ -58,8 +53,7 @@ requires BranchArgs<ArgT> class BBBranch : public BBInstruction {
 
   virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const VariableType& to) override {
     if constexpr (std::is_same_v<ArgT, VariableType>) {
-      return std::make_unique<BBBranch<VariableType>>(value_ == from ? to : value_, valueType_, condition_, trueLabel_,
-                                                      falseLabel_);
+      return std::make_unique<BBBranch<VariableType>>(value_ == from ? to : value_, valueType_, condition_, trueLabel_, falseLabel_);
     }
     else {
       return clone();
@@ -69,8 +63,7 @@ requires BranchArgs<ArgT> class BBBranch : public BBInstruction {
   virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const NumericType& to) override {
     if constexpr (std::is_same_v<ArgT, VariableType>) {
       if (value_ == from) {
-        return std::make_unique<BBBranch<NumericType>>(to, BBInstruction::SourceType::CONSTANT, condition_, trueLabel_,
-                                                       falseLabel_);
+        return std::make_unique<BBBranch<NumericType>>(to, BBInstruction::SourceType::CONSTANT, condition_, trueLabel_, falseLabel_);
       }
       return clone();
     }
@@ -98,13 +91,9 @@ requires BranchArgs<ArgT> class BBBranch : public BBInstruction {
     }
   }
 
-  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override {
-    return std::vector<TemplateArgumentType>{getValueTemplateType()};
-  }
+  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override { return std::vector<TemplateArgumentType>{getValueTemplateType()}; }
 
-  virtual std::unique_ptr<BBInstruction> clone() const override {
-    return std::make_unique<BBBranch>(value_, valueType_, condition_, trueLabel_, falseLabel_);
-  }
+  virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBBranch>(value_, valueType_, condition_, trueLabel_, falseLabel_); }
 
   virtual void print(std::ostream& out, int tab) const override {
     out << std::string(tab, ' ') << "br ";

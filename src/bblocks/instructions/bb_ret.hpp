@@ -20,13 +20,9 @@ class BBRet : public BBInstruction {
 
   virtual void visitUseVariables(std::function<void(const VariableType&)> /*visitor*/) const override {}
 
-  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& /*from*/, const VariableType& /*to*/) override {
-    return clone();
-  }
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& /*from*/, const VariableType& /*to*/) override { return clone(); }
 
-  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& /*from*/, const NumericType& /*to*/) override {
-    return clone();
-  }
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& /*from*/, const NumericType& /*to*/) override { return clone(); }
 
   virtual void replaceDefVariables(const VariableType& /*from*/, const VariableType& /*to*/) override {}
 
@@ -34,9 +30,7 @@ class BBRet : public BBInstruction {
 
   virtual void replaceLabel(const LabelType& /*from*/, const LabelType& /*to*/) override {}
 
-  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override {
-    return std::vector<TemplateArgumentType>{};
-  }
+  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override { return std::vector<TemplateArgumentType>{}; }
 
   virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBRet>(); }
 

@@ -23,15 +23,9 @@ class RoutineNode;
 class RoutineHeadNode : public AstNode {
  public:
   RoutineHeadNode() : AstNode{Type::ROUTINE_HEAD} {}
-  RoutineHeadNode(std::vector<std::pair<IdentifierNode*, ConstantNode*>*>* constantsPart,
-                  std::vector<std::pair<IdentifierNode*, TypeNode*>*>* typesPart,
-                  std::vector<std::pair<std::vector<IdentifierNode*>*, TypeNode*>*>* variablesPart,
+  RoutineHeadNode(std::vector<std::pair<IdentifierNode*, ConstantNode*>*>* constantsPart, std::vector<std::pair<IdentifierNode*, TypeNode*>*>* typesPart, std::vector<std::pair<std::vector<IdentifierNode*>*, TypeNode*>*>* variablesPart,
                   std::vector<RoutineDeclarationNode*>* routinePart)
-      : AstNode{Type::ROUTINE_HEAD},
-        constantsPart_{constantsPart},
-        typesPart_{typesPart},
-        variablesPart_{variablesPart},
-        routinePart_{routinePart} {}
+      : AstNode{Type::ROUTINE_HEAD}, constantsPart_{constantsPart}, typesPart_{typesPart}, variablesPart_{variablesPart}, routinePart_{routinePart} {}
 
   RoutineHeadNode(const RoutineHeadNode&) = delete;
   RoutineHeadNode(RoutineHeadNode&&) = default;
@@ -41,36 +35,21 @@ class RoutineHeadNode : public AstNode {
 
   ~RoutineHeadNode() override = default;
 
-  [[nodiscard]] const std::unique_ptr<std::vector<std::pair<IdentifierNode*, ConstantNode*>*>>& getConstantsPart() const {
-    return constantsPart_;
-  }
+  [[nodiscard]] const std::unique_ptr<std::vector<std::pair<IdentifierNode*, ConstantNode*>*>>& getConstantsPart() const { return constantsPart_; }
 
-  [[nodiscard]] const std::unique_ptr<std::vector<std::pair<IdentifierNode*, TypeNode*>*>>& getTypesPart() const {
-    return typesPart_;
-  }
+  [[nodiscard]] const std::unique_ptr<std::vector<std::pair<IdentifierNode*, TypeNode*>*>>& getTypesPart() const { return typesPart_; }
 
-  [[nodiscard]] const std::unique_ptr<std::vector<std::pair<std::vector<IdentifierNode*>*, TypeNode*>*>>& getVariablesPart()
-      const {
-    return variablesPart_;
-  }
+  [[nodiscard]] const std::unique_ptr<std::vector<std::pair<std::vector<IdentifierNode*>*, TypeNode*>*>>& getVariablesPart() const { return variablesPart_; }
 
   [[nodiscard]] const std::unique_ptr<std::vector<RoutineDeclarationNode*>>& getRoutinePart() const { return routinePart_; }
 
-  void setConstantsPart(std::unique_ptr<std::vector<std::pair<IdentifierNode*, ConstantNode*>*>>& constantsPart) {
-    constantsPart_ = std::move(constantsPart);
-  }
+  void setConstantsPart(std::unique_ptr<std::vector<std::pair<IdentifierNode*, ConstantNode*>*>>& constantsPart) { constantsPart_ = std::move(constantsPart); }
 
-  void setTypesPart(std::unique_ptr<std::vector<std::pair<IdentifierNode*, TypeNode*>*>>& typesPart) {
-    typesPart_ = std::move(typesPart);
-  }
+  void setTypesPart(std::unique_ptr<std::vector<std::pair<IdentifierNode*, TypeNode*>*>>& typesPart) { typesPart_ = std::move(typesPart); }
 
-  void setVariablesPart(std::unique_ptr<std::vector<std::pair<std::vector<IdentifierNode*>*, TypeNode*>*>>& variablesPart) {
-    variablesPart_ = std::move(variablesPart);
-  }
+  void setVariablesPart(std::unique_ptr<std::vector<std::pair<std::vector<IdentifierNode*>*, TypeNode*>*>>& variablesPart) { variablesPart_ = std::move(variablesPart); }
 
-  void setRoutinePart(std::unique_ptr<std::vector<RoutineDeclarationNode*>>& routinePart) {
-    routinePart_ = std::move(routinePart);
-  }
+  void setRoutinePart(std::unique_ptr<std::vector<RoutineDeclarationNode*>>& routinePart) { routinePart_ = std::move(routinePart); }
 
   virtual void accept(AstVisitor* visitor) const override;
   [[nodiscard]] virtual std::unique_ptr<AstNode> clone() const override;
@@ -90,12 +69,7 @@ class RoutineDeclarationNode : public AstNode {
   RoutineDeclarationNode() : AstNode{Type::ROUTINE_DECLARATION}, routineType_{RoutineType::UNSPECIFIED} {}
   explicit RoutineDeclarationNode(RoutineType type) : AstNode{Type::ROUTINE_DECLARATION}, routineType_{type} {}
   RoutineDeclarationNode(RoutineType type, std::string name, ParamsNode* params, SimpleTypeNode* returnType, RoutineNode* routine)
-      : AstNode{Type::ROUTINE_DECLARATION},
-        routineType_{type},
-        name_{std::move(name)},
-        params_{params},
-        returnType_{returnType},
-        routine_{routine} {}
+      : AstNode{Type::ROUTINE_DECLARATION}, routineType_{type}, name_{std::move(name)}, params_{params}, returnType_{returnType}, routine_{routine} {}
 
   RoutineDeclarationNode(const RoutineDeclarationNode&) = delete;
   RoutineDeclarationNode(RoutineDeclarationNode&&) = default;
@@ -140,10 +114,8 @@ class RoutineNode : public AstNode {
 
   RoutineNode() : AstNode(Type::ROUTINE), subType_(UNSPECIFIED) {}
   explicit RoutineNode(SubType subType) : AstNode{Type::ROUTINE}, subType_{subType} {}
-  RoutineNode(RoutineHeadNode* head, RoutineBodyNode* body)
-      : AstNode{Type::ROUTINE}, subType_{UNSPECIFIED}, head_{head}, body_{body} {}
-  RoutineNode(SubType subType, RoutineHeadNode* head, RoutineBodyNode* body)
-      : AstNode{Type::ROUTINE}, subType_{subType}, head_{head}, body_{body} {}
+  RoutineNode(RoutineHeadNode* head, RoutineBodyNode* body) : AstNode{Type::ROUTINE}, subType_{UNSPECIFIED}, head_{head}, body_{body} {}
+  RoutineNode(SubType subType, RoutineHeadNode* head, RoutineBodyNode* body) : AstNode{Type::ROUTINE}, subType_{subType}, head_{head}, body_{body} {}
 
   RoutineNode(const RoutineNode&) = delete;
   RoutineNode(RoutineNode&&) = default;

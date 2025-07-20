@@ -124,8 +124,7 @@ class LookupTable {
     throw std::runtime_error("Type not found");
   }
 
-  [[nodiscard]] std::vector<TypeInfo> getTypes(const std::function<bool(const std::string&, const TypeInfo&)>& indicator,
-                                               const std::string& currentScope) const {
+  [[nodiscard]] std::vector<TypeInfo> getTypes(const std::function<bool(const std::string&, const TypeInfo&)>& indicator, const std::string& currentScope) const {
     std::vector<TypeInfo> result;
     for (const auto& [name, scopes] : types_) {
       for (const auto& [scopeName, typeInfo] : scopes) {
@@ -151,14 +150,11 @@ class LookupTable {
     }
   }
 
-  bool isBasicType(const std::string& name) const {
-    return name == "integer" || name == "boolean" || name == "char" || name.find("enum%") == 0;
-  }
+  bool isBasicType(const std::string& name) const { return name == "integer" || name == "boolean" || name == "char" || name.find("enum%") == 0; }
 
   void defineVariable(VariableCategory category, const std::string& name, std::string type, const std::string& currentScope) {
 #ifdef CONTEXT_DEBUG
-    std::cout << "Define variable: " << currentScope << " " << name << " " << static_cast<int>(category) << " " << type
-              << std::endl;
+    std::cout << "Define variable: " << currentScope << " " << name << " " << static_cast<int>(category) << " " << type << std::endl;
 #endif
     variables_[name][currentScope] = VariableInfo{category, name, currentScope + "." + name, std::move(type), false, true};
   }
@@ -235,8 +231,7 @@ class LookupTable {
     }
   }
 
-  void defineRoutine(RoutineCategory category, const std::string& name, const std::vector<ArgumentInfo>& args, std::string type,
-                     const std::string& currentScope) {
+  void defineRoutine(RoutineCategory category, const std::string& name, const std::vector<ArgumentInfo>& args, std::string type, const std::string& currentScope) {
 #ifdef CONTEXT_DEBUG
     std::cout << "Define routine: " << currentScope << " " << name << " " << static_cast<int>(category) << " [";
     for (const auto& arg : args) {

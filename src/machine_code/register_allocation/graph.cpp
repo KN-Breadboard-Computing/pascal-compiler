@@ -41,10 +41,8 @@ void Graph::removeVertex(const std::string& name) {
 
 void Graph::removeEdge(const std::string& vertex1Name, const std::string& vertex2Name) {
   if (searchEdge(vertex1Name, vertex2Name)) {
-    adjacencyList_[vertex1Name].erase(
-        std::find(adjacencyList_[vertex1Name].begin(), adjacencyList_[vertex1Name].end(), vertex2Name));
-    adjacencyList_[vertex2Name].erase(
-        std::find(adjacencyList_[vertex2Name].begin(), adjacencyList_[vertex2Name].end(), vertex1Name));
+    adjacencyList_[vertex1Name].erase(std::find(adjacencyList_[vertex1Name].begin(), adjacencyList_[vertex1Name].end(), vertex2Name));
+    adjacencyList_[vertex2Name].erase(std::find(adjacencyList_[vertex2Name].begin(), adjacencyList_[vertex2Name].end(), vertex1Name));
   }
 }
 
@@ -53,8 +51,7 @@ bool Graph::searchEdge(const std::string vertex1Name, const std::string vertex2N
     return false;
   }
 
-  return std::find(adjacencyList_.at(vertex1Name).begin(), adjacencyList_.at(vertex1Name).end(), vertex2Name) !=
-         adjacencyList_.at(vertex1Name).end();
+  return std::find(adjacencyList_.at(vertex1Name).begin(), adjacencyList_.at(vertex1Name).end(), vertex2Name) != adjacencyList_.at(vertex1Name).end();
 }
 
 std::size_t Graph::getDegree(const std::string& vertexName) const {

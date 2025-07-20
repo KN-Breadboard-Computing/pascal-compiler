@@ -14,12 +14,7 @@ template <typename SrcT, typename DestT>
 requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
  public:
   BBMove() : BBInstruction(Type::MOVE, true) {}
-  BBMove(SrcT source, DestT destination, SourceType sourceType, DestinationType destinationType)
-      : BBInstruction(Type::MOVE, true),
-        source_{source},
-        destination_{destination},
-        sourceType_{sourceType},
-        destinationType_{destinationType} {}
+  BBMove(SrcT source, DestT destination, SourceType sourceType, DestinationType destinationType) : BBInstruction(Type::MOVE, true), source_{source}, destination_{destination}, sourceType_{sourceType}, destinationType_{destinationType} {}
 
   BBMove(const BBMove&) = default;
   BBMove(BBMove&&) noexcept = default;
@@ -66,16 +61,13 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
 
   virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& from, const VariableType& to) override {
     if constexpr (std::is_same_v<SrcT, VariableType> && std::is_same_v<DestT, VariableType>) {
-      return std::make_unique<BBMove<VariableType, VariableType>>(
-          source_ == from ? to : source_, destination_ == from ? to : destination_, sourceType_, destinationType_);
+      return std::make_unique<BBMove<VariableType, VariableType>>(source_ == from ? to : source_, destination_ == from ? to : destination_, sourceType_, destinationType_);
     }
     else if constexpr (std::is_same_v<SrcT, VariableType>) {
-      return std::make_unique<BBMove<VariableType, DestT>>(source_ == from ? to : source_, destination_, sourceType_,
-                                                           destinationType_);
+      return std::make_unique<BBMove<VariableType, DestT>>(source_ == from ? to : source_, destination_, sourceType_, destinationType_);
     }
     else if constexpr (std::is_same_v<DestT, VariableType>) {
-      return std::make_unique<BBMove<SrcT, VariableType>>(source_, destination_ == from ? to : destination_, sourceType_,
-                                                          destinationType_);
+      return std::make_unique<BBMove<SrcT, VariableType>>(source_, destination_ == from ? to : destination_, sourceType_, destinationType_);
     }
     else {
       return clone();
@@ -135,13 +127,9 @@ requires MoveArgs<SrcT, DestT> class BBMove : public BBInstruction {
 
   virtual void replaceLabel(const LabelType& /*from*/, const LabelType& /*to*/) override {}
 
-  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override {
-    return std::vector<TemplateArgumentType>{getSourceTemplateType(), getDestinationTemplateType()};
-  }
+  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override { return std::vector<TemplateArgumentType>{getSourceTemplateType(), getDestinationTemplateType()}; }
 
-  virtual std::unique_ptr<BBInstruction> clone() const override {
-    return std::make_unique<BBMove<SrcT, DestT>>(source_, destination_, sourceType_, destinationType_);
-  }
+  virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBMove<SrcT, DestT>>(source_, destination_, sourceType_, destinationType_); }
 
   virtual void print(std::ostream& out, int tab) const override {
     out << std::string(tab, ' ');

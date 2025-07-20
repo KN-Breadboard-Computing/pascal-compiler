@@ -86,8 +86,7 @@ class RenameTypeNode : public SimpleTypeNode {
 class EnumerationTypeNode : public SimpleTypeNode {
  public:
   EnumerationTypeNode() : SimpleTypeNode{ENUMERATION} {}
-  explicit EnumerationTypeNode(std::vector<IdentifierNode*>* identifiers)
-      : SimpleTypeNode{ENUMERATION}, identifiers_{identifiers} {}
+  explicit EnumerationTypeNode(std::vector<IdentifierNode*>* identifiers) : SimpleTypeNode{ENUMERATION}, identifiers_{identifiers} {}
 
   EnumerationTypeNode(const EnumerationTypeNode&) = delete;
   EnumerationTypeNode(EnumerationTypeNode&&) = default;
@@ -114,8 +113,7 @@ class EnumerationTypeNode : public SimpleTypeNode {
 class ConstRangeTypeNode : public SimpleTypeNode {
  public:
   ConstRangeTypeNode() : SimpleTypeNode{CONST_RANGE} {}
-  explicit ConstRangeTypeNode(ConstantNode* lowerBound, ConstantNode* upperBound)
-      : SimpleTypeNode{CONST_RANGE}, lowerBound_{lowerBound}, upperBound_{upperBound} {}
+  explicit ConstRangeTypeNode(ConstantNode* lowerBound, ConstantNode* upperBound) : SimpleTypeNode{CONST_RANGE}, lowerBound_{lowerBound}, upperBound_{upperBound} {}
 
   ConstRangeTypeNode(const ConstRangeTypeNode&) = delete;
   ConstRangeTypeNode(ConstRangeTypeNode&&) = default;
@@ -145,8 +143,7 @@ class ConstRangeTypeNode : public SimpleTypeNode {
 class VarRangeTypeNode : public SimpleTypeNode {
  public:
   VarRangeTypeNode() : SimpleTypeNode{VAR_RANGE} {}
-  explicit VarRangeTypeNode(IdentifierNode* lowerBound, IdentifierNode* upperBound)
-      : SimpleTypeNode{VAR_RANGE}, lowerBound_{lowerBound}, upperBound_{upperBound} {}
+  explicit VarRangeTypeNode(IdentifierNode* lowerBound, IdentifierNode* upperBound) : SimpleTypeNode{VAR_RANGE}, lowerBound_{lowerBound}, upperBound_{upperBound} {}
 
   VarRangeTypeNode(const VarRangeTypeNode&) = delete;
   VarRangeTypeNode(VarRangeTypeNode&&) = default;

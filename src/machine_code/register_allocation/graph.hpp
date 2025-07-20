@@ -41,9 +41,7 @@ class Graph {
 
   [[nodiscard]] bool searchEdge(const std::string vertex1Name, const std::string vertex2Name) const;
   [[nodiscard]] std::size_t getDegree(const std::string& vertexName) const;
-  [[nodiscard]] const std::vector<std::string>& getNeighbours(const std::string& vertexName) const {
-    return adjacencyList_.at(vertexName);
-  }
+  [[nodiscard]] const std::vector<std::string>& getNeighbours(const std::string& vertexName) const { return adjacencyList_.at(vertexName); }
 
   friend std::ostream& operator<<(std::ostream& os, const Graph& graph);
 

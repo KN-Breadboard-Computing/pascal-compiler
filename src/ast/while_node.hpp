@@ -10,8 +10,7 @@ namespace ast {
 class WhileNode : public StatementNode {
  public:
   WhileNode() : StatementNode{Category::WHILE} {}
-  WhileNode(ExpressionNode* condition, StatementNode* statements)
-      : StatementNode{Category::WHILE}, condition_{condition}, statements_{statements} {}
+  WhileNode(ExpressionNode* condition, StatementNode* statements) : StatementNode{Category::WHILE}, condition_{condition}, statements_{statements} {}
 
   WhileNode(const WhileNode&) = delete;
   WhileNode(WhileNode&&) = default;

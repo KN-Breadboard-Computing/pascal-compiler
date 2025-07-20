@@ -7,8 +7,7 @@ namespace bblocks {
 class BBPhi : public BBInstruction {
  public:
   BBPhi() : BBInstruction(Type::PHI, true) {}
-  BBPhi(std::string name, std::vector<std::string> args)
-      : BBInstruction(Type::PHI, true), name_{std::move(name)}, args_{std::move(args)} {}
+  BBPhi(std::string name, std::vector<std::string> args) : BBInstruction(Type::PHI, true), name_{std::move(name)}, args_{std::move(args)} {}
 
   BBPhi(const BBPhi&) = default;
   BBPhi(BBPhi&&) noexcept = default;
@@ -46,9 +45,7 @@ class BBPhi : public BBInstruction {
     return std::make_unique<BBPhi>(newName, newArgs);
   }
 
-  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& /*from*/, const NumericType& /*to*/) override {
-    return clone();
-  }
+  virtual std::unique_ptr<BBInstruction> replaceVariable(const VariableType& /*from*/, const NumericType& /*to*/) override { return clone(); }
 
   virtual void replaceDefVariables(const VariableType& from, const VariableType& to) override {
     if (name_ == from) {
@@ -66,9 +63,7 @@ class BBPhi : public BBInstruction {
 
   virtual void replaceLabel(const LabelType& /*from*/, const LabelType& /*to*/) override {}
 
-  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override {
-    return std::vector<TemplateArgumentType>{};
-  }
+  [[nodiscard]] virtual std::vector<TemplateArgumentType> getTemplateTypes() const override { return std::vector<TemplateArgumentType>{}; }
 
   virtual std::unique_ptr<BBInstruction> clone() const override { return std::make_unique<BBPhi>(name_, args_); }
 

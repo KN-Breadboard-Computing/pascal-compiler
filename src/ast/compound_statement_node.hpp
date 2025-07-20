@@ -10,8 +10,7 @@ namespace ast {
 class CompoundStatementNode : public StatementNode {
  public:
   CompoundStatementNode() : StatementNode{Category::COMPOUND} {}
-  explicit CompoundStatementNode(std::vector<StatementNode*>* statements)
-      : StatementNode{Category::COMPOUND}, statements_{statements} {}
+  explicit CompoundStatementNode(std::vector<StatementNode*>* statements) : StatementNode{Category::COMPOUND}, statements_{statements} {}
 
   CompoundStatementNode(const CompoundStatementNode&) = delete;
   CompoundStatementNode(CompoundStatementNode&&) = default;

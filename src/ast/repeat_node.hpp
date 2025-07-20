@@ -11,8 +11,7 @@ namespace ast {
 class RepeatNode : public StatementNode {
  public:
   RepeatNode() : StatementNode{Category::REPEAT} {}
-  RepeatNode(ExpressionNode* condition, StatementNode* statements)
-      : StatementNode{Category::REPEAT}, condition_{condition}, statements_{statements} {}
+  RepeatNode(ExpressionNode* condition, StatementNode* statements) : StatementNode{Category::REPEAT}, condition_{condition}, statements_{statements} {}
 
   RepeatNode(const RepeatNode&) = delete;
   RepeatNode(RepeatNode&&) = default;

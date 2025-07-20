@@ -25,8 +25,7 @@ void RecordTypeNode::accept(AstVisitor* visitor) const {
     for (const auto& identifier : *field->first) {
       identifiers.push_back(dynamic_cast<IdentifierNode*>(identifier->clone().release()));
     }
-    fields.push_back(new std::pair<std::vector<IdentifierNode*>*, TypeNode*>{
-        &identifiers, dynamic_cast<TypeNode*>(field->second->clone().release())});
+    fields.push_back(new std::pair<std::vector<IdentifierNode*>*, TypeNode*>{&identifiers, dynamic_cast<TypeNode*>(field->second->clone().release())});
   }
   clone->setFields(std::make_unique<std::vector<std::pair<std::vector<IdentifierNode*>*, TypeNode*>*>>(std::move(fields)));
 

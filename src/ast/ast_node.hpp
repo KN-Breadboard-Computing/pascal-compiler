@@ -11,22 +11,7 @@ class AstVisitor;
 
 class AstNode {
  public:
-  enum Type {
-    DEFAULT,
-    ARGUMENTS_LIST,
-    CONSTANT,
-    EXPRESSION,
-    IDENTIFIER,
-    PARAMS_GROUP,
-    PARAMS,
-    PROGRAM,
-    ROUTINE_BODY,
-    ROUTINE_DECLARATION,
-    ROUTINE_HEAD,
-    ROUTINE,
-    STATEMENT,
-    TYPE
-  };
+  enum Type { DEFAULT, ARGUMENTS_LIST, CONSTANT, EXPRESSION, IDENTIFIER, PARAMS_GROUP, PARAMS, PROGRAM, ROUTINE_BODY, ROUTINE_DECLARATION, ROUTINE_HEAD, ROUTINE, STATEMENT, TYPE };
 
   AstNode() : type_{Type::DEFAULT} {}
   explicit AstNode(Type type) : type_{type} {}

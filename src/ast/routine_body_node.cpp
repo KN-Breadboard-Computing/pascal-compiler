@@ -7,8 +7,7 @@ void RoutineBodyNode::accept(AstVisitor* visitor) const {
 
 [[nodiscard]] std::unique_ptr<AstNode> RoutineBodyNode::clone() const {
   auto clone = std::make_unique<RoutineBodyNode>();
-  clone->setStatements(
-      std::unique_ptr<CompoundStatementNode>(dynamic_cast<CompoundStatementNode*>(statements_->clone().release())));
+  clone->setStatements(std::unique_ptr<CompoundStatementNode>(dynamic_cast<CompoundStatementNode*>(statements_->clone().release())));
 
   return clone;
 }

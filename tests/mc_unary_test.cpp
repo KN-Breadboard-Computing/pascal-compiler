@@ -2189,7 +2189,7 @@ TEST_P(unaryInstructionToMachineInstructionConversion, unaryOperationsNN_MemoryT
     ASSERT_EQ(machineInstructions1.at(cnt).getType(), config.pureOpMemZpA.at(i).getType());
     ASSERT_EQ(machineInstructions1.at(cnt).getOperands().size(), config.pureOpMemZpA.at(i).getOperands().size());
     if (!config.pureOpMemZpA.at(i).getOperands().empty()) {
-      ASSERT_EQ(machineInstructions1.at(cnt).getOperands(), std::vector<std::string>{"0b00101010"});
+      ASSERT_EQ(machineInstructions1.at(cnt).getOperands(), std::vector<std::string>{"0b00100101"});
     }
     ++cnt;
   }
@@ -2202,7 +2202,7 @@ TEST_P(unaryInstructionToMachineInstructionConversion, unaryOperationsNN_MemoryT
   ASSERT_EQ(machineInstructions1.at(cnt).getOperands().size(), 0);
   ++cnt;
 
-  ASSERT_EQ(machineInstructions1.at(cnt).getType(), MachineInstruction::MOV_A_ABS_ZP);
+  ASSERT_EQ(machineInstructions1.at(cnt).getType(), MachineInstruction::MOV_A_ABS);
   ASSERT_EQ(machineInstructions1.at(cnt).getOperands().size(), 2);
   ASSERT_EQ(machineInstructions1.at(cnt).getOperands(), (std::vector<std::string>{"0b00000111", "0b10000000"}));
   ++cnt;
@@ -2245,29 +2245,29 @@ UnaryOpTestCaseConfig notTestCaseConfig{BBUnaryOperationEnum::NOT,
                                         {MachineInstruction{MachineInstruction::INV_STC_A}},
                                         {MachineInstruction{MachineInstruction::INV_STC_B}}};
 
-//UnaryOpTestCaseConfig incTestCaseConfig{BBUnaryOperationEnum::INC,
-//                                        {MachineInstruction{MachineInstruction::INC_A}},
-//                                        {MachineInstruction{MachineInstruction::INC_B}, MachineInstruction{MachineInstruction::MOV_A_B}, MachineInstruction{MachineInstruction::DEC_B}},
-//                                        {MachineInstruction{MachineInstruction::INC_A}, MachineInstruction{MachineInstruction::MOV_B_A}, MachineInstruction{MachineInstruction::DEC_A}},
-//                                        {MachineInstruction{MachineInstruction::INC_B}},
-//                                        {MachineInstruction{MachineInstruction::INC_MEM_A, {"arg1", "arg2"}}},
-//                                        {MachineInstruction{MachineInstruction::INC_MEM_ZP_A, {"arg1"}}},
-//                                        {MachineInstruction{MachineInstruction::INC_MEM_B, {"arg1", "arg2"}}},
-//                                        {MachineInstruction{MachineInstruction::INC_MEM_ZP_B, {"arg1"}}},
-//                                        {MachineInstruction{MachineInstruction::INC_STC_A}},
-//                                        {MachineInstruction{MachineInstruction::INC_STC_B}}};
-//
-//UnaryOpTestCaseConfig decTestCaseConfig{BBUnaryOperationEnum::DEC,
-//                                        {MachineInstruction{MachineInstruction::DEC_A}},
-//                                        {MachineInstruction{MachineInstruction::DEC_A_B}},
-//                                        {MachineInstruction{MachineInstruction::DEC_B_A}},
-//                                        {MachineInstruction{MachineInstruction::DEC_B}},
-//                                        {MachineInstruction{MachineInstruction::DEC_MEM_A, {"arg1", "arg2"}}},
-//                                        {MachineInstruction{MachineInstruction::DEC_MEM_ZP_A, {"arg1"}}},
-//                                        {MachineInstruction{MachineInstruction::DEC_MEM_B, {"arg1", "arg2"}}},
-//                                        {MachineInstruction{MachineInstruction::DEC_MEM_ZP_B, {"arg1"}}},
-//                                        {MachineInstruction{MachineInstruction::DEC_STC_A}},
-//                                        {MachineInstruction{MachineInstruction::DEC_STC_B}}};
+UnaryOpTestCaseConfig incTestCaseConfig{BBUnaryOperationEnum::INC,
+                                        {MachineInstruction{MachineInstruction::INC_A}},
+                                        {MachineInstruction{MachineInstruction::INC_B}, MachineInstruction{MachineInstruction::MOV_A_B}, MachineInstruction{MachineInstruction::DEC_B}},
+                                        {MachineInstruction{MachineInstruction::INC_A}, MachineInstruction{MachineInstruction::MOV_B_A}, MachineInstruction{MachineInstruction::DEC_A}},
+                                        {MachineInstruction{MachineInstruction::INC_B}},
+                                        {MachineInstruction{MachineInstruction::INC_A}, MachineInstruction{MachineInstruction::MOV_AT_ABS_A, {"arg1", "arg2"}}, MachineInstruction{MachineInstruction::DEC_A}},
+                                        {MachineInstruction{MachineInstruction::INC_A}, MachineInstruction{MachineInstruction::MOV_AT_ABS_A_ZP, {"arg1"}}, MachineInstruction{MachineInstruction::DEC_A}},
+                                        {MachineInstruction{MachineInstruction::INC_B}, MachineInstruction{MachineInstruction::MOV_AT_ABS_B, {"arg1", "arg2"}}, MachineInstruction{MachineInstruction::DEC_B}},
+                                        {MachineInstruction{MachineInstruction::INC_B}, MachineInstruction{MachineInstruction::MOV_AT_ABS_B_ZP, {"arg1"}}, MachineInstruction{MachineInstruction::DEC_B}},
+                                        {MachineInstruction{MachineInstruction::INC_A}, MachineInstruction{MachineInstruction::PUSH_A}, MachineInstruction{MachineInstruction::DEC_A}},
+                                        {MachineInstruction{MachineInstruction::INC_B}, MachineInstruction{MachineInstruction::PUSH_B}, MachineInstruction{MachineInstruction::DEC_B}}};
+
+UnaryOpTestCaseConfig decTestCaseConfig{BBUnaryOperationEnum::DEC,
+                                        {MachineInstruction{MachineInstruction::DEC_A}},
+                                        {MachineInstruction{MachineInstruction::DEC_B}, MachineInstruction{MachineInstruction::MOV_A_B}, MachineInstruction{MachineInstruction::INC_B}},
+                                        {MachineInstruction{MachineInstruction::DEC_A}, MachineInstruction{MachineInstruction::MOV_B_A}, MachineInstruction{MachineInstruction::INC_A}},
+                                        {MachineInstruction{MachineInstruction::DEC_B}},
+                                        {MachineInstruction{MachineInstruction::DEC_A}, MachineInstruction{MachineInstruction::MOV_AT_ABS_A, {"arg1", "arg2"}}, MachineInstruction{MachineInstruction::INC_A}},
+                                        {MachineInstruction{MachineInstruction::DEC_A}, MachineInstruction{MachineInstruction::MOV_AT_ABS_A_ZP, {"arg1"}}, MachineInstruction{MachineInstruction::INC_A}},
+                                        {MachineInstruction{MachineInstruction::DEC_B}, MachineInstruction{MachineInstruction::MOV_AT_ABS_B, {"arg1", "arg2"}}, MachineInstruction{MachineInstruction::INC_B}},
+                                        {MachineInstruction{MachineInstruction::DEC_B}, MachineInstruction{MachineInstruction::MOV_AT_ABS_B_ZP, {"arg1"}}, MachineInstruction{MachineInstruction::INC_B}},
+                                        {MachineInstruction{MachineInstruction::DEC_A}, MachineInstruction{MachineInstruction::PUSH_A}, MachineInstruction{MachineInstruction::INC_A}},
+                                        {MachineInstruction{MachineInstruction::DEC_B}, MachineInstruction{MachineInstruction::PUSH_B}, MachineInstruction{MachineInstruction::INC_B}}};
 
 UnaryOpTestCaseConfig shlTestCaseConfig{BBUnaryOperationEnum::SHL,
                                         {MachineInstruction{MachineInstruction::SHL_A_A}},

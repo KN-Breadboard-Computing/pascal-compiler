@@ -35,8 +35,7 @@ class CallNode : public StatementNode {
 class UserDefineCallNode : public CallNode {
  public:
   UserDefineCallNode() : CallNode{USER_DEFINED} {}
-  UserDefineCallNode(IdentifierNode* name, ArgumentsListNode* arguments)
-      : CallNode{USER_DEFINED}, name_{name}, arguments_{arguments} {}
+  UserDefineCallNode(IdentifierNode* name, ArgumentsListNode* arguments) : CallNode{USER_DEFINED}, name_{name}, arguments_{arguments} {}
 
   UserDefineCallNode(const UserDefineCallNode&) = delete;
   UserDefineCallNode(UserDefineCallNode&&) = default;

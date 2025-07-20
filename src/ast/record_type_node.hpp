@@ -11,8 +11,7 @@ namespace ast {
 class RecordTypeNode : public TypeNode {
  public:
   RecordTypeNode() : TypeNode{TypeType::RECORD} {}
-  explicit RecordTypeNode(std::vector<std::pair<std::vector<IdentifierNode*>*, TypeNode*>*>* fields)
-      : TypeNode{TypeType::RECORD}, fields_{fields} {}
+  explicit RecordTypeNode(std::vector<std::pair<std::vector<IdentifierNode*>*, TypeNode*>*>* fields) : TypeNode{TypeType::RECORD}, fields_{fields} {}
 
   RecordTypeNode(const RecordTypeNode&) = delete;
   RecordTypeNode(RecordTypeNode&&) = default;
@@ -22,13 +21,9 @@ class RecordTypeNode : public TypeNode {
 
   ~RecordTypeNode() override = default;
 
-  [[nodiscard]] const std::unique_ptr<std::vector<std::pair<std::vector<IdentifierNode*>*, TypeNode*>*>>& getFields() const {
-    return fields_;
-  }
+  [[nodiscard]] const std::unique_ptr<std::vector<std::pair<std::vector<IdentifierNode*>*, TypeNode*>*>>& getFields() const { return fields_; }
 
-  void setFields(std::unique_ptr<std::vector<std::pair<std::vector<IdentifierNode*>*, TypeNode*>*>> fields) {
-    fields_ = std::move(fields);
-  }
+  void setFields(std::unique_ptr<std::vector<std::pair<std::vector<IdentifierNode*>*, TypeNode*>*>> fields) { fields_ = std::move(fields); }
 
   [[nodiscard]] virtual std::string flat() const override;
 

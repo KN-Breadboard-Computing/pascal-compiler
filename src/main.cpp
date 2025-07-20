@@ -85,8 +85,7 @@ int main(int argc, char* argv[]) {
   }
 
   machine_code::MachineCodeGenerator machineCodeGenerator;
-  machineCodeGenerator.generate(ssaGenerator.getControlFlowGraphs(),
-                                machine_code::MachineCodeGenerator::RegisterAllocator::LINEAR_SCAN);
+  machineCodeGenerator.generate(ssaGenerator.getControlFlowGraphs(), machine_code::MachineCodeGenerator::RegisterAllocator::LINEAR_SCAN);
 
   std::ofstream outputRegisterAllocationFile(outputRegisterAllocationFileName);
   machineCodeGenerator.saveLiveRanges(outputRegisterAllocationFile);

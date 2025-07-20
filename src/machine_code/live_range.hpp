@@ -28,8 +28,7 @@ class LiveRange {
 
   LiveRange() : allocatedRegister_{-1} {}
   LiveRange(std::string variable) : allocatedRegister_{-1}, variable_(std::move(variable)) {}
-  LiveRange(std::string variable, std::vector<Action> actions)
-      : allocatedRegister_{-1}, variable_(std::move(variable)), actions_(std::move(actions)) {}
+  LiveRange(std::string variable, std::vector<Action> actions) : allocatedRegister_{-1}, variable_(std::move(variable)), actions_(std::move(actions)) {}
   LiveRange(const LiveRange&) = default;
   LiveRange(LiveRange&&) = default;
 
