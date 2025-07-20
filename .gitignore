@@ -1,6 +1,7 @@
 .idea
+.vscode
 core-objects/*
-compiler-objects/*
+emulator-objects/*
 compiler
 ast-test
 bb-test
