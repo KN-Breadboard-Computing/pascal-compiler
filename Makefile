@@ -62,15 +62,15 @@ test-ssa:
 	./ssa-test
 
 test-mc:
-	#$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/mc_mov_test.cpp tests/main.cpp -lgtest -o mc-mov-test
+	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/mc_mov_test.cpp tests/main.cpp -lgtest -o mc-mov-test
 	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/mc_unary_test.cpp tests/main.cpp -lgtest -o mc-unary-test
-	#./mc-mov-test
+	./mc-mov-test
 	./mc-unary-test
 
 test-ssa-end-to-end:
-	#$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o $(EMULATOR_CORE_OBJECTS_DIR)/*.o tests/ssa_mov_end_to_end_test.cpp tests/main.cpp -lgtest -o ssa-mov-end-to-end-test
+	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o $(EMULATOR_CORE_OBJECTS_DIR)/*.o tests/ssa_mov_end_to_end_test.cpp tests/main.cpp -lgtest -o ssa-mov-end-to-end-test
 	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o $(EMULATOR_CORE_OBJECTS_DIR)/*.o tests/ssa_unary_end_to_end_test.cpp tests/main.cpp -lgtest -o ssa-unary-end-to-end-test
-	#./ssa-mov-end-to-end-test
+	./ssa-mov-end-to-end-test
 	./ssa-unary-end-to-end-test
 
 test-program-end-to-end:

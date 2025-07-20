@@ -36,28 +36,28 @@ TEST(movInstructionToMachineInstructionConversion, movesVV_RegisterToRegister) {
   basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
   basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::REGISTER));
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 6, machineInstructions1);
 
   ASSERT_EQ(machineInstructions1.size(), 5);
 
   ASSERT_EQ(machineInstructions1.at(0).getType(), MachineInstruction::MOV_AT_ABS_B_ZP);
   ASSERT_EQ(machineInstructions1.at(0).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(0).getOperands(), std::vector<std::string>{"0b00100000"});
+  ASSERT_EQ(machineInstructions1.at(0).getOperands(), std::vector<std::string>{"0b01000000"});
 
   ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::MOV_B_A);
   ASSERT_EQ(machineInstructions1.at(1).getOperands().size(), 0);
 
   ASSERT_EQ(machineInstructions1.at(2).getType(), MachineInstruction::MOV_A_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(2).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(2).getOperands(), std::vector<std::string>{"0b00100010"});
+  ASSERT_EQ(machineInstructions1.at(2).getOperands(), std::vector<std::string>{"0b01000010"});
 
   ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(3).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(3).getOperands(), std::vector<std::string>{"0b00100011"});
+  ASSERT_EQ(machineInstructions1.at(3).getOperands(), std::vector<std::string>{"0b01000011"});
 
   ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::POP_MEM_ZP);
   ASSERT_EQ(machineInstructions1.at(4).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(4).getOperands(), std::vector<std::string>{"0b00100001"});
+  ASSERT_EQ(machineInstructions1.at(4).getOperands(), std::vector<std::string>{"0b01000001"});
 
   // move register to register - any register need memory cell (long address)    - case dst2 := src2
   // move register to register - first register need memory cell (long address)  - case dst3 := src3
@@ -104,13 +104,13 @@ TEST(movInstructionToMachineInstructionConversion, movesVV_RegisterToMemory) {
   basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
   basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::REGISTER, BBMoveVV::DestinationType::MEMORY));
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 6, machineInstructions1);
 
   ASSERT_EQ(machineInstructions1.size(), 12);
 
   ASSERT_EQ(machineInstructions1.at(0).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(0).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(0).getOperands(), std::vector<std::string>{"0b00100000"});
+  ASSERT_EQ(machineInstructions1.at(0).getOperands(), std::vector<std::string>{"0b01000000"});
 
   ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions1.at(1).getOperands().size(), 0);
@@ -123,7 +123,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVV_RegisterToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(4).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(4).getOperands(), std::vector<std::string>{"0b00100010"});
+  ASSERT_EQ(machineInstructions1.at(4).getOperands(), std::vector<std::string>{"0b01000010"});
 
   ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions1.at(5).getOperands().size(), 0);
@@ -133,11 +133,11 @@ TEST(movInstructionToMachineInstructionConversion, movesVV_RegisterToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(7).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(7).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(7).getOperands(), std::vector<std::string>{"0b00100011"});
+  ASSERT_EQ(machineInstructions1.at(7).getOperands(), std::vector<std::string>{"0b01000011"});
 
   ASSERT_EQ(machineInstructions1.at(8).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(8).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(8).getOperands(), std::vector<std::string>{"0b00100001"});
+  ASSERT_EQ(machineInstructions1.at(8).getOperands(), std::vector<std::string>{"0b01000001"});
 
   ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions1.at(9).getOperands().size(), 0);
@@ -214,7 +214,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVV_MemoryToRegister) {
   basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
   basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::REGISTER));
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 6, machineInstructions1);
 
   ASSERT_EQ(machineInstructions1.size(), 14);
 
@@ -226,7 +226,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVV_MemoryToRegister) {
 
   ASSERT_EQ(machineInstructions1.at(2).getType(), MachineInstruction::MOV_AT_ABS_A_ZP);
   ASSERT_EQ(machineInstructions1.at(2).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(2).getOperands(), std::vector<std::string>{"0b00100000"});
+  ASSERT_EQ(machineInstructions1.at(2).getOperands(), std::vector<std::string>{"0b01000000"});
 
   ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::POP_A);
   ASSERT_EQ(machineInstructions1.at(3).getOperands().size(), 0);
@@ -236,7 +236,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVV_MemoryToRegister) {
 
   ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(5).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(5).getOperands(), std::vector<std::string>{"0b00100010"});
+  ASSERT_EQ(machineInstructions1.at(5).getOperands(), std::vector<std::string>{"0b01000010"});
 
   ASSERT_EQ(machineInstructions1.at(6).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions1.at(6).getOperands().size(), 0);
@@ -249,7 +249,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVV_MemoryToRegister) {
 
   ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::MOV_A_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(9).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(9).getOperands(), std::vector<std::string>{"0b00100011"});
+  ASSERT_EQ(machineInstructions1.at(9).getOperands(), std::vector<std::string>{"0b01000011"});
 
   ASSERT_EQ(machineInstructions1.at(10).getType(), MachineInstruction::MOV_TL_A);
   ASSERT_EQ(machineInstructions1.at(10).getOperands().size(), 0);
@@ -259,7 +259,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVV_MemoryToRegister) {
 
   ASSERT_EQ(machineInstructions1.at(12).getType(), MachineInstruction::MOV_AT_ABS_A_ZP);
   ASSERT_EQ(machineInstructions1.at(12).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(12).getOperands(), std::vector<std::string>{"0b00100001"});
+  ASSERT_EQ(machineInstructions1.at(12).getOperands(), std::vector<std::string>{"0b01000001"});
 
   ASSERT_EQ(machineInstructions1.at(13).getType(), MachineInstruction::POP_A);
   ASSERT_EQ(machineInstructions1.at(13).getOperands().size(), 0);
@@ -336,7 +336,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVV_MemoryToMemory) {
   basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src3", "dst3", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
   basicBlock1.addInstruction(std::make_unique<BBMoveVV>("src4", "dst4", BBMoveVV::SourceType::MEMORY, BBMoveVV::DestinationType::MEMORY));
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 6, machineInstructions1);
 
   ASSERT_EQ(machineInstructions1.size(), 20);
 
@@ -345,7 +345,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVV_MemoryToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::MOV_A_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(1).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(1).getOperands(), std::vector<std::string>{"0b00100000"});
+  ASSERT_EQ(machineInstructions1.at(1).getOperands(), std::vector<std::string>{"0b01000000"});
 
   ASSERT_EQ(machineInstructions1.at(2).getType(), MachineInstruction::MOV_TH_AT_B);
   ASSERT_EQ(machineInstructions1.at(2).getOperands().size(), 0);
@@ -367,7 +367,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVV_MemoryToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(8).getType(), MachineInstruction::MOV_B_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(8).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(8).getOperands(), std::vector<std::string>{"0b00100010"});
+  ASSERT_EQ(machineInstructions1.at(8).getOperands(), std::vector<std::string>{"0b01000010"});
 
   ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::MOV_TH_AT_B);
   ASSERT_EQ(machineInstructions1.at(9).getOperands().size(), 0);
@@ -386,11 +386,11 @@ TEST(movInstructionToMachineInstructionConversion, movesVV_MemoryToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(14).getType(), MachineInstruction::MOV_A_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(14).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(14).getOperands(), std::vector<std::string>{"0b00100011"});
+  ASSERT_EQ(machineInstructions1.at(14).getOperands(), std::vector<std::string>{"0b01000011"});
 
   ASSERT_EQ(machineInstructions1.at(15).getType(), MachineInstruction::MOV_B_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(15).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(15).getOperands(), std::vector<std::string>{"0b00100001"});
+  ASSERT_EQ(machineInstructions1.at(15).getOperands(), std::vector<std::string>{"0b01000001"});
 
   ASSERT_EQ(machineInstructions1.at(16).getType(), MachineInstruction::MOV_TH_AT_A);
   ASSERT_EQ(machineInstructions1.at(16).getOperands().size(), 0);
@@ -521,7 +521,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVN_RegisterToMemory) {
   basicBlock1.addInstruction(std::make_unique<BBMoveVN>("src3", 42, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
   basicBlock1.addInstruction(std::make_unique<BBMoveVN>("src4", 1410, BBMoveVN::SourceType::REGISTER, BBMoveVN::DestinationType::MEMORY));
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {}, std::move(basicBlock1), 1 << 6, machineInstructions1);
 
   ASSERT_EQ(machineInstructions1.size(), 6);
 
@@ -535,7 +535,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVN_RegisterToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(2).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(2).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(2).getOperands(), std::vector<std::string>{"0b00100000"});
+  ASSERT_EQ(machineInstructions1.at(2).getOperands(), std::vector<std::string>{"0b01000000"});
 
   ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::POP_MEM_ZP);
   ASSERT_EQ(machineInstructions1.at(3).getOperands().size(), 1);
@@ -543,7 +543,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVN_RegisterToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(4).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(4).getOperands(), std::vector<std::string>{"0b00100001"});
+  ASSERT_EQ(machineInstructions1.at(4).getOperands(), std::vector<std::string>{"0b01000001"});
 
   ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::POP_MEM);
   ASSERT_EQ(machineInstructions1.at(5).getOperands().size(), 2);
@@ -608,7 +608,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVN_MemoryToMemory) {
   basicBlock1.addInstruction(std::make_unique<BBMoveVN>("src3", 42, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
   basicBlock1.addInstruction(std::make_unique<BBMoveVN>("src4", 1410, BBMoveVN::SourceType::MEMORY, BBMoveVN::DestinationType::MEMORY));
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {}, std::move(basicBlock1), 1 << 6, machineInstructions1);
 
   ASSERT_EQ(machineInstructions1.size(), 20);
 
@@ -643,7 +643,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVN_MemoryToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(9).getType(), MachineInstruction::MOV_A_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(9).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(9).getOperands(), (std::vector<std::string>{"0b00100000"}));
+  ASSERT_EQ(machineInstructions1.at(9).getOperands(), (std::vector<std::string>{"0b01000000"}));
 
   ASSERT_EQ(machineInstructions1.at(10).getType(), MachineInstruction::MOV_TL_A);
   ASSERT_EQ(machineInstructions1.at(10).getOperands().size(), 0);
@@ -663,7 +663,7 @@ TEST(movInstructionToMachineInstructionConversion, movesVN_MemoryToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(15).getType(), MachineInstruction::MOV_A_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(15).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(15).getOperands(), (std::vector<std::string>{"0b00100001"}));
+  ASSERT_EQ(machineInstructions1.at(15).getOperands(), (std::vector<std::string>{"0b01000001"}));
 
   ASSERT_EQ(machineInstructions1.at(16).getType(), MachineInstruction::MOV_TL_A);
   ASSERT_EQ(machineInstructions1.at(16).getOperands().size(), 0);
@@ -766,7 +766,7 @@ TEST(movInstructionToMachineInstructionConversion, movesNV_ConstantToRegister) {
   basicBlock1.addInstruction(std::make_unique<BBMoveNV>(42, "dst2", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
   basicBlock1.addInstruction(std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::REGISTER));
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({"dst1"}, {"dst1", "dst2", "dst3"}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  translateBasicBlockToMachineCode({"dst1"}, {"dst1", "dst2", "dst3"}, std::move(basicBlock1), 1 << 6, machineInstructions1);
 
   ASSERT_EQ(machineInstructions1.size(), 2);
 
@@ -776,7 +776,7 @@ TEST(movInstructionToMachineInstructionConversion, movesNV_ConstantToRegister) {
 
   ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::MOV_AT_ABS_IMM_ZP);
   ASSERT_EQ(machineInstructions1.at(1).getOperands().size(), 2);
-  ASSERT_EQ(machineInstructions1.at(1).getOperands(), (std::vector<std::string>{"0b00100000", "0b00101010"}));
+  ASSERT_EQ(machineInstructions1.at(1).getOperands(), (std::vector<std::string>{"0b01000000", "0b00101010"}));
 
   // move constant to register - register does not need memory cell (long address)   - case src2 := 42
   // move constant to register - register need memory cell (long address)            - case src3 := 42
@@ -804,7 +804,7 @@ TEST(movInstructionToMachineInstructionConversion, movesNV_ConstantToMemory) {
   basicBlock1.addInstruction(std::make_unique<BBMoveNV>(42, "dst2", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::MEMORY));
   basicBlock1.addInstruction(std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::CONSTANT, BBMoveNV::DestinationType::MEMORY));
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({"dst1"}, {"dst1", "dst2", "dst3"}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  translateBasicBlockToMachineCode({"dst1"}, {"dst1", "dst2", "dst3"}, std::move(basicBlock1), 1 << 6, machineInstructions1);
 
   ASSERT_EQ(machineInstructions1.size(), 4);
 
@@ -814,7 +814,7 @@ TEST(movInstructionToMachineInstructionConversion, movesNV_ConstantToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(1).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(1).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(1).getOperands(), std::vector<std::string>{"0b00100000"});
+  ASSERT_EQ(machineInstructions1.at(1).getOperands(), std::vector<std::string>{"0b01000000"});
 
   ASSERT_EQ(machineInstructions1.at(2).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions1.at(2).getOperands().size(), 0);
@@ -878,7 +878,7 @@ TEST(movInstructionToMachineInstructionConversion, movesNV_MemoryToRegister) {
   basicBlock1.addInstruction(std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
   basicBlock1.addInstruction(std::make_unique<BBMoveNV>(1410, "dst4", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::REGISTER));
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  translateBasicBlockToMachineCode({}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 6, machineInstructions1);
 
   ASSERT_EQ(machineInstructions1.size(), 6);
 
@@ -896,7 +896,7 @@ TEST(movInstructionToMachineInstructionConversion, movesNV_MemoryToRegister) {
 
   ASSERT_EQ(machineInstructions1.at(3).getType(), MachineInstruction::POP_MEM_ZP);
   ASSERT_EQ(machineInstructions1.at(3).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(3).getOperands(), std::vector<std::string>{"0b00100000"});
+  ASSERT_EQ(machineInstructions1.at(3).getOperands(), std::vector<std::string>{"0b01000000"});
 
   ASSERT_EQ(machineInstructions1.at(4).getType(), MachineInstruction::PUSH_ABS);
   ASSERT_EQ(machineInstructions1.at(4).getOperands().size(), 2);
@@ -904,7 +904,7 @@ TEST(movInstructionToMachineInstructionConversion, movesNV_MemoryToRegister) {
 
   ASSERT_EQ(machineInstructions1.at(5).getType(), MachineInstruction::POP_MEM_ZP);
   ASSERT_EQ(machineInstructions1.at(5).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(5).getOperands(), std::vector<std::string>{"0b00100001"});
+  ASSERT_EQ(machineInstructions1.at(5).getOperands(), std::vector<std::string>{"0b01000001"});
 
   // move memory to register - register does not need memory cell (uint8, long address)       - case dst1 := [42]
   // move memory to register - register does not need memory cell (uint16, long address)      - case dst2 := [1410]
@@ -956,7 +956,7 @@ TEST(movInstructionToMachineInstructionConversion, movesNV_MemoryToMemory) {
   basicBlock1.addInstruction(std::make_unique<BBMoveNV>(42, "dst3", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
   basicBlock1.addInstruction(std::make_unique<BBMoveNV>(1410, "dst4", BBMoveNV::SourceType::MEMORY, BBMoveNV::DestinationType::MEMORY));
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  translateBasicBlockToMachineCode({}, {"dst1", "dst2", "dst3", "dst4"}, std::move(basicBlock1), 1 << 6, machineInstructions1);
 
   ASSERT_EQ(machineInstructions1.size(), 16);
 
@@ -986,7 +986,7 @@ TEST(movInstructionToMachineInstructionConversion, movesNV_MemoryToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(7).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(7).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(7).getOperands(), std::vector<std::string>{"0b00100000"});
+  ASSERT_EQ(machineInstructions1.at(7).getOperands(), std::vector<std::string>{"0b01000000"});
 
   ASSERT_EQ(machineInstructions1.at(8).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions1.at(8).getOperands().size(), 0);
@@ -1003,7 +1003,7 @@ TEST(movInstructionToMachineInstructionConversion, movesNV_MemoryToMemory) {
 
   ASSERT_EQ(machineInstructions1.at(12).getType(), MachineInstruction::PUSH_ABS_ZP);
   ASSERT_EQ(machineInstructions1.at(12).getOperands().size(), 1);
-  ASSERT_EQ(machineInstructions1.at(12).getOperands(), std::vector<std::string>{"0b00100001"});
+  ASSERT_EQ(machineInstructions1.at(12).getOperands(), std::vector<std::string>{"0b01000001"});
 
   ASSERT_EQ(machineInstructions1.at(13).getType(), MachineInstruction::POP_TL);
   ASSERT_EQ(machineInstructions1.at(13).getOperands().size(), 0);
@@ -1099,7 +1099,7 @@ TEST(movInstructionToMachineInstructionConversion, movesNN_ConstantToMemory) {
   basicBlock1.addInstruction(std::make_unique<BBMoveNN>(37, 42, BBMoveNN::SourceType::CONSTANT, BBMoveNN::DestinationType::MEMORY));
   basicBlock1.addInstruction(std::make_unique<BBMoveNN>(37, 1410, BBMoveNN::SourceType::CONSTANT, BBMoveNN::DestinationType::MEMORY));
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({}, {}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  translateBasicBlockToMachineCode({}, {}, std::move(basicBlock1), 1 << 6, machineInstructions1);
 
   ASSERT_EQ(machineInstructions1.size(), 2);
 
@@ -1150,7 +1150,7 @@ TEST(movInstructionToMachineInstructionConversion, movesNN_MemoryToMemory) {
   basicBlock1.addInstruction(std::make_unique<BBMoveNN>(1920, 37, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
   basicBlock1.addInstruction(std::make_unique<BBMoveNN>(1920, 1410, BBMoveNN::SourceType::MEMORY, BBMoveNN::DestinationType::MEMORY));
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({}, {}, std::move(basicBlock1), 1 << 5, machineInstructions1);
+  translateBasicBlockToMachineCode({}, {}, std::move(basicBlock1), 1 << 6, machineInstructions1);
 
   ASSERT_EQ(machineInstructions1.size(), 8);
 
