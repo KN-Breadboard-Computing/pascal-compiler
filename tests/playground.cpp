@@ -92,9 +92,10 @@ void translateBasicBlockToMachineCode(const std::vector<std::string>& readVariab
   std::cout << std::dec << std::endl;
 }
 
-struct UnaryOpTestCaseConfig {
-  BBUnaryOperationEnum operation;
-  std::function<uint8_t(uint8_t)> opFunc;
+struct BinaryOpTestCaseConfig {
+  BBBinaryOperationEnum operation;
+  size_t pureOpOffset;
+  std::function<uint8_t(uint8_t, uint8_t)> opFunc;
 };
 
 int main() {
@@ -107,16 +108,21 @@ int main() {
   //  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {}, std::move(basicBlock2),
   //                                   1 << 5, machineInstructions2);
 
-  UnaryOpTestCaseConfig config{BBUnaryOperationEnum::NEG, [](uint8_t x) {
-                                 return static_cast<uint8_t>(-x);
-                               }};
+  BinaryOpTestCaseConfig config{BBBinaryOperationEnum::ADD, 1, [](uint8_t x, uint8_t y) {
+                                  return static_cast<uint8_t>(x + y);
+                                }};
   BasicBlock basicBlock1;
-  basicBlock1.addInstruction(std::make_unique<BBUnaryOperationNN>(42, 37, BBUnaryOperationNN::SourceType::MEMORY, BBUnaryOperationNN::DestinationType::MEMORY, config.operation));
-  basicBlock1.addInstruction(std::make_unique<BBUnaryOperationNN>(42, 1410, BBUnaryOperationNN::SourceType::MEMORY, BBUnaryOperationNN::DestinationType::MEMORY, config.operation));
-  basicBlock1.addInstruction(std::make_unique<BBUnaryOperationNN>(1920, 37, BBUnaryOperationNN::SourceType::MEMORY, BBUnaryOperationNN::DestinationType::MEMORY, config.operation));
-  basicBlock1.addInstruction(std::make_unique<BBUnaryOperationNN>(1920, 1410, BBUnaryOperationNN::SourceType::MEMORY, BBUnaryOperationNN::DestinationType::MEMORY, config.operation));
+  basicBlock1.addInstruction(std::make_unique<BBBinaryOperationNVV>(42, "src1", "dst1", BBBinaryOperationNVV::SourceType::MEMORY, BBBinaryOperationNVV::SourceType::REGISTER, BBUnaryOperationVV::DestinationType::REGISTER, config.operation));
+  basicBlock1.addInstruction(std::make_unique<BBBinaryOperationNVV>(1410, "src1", "dst1", BBBinaryOperationNVV::SourceType::MEMORY, BBBinaryOperationNVV::SourceType::REGISTER, BBUnaryOperationVV::DestinationType::REGISTER, config.operation));
+  basicBlock1.addInstruction(std::make_unique<BBBinaryOperationNVV>(42, "src2", "dst2", BBBinaryOperationNVV::SourceType::MEMORY, BBBinaryOperationNVV::SourceType::REGISTER, BBUnaryOperationVV::DestinationType::REGISTER, config.operation));
+  basicBlock1.addInstruction(std::make_unique<BBBinaryOperationNVV>(1410, "src2", "dst2", BBBinaryOperationNVV::SourceType::MEMORY, BBBinaryOperationNVV::SourceType::REGISTER, BBUnaryOperationVV::DestinationType::REGISTER, config.operation));
+  basicBlock1.addInstruction(std::make_unique<BBBinaryOperationNVV>(42, "src3", "dst3", BBBinaryOperationNVV::SourceType::MEMORY, BBBinaryOperationNVV::SourceType::REGISTER, BBUnaryOperationVV::DestinationType::REGISTER, config.operation));
+  basicBlock1.addInstruction(std::make_unique<BBBinaryOperationNVV>(1410, "src3", "dst3", BBBinaryOperationNVV::SourceType::MEMORY, BBBinaryOperationNVV::SourceType::REGISTER, BBUnaryOperationVV::DestinationType::REGISTER, config.operation));
+  basicBlock1.addInstruction(std::make_unique<BBBinaryOperationNVV>(42, "src4", "dst4", BBBinaryOperationNVV::SourceType::MEMORY, BBBinaryOperationNVV::SourceType::REGISTER, BBUnaryOperationVV::DestinationType::REGISTER, config.operation));
+  basicBlock1.addInstruction(std::make_unique<BBBinaryOperationNVV>(1410, "src4", "dst4", BBBinaryOperationNVV::SourceType::MEMORY, BBBinaryOperationNVV::SourceType::REGISTER, BBUnaryOperationVV::DestinationType::REGISTER, config.operation));
+
   std::vector<MachineInstruction> machineInstructions1;
-  translateBasicBlockToMachineCode({}, {}, std::move(basicBlock1), 1 << 6, machineInstructions1);
+  translateBasicBlockToMachineCode({"src1", "src2", "src3", "src4"}, {}, std::move(basicBlock1), 1 << 6, machineInstructions1);
 
   return 0;
 }

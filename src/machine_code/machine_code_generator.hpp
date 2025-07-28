@@ -141,25 +141,49 @@ class MachineCodeGenerator {
   std::vector<MachineInstruction> generateBinaryOperation(const bblocks::BBBinaryOperationNNV& instruction);
   std::vector<MachineInstruction> generateBinaryOperation(const bblocks::BBBinaryOperationNNN& instruction);
 
-  std::vector<MachineInstruction> generateBinaryOperationRegRegReg(int src1, int src2, int dest, bblocks::BBBinaryOperationEnum type);
-  std::vector<MachineInstruction> generateBinaryOperationRegRegMem(int src1, int src2, uint16_t dest, bblocks::BBBinaryOperationEnum type);
-  std::vector<MachineInstruction> generateBinaryOperationRegMemReg(int src1, uint16_t src2, int dest, bblocks::BBBinaryOperationEnum type);
-  std::vector<MachineInstruction> generateBinaryOperationRegMemMem(int src1, uint16_t src2, uint16_t dest, bblocks::BBBinaryOperationEnum type);
-  std::vector<MachineInstruction> generateBinaryOperationMemRegReg(uint16_t src1, int src2, int dest, bblocks::BBBinaryOperationEnum type);
-  std::vector<MachineInstruction> generateBinaryOperationMemRegMem(uint16_t src1, int src2, uint16_t dest, bblocks::BBBinaryOperationEnum type);
-  std::vector<MachineInstruction> generateBinaryOperationMemMemReg(uint16_t src1, uint16_t src2, int dest, bblocks::BBBinaryOperationEnum type);
-  std::vector<MachineInstruction> generateBinaryOperationMemMemMem(uint16_t src1, uint16_t src2, uint16_t dest, bblocks::BBBinaryOperationEnum type);
+  std::vector<MachineInstruction> generateBinOpRhsConstConst(uint8_t src1, uint8_t src2, int dest, bool rev);            // := op(const, const)
+  std::vector<MachineInstruction> generateBinOpRhsConstReg(uint8_t src1, int src2, int dest, bool rev);                  // := op(const, reg)
+  std::vector<MachineInstruction> generateBinOpRhsConstMem(uint8_t src1, uint16_t src2, int dest, bool rev);             // := op(const, [addr])
+  std::vector<MachineInstruction> generateBinOpRhsConstMemImmReg(uint8_t src1, int src2, int dest, bool rev);            // := op(const, [reg])
+  std::vector<MachineInstruction> generateBinOpRhsConstMemImmMem(uint8_t src1, uint16_t src2, int dest, bool rev);       // := op(const, [[addr]])
+  std::vector<MachineInstruction> generateBinOpRhsRegReg(int src1, int src2, int dest, bool rev);                        // := op(reg, reg)
+  std::vector<MachineInstruction> generateBinOpRhsRegMem(int src1, uint16_t src2, int dest, bool rev);                   // := op(reg, [addr])
+  std::vector<MachineInstruction> generateBinOpRhsRegMemImmReg(int src1, int src2, int dest, bool rev);                  // := op(reg, [reg])
+  std::vector<MachineInstruction> generateBinOpRhsRegMemImmMem(int src1, uint16_t src2, int dest, bool rev);             // := op(reg, [[addr]])
+  std::vector<MachineInstruction> generateBinOpRhsMemMem(uint16_t src1, uint16_t src2, int dest, bool rev);              // := op([addr], [addr])
+  std::vector<MachineInstruction> generateBinOpRhsMemMemImmReg(uint16_t src1, int src2, int dest, bool rev);             // := op([addr], [reg])
+  std::vector<MachineInstruction> generateBinOpRhsMemMemImmMem(uint16_t src1, uint16_t src2, int dest, bool rev);        // := op([addr], [[addr]])
+  std::vector<MachineInstruction> generateBinOpRhsMemImmRegMemImmReg(uint16_t src1, int src2, int dest, bool rev);       // := op([reg], [reg])
+  std::vector<MachineInstruction> generateBinOpRhsMemImmRegMemImmMem(uint16_t src1, uint16_t src2, int dest, bool rev);  // := op([reg], [[addr]])
+  std::vector<MachineInstruction> generateBinOpRhsMemImmMemMemImmMem(uint16_t src1, uint16_t src2, int dest, bool rev);  // := op([[addr]], [[addr]])
+
+  std::vector<MachineInstruction> generateBinOpLhsReg(int dest, bblocks::BBBinaryOperationEnum op);             // reg := op(*)
+  std::vector<MachineInstruction> generateBinOpLhsMem(uint16_t dest, bblocks::BBBinaryOperationEnum op);        // [addr] := op(*)
+  std::vector<MachineInstruction> generateBinOpLhsMemImmReg(int dest, bblocks::BBBinaryOperationEnum op);       // [reg] := op(*)
+  std::vector<MachineInstruction> generateBinOpLhsMemImmMem(uint16_t dest, bblocks::BBBinaryOperationEnum op);  // [[addr]] := op(*)
+
+  void generateBinaryOperatorA(std::vector<MachineInstruction>& ins, bblocks::BBBinaryOperationEnum op, bool rev);
+  void generateBinaryOperatorB(std::vector<MachineInstruction>& ins, bblocks::BBBinaryOperationEnum op, bool rev);
+  void generateBinaryOperatorMem(std::vector<MachineInstruction>& ins, bblocks::BBBinaryOperationEnum op, uint16_t dest, bool rev);
+  void generateBinaryOperatorStc(std::vector<MachineInstruction>& ins, bblocks::BBBinaryOperationEnum op, bool rev);
 
   std::vector<MachineInstruction> generateBranch(const bblocks::BBBranchV& instruction);
   std::vector<MachineInstruction> generateBranch(const bblocks::BBBranchN& instruction);
+
   std::vector<MachineInstruction> generateBranchReg(int val, bblocks::BBBranchCondition condition, const std::string& trueLabel, const std::string& falseLabel);
   std::vector<MachineInstruction> generateBranchMem(uint16_t val, bblocks::BBBranchCondition condition, const std::string& trueLabel, const std::string& falseLabel);
   std::vector<MachineInstruction> generateBranchConst(uint8_t val, bblocks::BBBranchCondition condition, const std::string& trueLabel, const std::string& falseLabel);
+
   void appendBranchJumps(std::vector<MachineInstruction>& instructions, bblocks::BBBranchCondition condition, const std::string& trueLabel, const std::string& falseLabel);
 
   std::vector<MachineInstruction> generateCall(const bblocks::BBCall& instruction);
   std::vector<MachineInstruction> generateRet(const bblocks::BBRet& instruction);
   std::vector<MachineInstruction> generateHalt(const bblocks::BBHalt& instruction);
+
+  bool saveRegA(std::vector<MachineInstruction>& ins, const std::string& dest);
+  bool saveRegB(std::vector<MachineInstruction>& ins, const std::string& dest);
+  bool restoreRegA(std::vector<MachineInstruction>& ins, const std::string& dest);
+  bool restoreRegB(std::vector<MachineInstruction>& ins, const std::string& dest);
 
   static std::string getBinaryInt(int8_t number);
   static std::string getBinaryUint(uint8_t number);

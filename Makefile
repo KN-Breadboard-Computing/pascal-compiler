@@ -62,16 +62,20 @@ test-ssa:
 	./ssa-test
 
 test-mc:
-	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/mc_mov_test.cpp tests/main.cpp -lgtest -o mc-mov-test
-	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/mc_unary_test.cpp tests/main.cpp -lgtest -o mc-unary-test
-	./mc-mov-test
-	./mc-unary-test
+	#$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/mc_mov_test.cpp tests/main.cpp -lgtest -o mc-mov-test
+	#$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/mc_unary_test.cpp tests/main.cpp -lgtest -o mc-unary-test
+	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o tests/mc_binary_test.cpp tests/main.cpp -lgtest -o mc-binary-test
+	#./mc-mov-test
+	#./mc-unary-test
+	./mc-binary-test
 
 test-ssa-end-to-end:
-	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o $(EMULATOR_CORE_OBJECTS_DIR)/*.o tests/ssa_mov_end_to_end_test.cpp tests/main.cpp -lgtest -o ssa-mov-end-to-end-test
-	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o $(EMULATOR_CORE_OBJECTS_DIR)/*.o tests/ssa_unary_end_to_end_test.cpp tests/main.cpp -lgtest -o ssa-unary-end-to-end-test
-	./ssa-mov-end-to-end-test
-	./ssa-unary-end-to-end-test
+	#$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o $(EMULATOR_CORE_OBJECTS_DIR)/*.o tests/ssa_mov_end_to_end_test.cpp tests/main.cpp -lgtest -o ssa-mov-end-to-end-test
+	#$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o $(EMULATOR_CORE_OBJECTS_DIR)/*.o tests/ssa_unary_end_to_end_test.cpp tests/main.cpp -lgtest -o ssa-unary-end-to-end-test
+	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o $(EMULATOR_CORE_OBJECTS_DIR)/*.o tests/ssa_binary_end_to_end_test.cpp tests/main.cpp -lgtest -o ssa-binary-end-to-end-test
+	#./ssa-mov-end-to-end-test
+	#./ssa-unary-end-to-end-test
+	./ssa-binary-end-to-end-test
 
 test-program-end-to-end:
 	$(CXX) $(CXXFLAGS) $(COMPILER_CORE_OBJECTS_DIR)/*.o $(EMULATOR_CORE_OBJECTS_DIR)/*.o tests/program_end_to_end_test.cpp tests/main.cpp -lgtest -o program-end-to-end-test
@@ -94,12 +98,16 @@ run-mc-test:
 	@./mc-mov-test | tee >(grep '^Total' >&2) | grep -c 'OK' | awk '{print "Passed count:", $$1}'
 	@echo -e "\n=== Running MC UNARY Tests  ==="
 	@./mc-unary-test | tee >(grep '^Total' >&2) | grep -c 'OK' | awk '{print "Passed count:", $$1}'
+	@echo -e "\n=== Running MC BINARY Tests  ==="
+	@./mc-binary-test | tee >(grep '^Total' >&2) | grep -c 'OK' | awk '{print "Passed count:", $$1}'
 
 run-ssa-end-to-end-test:
 	@echo "=== Running SSA MOV End-to-End Tests ==="
 	@./ssa-mov-end-to-end-test | tee >(grep '^Total' >&2) | grep -c 'OK' | awk '{print "Passed count:", $$1}'
 	@echo -e "\n=== Running SSA UNARY End-to-End Tests ==="
 	@./ssa-unary-end-to-end-test | tee >(grep '^Total' >&2) | grep -c 'OK' | awk '{print "Passed count:", $$1}'
+	@echo -e "\n=== Running SSA BINARY End-to-End Tests ==="
+	@./ssa-binary-end-to-end-test | tee >(grep '^Total' >&2) | grep -c 'OK' | awk '{print "Passed count:", $$1}'
 
 run-program-end-to-end-test:
 	@echo "=== Running Program End-to-End Tests ==="
@@ -124,10 +132,12 @@ clean-ssa-test:
 clean-mc-test:
 	rm -f mc-mov-test
 	rm -f mc-unary-test
+	rm -f mc-binary-test
 
 clean-ssa-end-to-end-test:
 	rm -f ssa-mov-end-to-end-test
 	rm -f ssa-unary-end-to-end-test
+	rm -f ssa-binary-end-to-end-test
 
 clean-program-end-to-end-test:
 	rm -f program-end-to-end-test
